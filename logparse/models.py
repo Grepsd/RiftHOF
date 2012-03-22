@@ -51,6 +51,9 @@ class Character(models.Model):
 	guild 				= models.ForeignKey(Guild)
 	faction 			= models.CharField(max_length=200, choices=factions)
 
+	def __unicode__(self):
+		return self.name
+
 class UserProfile(models.Model):
 	user 				= models.OneToOneField(User)
 	guild 				= models.ForeignKey(Guild, null=True, blank=True)
@@ -87,8 +90,11 @@ class Log(models.Model):
 	private 			= models.BooleanField(default=False)
 	user 				= models.ForeignKey(User)
 
+	def __unicode__(self):
+		return "%d parse %s" % (self.id, self.guild)
+
 	def encounters(self):
-		return Encounter.objects.filter(log=self)
+		return Encounter.objects.filter(log=self).order_by('id')
 
 class Encounter(models.Model):
 	boss 				= models.ForeignKey(Boss, blank=True, null=True)
@@ -102,28 +108,40 @@ class Encounter(models.Model):
 	cache 				= None
 
 	def __unicode__(self):
-		return "%d" % self.id
+		return "%d against %s" % (self.id, self.boss)
 
 	def parse(self):
 		if not self.parsed:
 			parser 		= Parser(settings.BASEPATH + '/content' + self.log.log_file.url, self.start_offset, self.end_offset)
 			parser.parse(full=True)
-			encounter 	= parser.get_encounters()[0]
-			encounter.parse()
-			self.cache 	= pickle.dumps(encounter.serialize())
 			try:
-				enc = EncounterStats.objects.get(encounter=self)
-				if len(enc.data) == 0:
-					enc.data = self.cache
+				encounter 	= parser.get_encounters()[0]
+				encounter.parse()
+				self.cache 	= pickle.dumps(encounter.serialize())
+				try:
+					enc = EncounterStats.objects.get(encounter=self)
+					if len(enc.data) == 0:
+						enc.data = self.cache
+						enc.save()
+				except:
+					enc = EncounterStats(encounter=self, data=self.cache)
 					enc.save()
+				self.parsed = True
+				self.save()
 			except:
-				enc = EncounterStats(encounter=self, data=self.cache)
-				enc.save()
-			self.parsed = True
-			self.save()
+				self.delete()
 
 	def stats(self):
-		return EncounterStats.objects.get(encounter=self)
+		try:
+			return EncounterStats.objects.get(encounter=self)
+		except:
+			e = EncounterStats(encounter=self)
+			if self.cache is not None:
+				e.data = self.cache
+			try:
+				e.save()
+			except:
+				pass
 
 	def reset(self):
 		self.parsed = False
@@ -145,6 +163,9 @@ class Actor(models.Model):
 	obj_id 				= models.BigIntegerField(default=0, null=False)
 
 	stats_cache 		= None
+
+	def __unicode__(self):
+		return "%s on %s" % (self.name, self.encounter)
 
 	def get_dps(self):
 		if self.stats_cache is None:
@@ -181,14 +202,6 @@ class EncounterStats(models.Model):
 			self.rdata = pickle.loads(str(self.data))
 			cache.set("encounter_stats_%d" % self.encounter.id, self.rdata, 60 * 15)
 
-	def top(self, stat='hits', view='done', type_actor='players'):
-		result 	= []
-		if self.rdata is None:
-			self.rdata = cache.get("encounter_stats_%d" % self.encounter.id)
-		if self.rdata is None:
-			self.rdata = pickle.loads(self.data)
-			cache.set("encounter_stats_%d" % self.encounter.id, self.rdata, 60 * 15)
-
 		if not self.encounter.boss:
 			b = Boss(name=self.rdata['bosses'])
 			b.save()
@@ -198,6 +211,14 @@ class EncounterStats(models.Model):
 		if self.duration == 0:
 			self.duration = (self.rdata['end_time'] - self.rdata['start_time']).total_seconds()
 			self.save()
+
+	def top(self, stat='hits', view='done', type_actor='players'):
+		result 	= []
+		if self.rdata is None:
+			self.rdata = cache.get("encounter_stats_%d" % self.encounter.id)
+		if self.rdata is None:
+			self.rdata = pickle.loads(self.data)
+			cache.set("encounter_stats_%d" % self.encounter.id, self.rdata, 60 * 15)
 
 		total 			= 0
 		total_original 	= 0
@@ -476,6 +497,9 @@ class Down(models.Model):
 	guild 				= models.ForeignKey(Guild)
 	encounter 			= models.ForeignKey(Encounter)
 	verified 			= models.BooleanField(default=False)
+
+	def __unicode__(self):
+		return "%s by %s" % (self.boss.name, self.guild)
 
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
