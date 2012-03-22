@@ -33,3 +33,6 @@ table td.paddingright100 {
 table.table {
 	width:					100%;
 }
+.left {
+	text-align:				left;
+}
