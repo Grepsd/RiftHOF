@@ -6,6 +6,8 @@ import re
 import time
 import logparse.models
 
+# boss list, this is temporary list which is working only for french bosses.
+# do need a list with the boss name in each languge we want to support
 bosses_list 	= [
 	'Murdantix', 
 	'Étripeur d\'âmes Zilas', 
@@ -45,6 +47,7 @@ bosses_list 	= [
 	'Grand-prêtre Arakhurn'
 ]
 
+# actors name blacklist. We dont want to see theses npc in the parses
 mob_blacklist	= [
 	'Concentration du Boss',
 	'Bannière de zèle',
@@ -65,27 +68,41 @@ class Encounter:
 	}
 	
 	def __init__(self, log, start_offset, end_offset, bosses = [], boss_killed=False):
+		# lines to parse
 		self.log 			= log
+		# actors
 		self.actors			= {}
+		# just an holder to know if an actor in a player
 		self.players		= {}
+		# same but for npc
 		self.npc			= {}
-		self.start_time		= None
 		self.end_time		= None
+		# skill name cache
 		self.skills			= skills
+		# encounter start offset (used ?)
 		self.start_offset	= start_offset
 		self.end_offset		= end_offset
+
+		# encounter global data by skill, actor and deathlog.
 		self.stats 			= {
 			'skill':	{},
 			'actor': 	{},
 			'deathlog': [],
 		}
+		# encounter start time
 		self.start_time		= self.log[0]['time']
+		# encounter end time
 		self.end_time		= self.log[len(self.log) - 1]['time']
+		# current encounter boss list
 		self.bosses 		= bosses
+		# current encounter boss killed list
 		self.boss_killed 	= boss_killed
+		# death list (tmp, used to know if an actor was revived)
 		self.deathes		= {}
+		# rez done in this fight
 		self.rez 			= []
 
+	# the most simple structure, it holds every informations a hit or a heal require.
 	def get_simple_struct(self):
 		return {
 			'hits':					0,
@@ -104,9 +121,12 @@ class Encounter:
 			'received': self.get_simple_struct(),
 		}
 
+	# calcul fight duration
 	def get_duration(self):
 		return (self.end_time - self.start_time).total_seconds()
 
+	# serialize the current encounter, return a dict with every data necessary to build a full
+	# detailled report.
 	def serialize(self):
 		return {
 			'skills':		self.skills,
@@ -122,6 +142,8 @@ class Encounter:
 			'bosses':		self.bosses,
 			'boss_killed':	self.boss_killed,
 			'rez':			self.rez,
+			# removed cause it was too big to be stored that way.
+			# we prefer to read it on live if needed (it shouldn't)
 			#'log':		self.log,
 		}
 
@@ -129,9 +151,11 @@ class Encounter:
 		l = 0
 		for line in self.log:
 			l += 1
+			# do we already parsed this fight ?
 			if l == 1:
 				if len(self.actors) > 3:
 					break
+
 			source 	= line['source_id']
 			target 	= line['target_id']
 			skill_id= line['skill_id']
@@ -150,7 +174,8 @@ class Encounter:
 				if line['action_name'] is 'DIED':
 
 					if source in self.players:
-
+						
+						# if the source is a player, we log this attack so we know what killed him
 						if 'source' in self.stats['actor'][source]['last_attack']:
 							self.stats['actor'][source]['killboard']['death'][line['time']] = {
 								'source':	self.stats['actor'][source]['last_attack']['source'],
@@ -159,7 +184,8 @@ class Encounter:
 								'is_crit':	self.stats['actor'][source]['last_attack']['is_crit'],
 								'time':		line['time'],
 							}
-
+							
+							# we add this death to the deathlog
 							self.stats['deathlog'].append({
 								'source':	self.stats['actor'][source]['last_attack']['source'],
 								'skill_id':	self.stats['actor'][source]['last_attack']['skill_id'],
@@ -168,38 +194,47 @@ class Encounter:
 								'target':  	source,
 								'time':		line['time'],
 							})
+							# tmp data to know if the player has been revived, see below.
 							self.deathes[source] = time
 				else:
+					# try to handle a kill board. Don't know if it works right now, haven't tested it yet.
 					self.stats['actor'][source]['killboard']['kill'].append({
 						'time':			line['time'], 
 						'source':		source,
 						'target':		target,
 					})
 				
+			# is the action related to the buffes and curses.
 			if line['action_name'] in ('GAINS', 'SUFFERS', 'AFFLICTED', 'FADES'):
 
-
+				# detect if it's a curse or a buff
 				if line['action_name'] in ('GAINS', 'FADES'):
 					type_buff 	= 'buff'
 				else:
 					type_buff 	= 'debuff'
 				
+				# detect if it's a start effect or an end effect.
 				if line['action_name'] in ('GAINS', 'AFFLICTED'):
 					action_type 	= 'up'
 				else:
 					action_type 	= 'down'
 				
+				# see if the target is already in the list of the peoples who were affected by a buff/curse of the source.
 				if target not in self.stats['actor'][source]['buffes']['done'][type_buff]:
 					self.stats['actor'][source]['buffes']['done'][type_buff][target] 	= {}
+				# same as ahead but inverse it. It allow us to know who did something to a specific actor.
 				if source not in self.stats['actor'][target]['buffes']['received'][type_buff]:
 					self.stats['actor'][target]['buffes']['received'][type_buff][source]= {}
 
+				# does the target have already been affected by this skill from this source;
 				if skill_id not in self.stats['actor'][source]['buffes']['done'][type_buff][target]:
 					self.stats['actor'][source]['buffes']['done'][type_buff][target][skill_id] = []
+				# same as ahead but inverse it.
 				if skill_id not in self.stats['actor'][target]['buffes']['received'][type_buff][source]:
 					self.stats['actor'][target]['buffes']['received'][type_buff][source][skill_id] = []
 
 			
+				# track the buff/curse timeline (here for the source)
 				tt = self.stats['actor'][source]['buffes']['done'][type_buff][target][skill_id]
 				try:
 					l_done 	= tt.pop(len(tt) - 1)
@@ -224,7 +259,8 @@ class Encounter:
 							tt.append(l_done)
 					else:
 						l_done.append([self.start_time, line['time']])
-
+					
+				# and here for the target.
 				tt = self.stats['actor'][target]['buffes']['received'][type_buff][source][skill_id]
 				try:
 					l_done 	= tt.pop(len(tt) - 1)
@@ -250,10 +286,13 @@ class Encounter:
 					else:
 						l_done.append([self.start_time, line['time']])
 
+			# is this a heal or a hit ?
 			if line['action_name'] in ('SUFFERS', 'HITS', 'CRITICALLY_HITS', 'HEALS', 'CRITICALLY_HEALS'):
 				amount 	= line['amount']
+
 				if line['action_name'] in ('HITS', 'CRITICALLY_HITS', 'SUFFERS'):
 					a = 'hits'
+					# log this attack as the last attack. Used for the death log (death recap)
 					self.stats['actor'][target]['last_attack'] = {
 						'source':	source,
 						'skill_id':	skill_id,
@@ -262,19 +301,23 @@ class Encounter:
 					}
 				else:
 					a = 'heals'
+					# does the target is dead ? if yes, it's a revive !
 					if target in self.deathes and (time - self.deathes[target]).total_seconds() > 2:
 						del self.deathes[target]
 						self.rez.append({'source': source, 'target': target, 'skill': skill_id, 'time': time})
 
-				
+				# does anything already happened at this $time in the timeline for the source (and then for the target)
 				if time not in self.stats['actor'][source]['timeline']:
 					self.stats['actor'][source]['timeline'][time] = {'done': {'heals': 0, 'hits': 0}, 'received': {'heals': 0, 'hits': 0}}
 				if time not in self.stats['actor'][target]['timeline']:
 					self.stats['actor'][target]['timeline'][time] = {'done': {'heals': 0, 'hits': 0}, 'received': {'heals': 0, 'hits': 0}}
 				
-				self.stats['actor'][source]['timeline'][time]['done'][a] += amount
-				self.stats['actor'][target]['timeline'][time]['received'][a] += amount
+				# add the value of this action in the timeline.
+				self.stats['actor'][source]['timeline'][time]['done'][a] 	+= amount
+				self.stats['actor'][target]['timeline'][time]['received'][a]+= amount
 
+				# does this skill is already registered ? used to have a full report of what hits what and do 
+				# stats on it.
 				if skill_id not in self.stats['actor'][source]['done']['skill'][a]:
 					self.stats['actor'][source]['done']['skill'][a][skill_id] = 0
 
@@ -285,6 +328,7 @@ class Encounter:
 
 				self.stats['actor'][target]['received']['skill'][a][skill_id] += amount
 
+				# add this amount and stats to the global stats of the target and source
 				self.stats['actor'][target]['global']['received'][a] 				+= amount
 				self.stats['actor'][target]['global']['received']['%s_count' % a] 	+= 1
 				if line['action_name'] == 'CRITICALLY_HITS':
@@ -297,6 +341,7 @@ class Encounter:
 					self.stats['actor'][source]['global']['done']['critical_%s' % a] 		+= amount
 					self.stats['actor'][source]['global']['done']['critical_%s_count' % a] 	+= 1
 
+				# track who did hit who.
 				if source not in self.stats['actor'][target]['received']['actor']:
 					self.stats['actor'][target]['received']['actor'][source] = self.get_simple_struct()
 				self.stats['actor'][target]['received']['actor'][source][a] 				+= amount
@@ -314,51 +359,22 @@ class Encounter:
 					self.stats['actor'][source]['done']['actor'][target]['critical_%s_count' % a] 	+= 1
 				
 
-		#print sorted([x['name'] for x in self.players.values()])
-		#print [x['name'] for x in self.npc.values()]
-		"""
-		t = {}
-		for a, s in self.stats['actor'].items():
-			if a in self.players:
-				for actor_buff, buffes in self.stats['actor'][a]['buffes']['received']['buff'].items():
-					if actor_buff != a:
-						continue
-					
-					for skill_id, ups in buffes.items():
-						total_up = 0
-						occurence = 0
-						for u in ups:
-							if len(u) == 0:
-								continue
-							if len(u) < 2:
-								u.append(self.end_time)
-							occurence += 1
-							total_up += (u[1] - u[0]).total_seconds()
-						print "%d%% (%ds) (%d times) for %s by %s on %s" % (total_up / self.get_duration() * 100, total_up, occurence, self.skills[skill_id], self.actors[actor_buff]['name'], self.actors[a]['name'])
-				if s['global']['done']['hits'] not in t:
-					t[s['global']['done']['hits']] = []
-				t[s['global']['done']['hits']].append(self.actors[a]['name'])
-		k = t.keys()
-		k = sorted(k, reverse=True)
 
-		for death in self.stats['deathlog']:
-			print "%s %s was killed by %s [%s recus de %s]" % (death['time'].time(), self.actors[death['target']]['name'], self.actors[death['source']]['name'], death['amount'], self.skills[death['skill_id']])
-
-		total = 0
-		for a in k:
-			total += a
-			print "%d : %s" % (a / self.get_duration(), (", ".join(t[a])))
-		print "Total : %d / %ds" % (total / self.get_duration(), self.get_duration())
-		"""
-
+	# used to give the full structure of an actor (stored in self.actors)
+	# with this, we are able to know everything of an actor for the current fight.
 	def create_actor(self, line, s):
 		actor = {
 			'id':	line['%s_id' % s],
+
 			'name':	line['%s_name' % s],
+
 			'type': self.types_actor.get(line['%s_primary_type' % s], 'other'),
+
 			'registration': line['%s_registration' % s],
 		}
+
 		self.actors[actor['id']] = actor
+
 		if actor['type'] == 'player':
 			self.players[actor['id']] = actor
 		else:
@@ -426,93 +442,160 @@ class Parser:
 	}
 	
 	def __init__(self, filename, first_byte=0, last_byte=None, log_id=None):
+		# combat status defined in the combat log
 		self.combat_status 		= False
+		# combat log calculed from the last attack time and the combat_status
 		self.in_combat 			= False
+
+		# buffer of lines, is it useful ? i dont think so right now.
+		# todo : clean this up
 		self.lines_buffer 		= []
+		# last attack time
 		self.last_attack 		= None
+		# number of line that have been read
 		self.line_count 		= 0
+		# current day (start at 0, and increase if the log have encounters on different days.)
 		self.day				= 0
+		# last action time
 		self.last_otime 		= None
+		# encounter counter
 		self.encounter_count	= 0
+		# list of encounters
 		self.encounters			= []
+		# start time of the current encounter
 		self.start_time 		= None
-		"""self.path				= path
-		self.parse_name 		= name"""
+		# combat lof filename (and path)
 		self.filename 			= filename
+		# offset at wich we should start parsing the file
 		self.start_offset		= 0
+		# current encounter boss
 		self.boss 				= None
+		# current encounter boss killed list
 		self.boss_killed		= None
+		# current encounter KIA players list
 		self.kia 				= []
+		# first byte we should parse
 		self.first_byte			= first_byte
+		# last byte we should parse
 		if last_byte is not None:
 			self.last_byte 		= last_byte
 		else:
 			self.last_byte		= None
+		# if the log_id is defined, we can save the encounters and link them to the given Log object.
 		self.log_id				= log_id
 
+	"""
+		Parse the file.
+		this method can either read the whole file or just a chunk, this feature is defined by the start_offset
+		object property which is telling if we have to jump to the fight we want or not.
+	"""
 	def parse(self, full=False):
 		self.file 		= file(self.filename, 'r', 1024)
+
+		# seek to the fight we want
 		if self.first_byte > 0:
 			self.file.seek(self.first_byte)
+
 		while True:
 			self.curr_offset = self.file.tell()
+			# stop if we read the whole interesting data (an enouncter starts and ends at specifics offsets)
 			if self.last_byte is not None and self.curr_offset >= self.last_byte:
 				break
 			line = self.file.readline()
+
+			# does the line is fully blank ?
+			# if yes, it means we're at the end of the file. (it wont happen if there is a \n at the end of the line)
 			if len(line) == 0:
 				break
+			# if the striped line is blank, we pass this line.
 			line 	= line.strip()
 			if len(line) == 0:
 				continue
+			
+			# count read lines.
 			self.line_count += 1
+			# parse line.
 			parsed 	= self.parse_line(line, full)
+		
+		# if we're at the end of an encounter, let's do the saving and cleaning.
 		if self.last_byte is not None and self.start_time is not None:
-			if (self.last_otime - self.start_time).total_seconds() > 60:
+			# is this a worth of logging fight ? (more than 60 seconds.)
+			if (otime - self.start_time).total_seconds() > 60:
+
 				self.encounter_count 	+= 1
 				enc 					= Encounter(self.lines_buffer, self.start_offset, self.curr_offset, self.boss, self.boss_killed is not None)
-				#enc.parse()
+
 				data 					= enc.serialize()
 				
 				if data['bosses'] is not None:
 					if full:
 						enc.parse()
-						#data = enc.serialize()
-						#if 'Alsbeth la Discordante' != self.boss or ('Alsbeth la Discordante' == self.boss and len(data['players']) > 5):
-						#c_data 					= str(pickle.dumps(data))
 
-					self.encounters.append(enc)
+					# the parse is one to save the data of the fight in the encounter datastore.
+					if self.log_id is not None:
+
+						l 						= logparse.models.Log.objects.get(id=self.log_id)
+						encounter 				= logparse.models.Encounter(log=l)
+
+						encounter.start_offset	= enc.start_offset
+						encounter.end_offset 	= enc.end_offset
+
+						# we try to load the boss from the database
+						try:
+							encounter.boss 			= logparse.models.Boss.objects.get(name=enc.bosses)
+						# if this boss isn't in the database, we create it
+						except:
+							b = logparse.models.Boss(name=enc.bosses)
+							b.save()
+							encounter.boss = b
+						
+						# did the raid kill the boss ?
+						encounter.wipe = not enc.boss_killed
+						encounter.save()
+
+						# memory efficiency fix.
+						del enc, encounter
+
+					else:
+
+						self.encounters.append(enc)
 
 	def get_encounters(self):
 		return self.encounters
 
 	def parse_line(self, line, full):
 
+		# handle the log time
 		logtime 	= line[0:8]
 		try:
 			otime		= datetime.strptime(logtime, '%H:%M:%S') + timedelta(days=self.day)
 		except:
-			print line
-			print self.file.tell()
 			raise
 
+		# did we change day while fighting ?
 		if self.last_otime is not None and otime.time() < self.last_otime.time():
 			self.day+= 1
 			otime += timedelta(days=1)
 
 		self.last_otime = otime
 
+		# split the line to detect format
 		try:
 			index = line.index('(')
 		except:
+			# detect the "Combat End" line telling us the client which logged this is now out of combat
 			if line.split(" ")[2].lower() == "end":
 				self.combat_status 		= False
+			# same but for the combat start.
 			else:
 				self.combat_status 		= True
+			# we don't have anything to parse after that.
 			return
 
 		rindex 	= line.index(')')
 
 		data 	= line[index + 2:rindex]
+		# striping elements to have "good" data to read.
 		d 		= [x.strip() for x in data.split(",")]
 
 		action 		= int(d[0])
@@ -523,6 +606,7 @@ class Parser:
 		target_type = d[4]
 		source_name = d[5]
 		target_name = d[6]
+		# some actor's name contain some unescaped chars such as "," which is used to split elements on the log line.
 		try:
 			amount 		= int(d[7])
 			skill_id	= int(d[8])
@@ -534,7 +618,9 @@ class Parser:
 			skill_name 	= d[10]
 
 		source_type_= source_full.split('#')
+		# player, npc ou other ?
 		source_primary_type = source_type_[0][-1]
+		# groupe, raid, or something else ?
 		source_registration = source_type_[1][-1]
 		source_id 			= source_type_[2]
 
@@ -571,70 +657,87 @@ class Parser:
 			'target_primary_type': target_primary_type,
 			'target_registration': target_registration
 		}
+
+		# detect the bosses killed in the fight.
 		if line_data['action'] == 11:
+			# the actor who's dead was a boss ? It's important to detect wether or not the raid wiped on the boss.
 			if line_data['target_name'] in bosses_list:
 				self.boss_killed = line_data['target_name']
+			# if the actor who's dead is a player, add him to the KIA list.
 			if line_data['target_name'] not in self.kia and line_data['target_primary_type'] == 'P':
 				self.kia.append(line_data['target_name'])
+
+		# detect players killed in the encounter.
 		if line_data['action'] == 12 and line_data['source_primary_type'] == 'P':
 			if line_data['source_name'] not in self.kia:
 				self.kia.append(line_data['source_name'])
 
+		# skill name cache
 		if line_data['skill_id'] not in skills:
 			skills[line_data['skill_id']] = line_data['skill_name']
 
+		# first attack and we're not yet in combat ? Well, now we are.
 		if not self.in_combat and is_attack:
 			self.in_combat			= True
 			self.start_offset 		= self.curr_offset
 			self.start_time			= otime
+
+		# detect the current encounter boss from target and source.
 		if self.boss is None and line_data['target_name'] in bosses_list:
 			self.boss = line_data['target_name']
 		if self.boss is None and line_data['source_name'] in bosses_list:
 			self.boss = line_data['source_name']
 
 		if not self.combat_status and self.in_combat and self.last_attack is not None:
+
 			if (otime - self.last_attack).total_seconds() > 10:
+
 				if len(self.lines_buffer) > 0:
+
 					self.in_combat 			= False
+
+					# is this a worth of logging fight ? (more than 60 seconds.)
 					if (otime - self.start_time).total_seconds() > 60:
+
 						self.encounter_count 	+= 1
 						enc 					= Encounter(self.lines_buffer, self.start_offset, self.curr_offset, self.boss, self.boss_killed is not None)
-						#enc.parse()
+
 						data 					= enc.serialize()
 						
 						if data['bosses'] is not None:
 							if full:
 								enc.parse()
-								"""
-	log = Log.objects.get(id=id)
-	if not log.processed:
-		parser = Parser(settings.BASEPATH + '/content' + log.log_file.url)
-		parser.parse(False)
-		for encounter in parser.get_encounters():
-	log.process = True
-	log.processing_date = datetime.now()
-	log.save()"""
-							#data = enc.serialize()
-							#if len(data['players']) > 5:
-								#c_data 					= str(pickle.dumps(data))
 
+							# the parse is one to save the data of the fight in the encounter datastore.
 							if self.log_id is not None:
+
 								l 						= logparse.models.Log.objects.get(id=self.log_id)
 								encounter 				= logparse.models.Encounter(log=l)
+
 								encounter.start_offset	= enc.start_offset
 								encounter.end_offset 	= enc.end_offset
+
+								# we try to load the boss from the database
 								try:
 									encounter.boss 			= logparse.models.Boss.objects.get(name=enc.bosses)
+								# if this boss isn't in the database, we create it
 								except:
 									b = logparse.models.Boss(name=enc.bosses)
 									b.save()
 									encounter.boss = b
+								
+								# did the raid kill the boss ?
 								encounter.wipe = not enc.boss_killed
 								encounter.save()
+
+								# memory efficiency fix.
 								del enc, encounter
+
 							else:
+
 								self.encounters.append(enc)
 
+					# flush the buffers and reset the tmp data.
 					self.lines_buffer 		= []
 					self.boss 				= None
 					self.boss_killed 		= None
@@ -642,9 +745,6 @@ class Parser:
 		
 		if is_attack:
 			self.last_attack = otime
-
-		if not self.in_combat and is_attack:
-			self.in_combat		= True
 
 		if self.in_combat:
 			self.lines_buffer.append(line_data)
