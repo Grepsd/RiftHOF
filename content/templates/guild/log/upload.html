@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block "content" %}
+	{% if user.get_profile.has_guild %}
+		{% if log %}
+			<div class="alert alert-success">
+				<ul>
+					<li>You successfuly uploaded a log.</li>
+					<li>Wait while it's being parsed by the server.</li>
+				</ul>
+				<p>
+					Take a look at <a href="{% url guild_log_show log.id %}">{% url guild_log_show log.id %}</a>
+				</p>
+			</div>
+		{% endif %}
+	{% else %}
+		<div class="alert alert-error">
+			you can't upload a log if you aren't part of a guild.
+		</div>
+	{% endif %}
+{% endblock %}

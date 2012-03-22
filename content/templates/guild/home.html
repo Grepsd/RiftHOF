@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block "content" %}
+	{% if user.get_profile.has_guild %}
+		<h1>{{ user.get_profile.guild.name }}</h1>
+
+		<h3>Combat Log</h3>
+			<form action="{% url guild_log_upload %}" class="form form-inline" method="post" enctype="multipart/form-data">
+				{% csrf_token %}
+				<div class="control-group">
+					<label for="id_log_file" class="label">Combat Log File : </label>
+					{{ log_form.log_file }}
+				</div>
+
+				<div class="control-group">
+					<label for="id_private" class="label">Is private ? : </label>
+					{{ log_form.private }}
+				</div>
+				<div class="control-group">
+					<input type="submit" value="upload" class="btn btn-info" />
+				</div>
+			</form>
+			<table>
+				{% for log in guild.logs %}
+					<tr>
+						<td><a href="{% url guild_log_show log.id %}">{% url guild_log_show log.id %}</a></td>
+					</tr>
+				{% endfor %}
+			</table>
+		<h3>Members</h3>
+
+		<h4>Quit</h4>
+		<a href="{% url guild_quit %}"><span class="btn btn-danger">Quit</span></a>
+	{% else %}
+		<div class="alert alert-error">
+			You're not part of a guild.
+		</div>
+
+		<p class="center">
+			Do you want to create your own guild or to join an existing guild ?
+		</p>
+		<p class="center">
+			<a href="{% url guild_create %}"><span class="btn btn-success">Create</span></a>
+			<a href="{% url guild_join %}"><span class="btn btn-success" style="margin-left: 30px;">Join</span></a>
+		</p>
+
+	{% endif %}
+{% endblock %}

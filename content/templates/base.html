@@ -1,0 +1,78 @@
+ <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+  <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+    <head>
+        <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+        <title>Rift HallOfFames</title>
+        <link rel="stylesheet" href="{{ STATIC_URL }}css/bootstrap.css" type="text/css" />
+        <link rel="stylesheet" href="{{ STATIC_URL }}css/main.css" type="text/css" />
+        <link rel="stylesheet" href="{{ STATIC_URL }}css/tablesorter.css" type="text/css" />
+        <script type="text/javascript" src="http://code.jquery.com/jquery-git.js"></script>
+        <script type="text/javascript" src="http://code.highcharts.com/highcharts.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}js/jquery.tablesorter.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}js/bootstrap-transition.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}js/bootstrap-alert.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}js/bootstrap-modal.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}js/bootstrap-dropdown.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}js/bootstrap-scrollspy.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}js/bootstrap-tab.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}js/bootstrap-tooltip.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}js/bootstrap-popover.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}js/bootstrap-button.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}js/bootstrap-collapse.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}js/bootstrap-carousel.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}js/bootstrap-typeahead.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}js/application.js"></script>
+    </head>
+    <body>
+        <div class="navbar">
+          <div class="navbar-inner">
+            <div class="container">
+              <a class="brand" href="/">Rift HallOfFames</a>
+              <div class="nav-collapse">
+                <ul class="nav">
+                  <li><a href="">Home</a></li>
+                  <li><a href="">Browse</a></li>
+                  <li><a href="">Ranking</a></li>
+                  <li><a href="">Progression</a></li>
+                </ul>
+                    {% if user.is_authenticated %}
+                        <ul class="nav pull-right">
+                            <li class="divider-vertical"></li>
+                            <li><a href="{% url guild_home %}">Your guild</a></li>
+                            <li><a href="{% url logout %}">Logout</a></li>
+                        </ul>
+						<ul class="nav pull-right">
+							<li class="divider-vertical"></li>
+							<li><a href="" class="pull-right">Dashboard</a></li>
+							<li><a href="/admin" class="pull-right">Admin</a></li>
+						</ul>
+                   {% else %}
+                        <ul class="nav pull-right">
+                            <li class="divider-vertical"></li>
+                            <li><a href="{% url login %}">Login</a></li>
+                            <li><a href="">Register</a></li>
+                        </ul>
+                    {% endif %}
+              </div><!--/.nav-collapse -->
+            </div>
+          </div>
+        </div>
+
+        <div class="container">
+            <div class="hero-unit">
+              {% if messages %}
+                <ul class="messages">
+                {% for message in messages %}
+                  <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                {% endfor %}
+                </ul>
+              {% endif %}
+                {% block "content" %}
+                {% endblock %}
+                <hr>
+                <p class="pull-right">&copy;RiftHOF by <a href="mailto:grepsd@gmail.com">Grepsd</a>. 2012.</p>
+            </div>
+        </div>
+    </body>
+</html>

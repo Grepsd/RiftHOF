@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% load logparse_tpl_filters %}
+{% block "content" %}
+	<script type="text/javascript">
+          function checkLogProcessingStatus()
+          {
+            $.ajax({
+              url:  '{% url api_log_check_status log.id %}',
+              success: function (res)
+              {
+                if (res == 1)
+                {
+                  document.location.reload();
+                }
+                else
+                {
+                  setTimeout("checkLogProcessingStatus();", 5000);
+                }
+              }
+            });
+          }
+          {% if not log.processed %}
+            checkLogProcessingStatus(); 
+          {% endif %}
+	</script>
+	{% if not log.processed %}
+		<div class="alert alert-error">
+			<p>This log hasn't been processed yet.</p>
+			<p>This page will refresh automatically until the log is processed.</p>
+			<p class="center">
+				<img src="{{ STATIC_URL }}img/loading.gif" />
+			</p>
+		</div>
+	{% else %}
+    <table>
+      {% for encounter in log.encounters %}
+        <tr>
+          <td class="{{ encounter.wipe|yesno:"error,success" }}">
+            <span class="{{ encounter.wipe|yesno:"icon-remove,icon-ok" }}"></span> 
+            <span class="{{ encounter.wipe|yesno:"bold" }}"><a href="{% url guild_log_encounter_show encounter.id %}">
+            {% if encounter.boss.id > 0 %}{{ encounter.boss.name }}{% else %}Unknown boss{% endif %}</a> {{ encounter.stats.duration|secs }}</span>
+          </td>
+          <td></td>
+      {% endfor %}
+    </table>
+	{% endif %}
+{% endblock %}

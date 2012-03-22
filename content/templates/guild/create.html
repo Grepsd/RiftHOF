@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block "content" %}
+	<script type="text/javascript">
+		function checkGuildNameAvailability(el)
+		{
+			$.ajax({
+				url: 	'{% url api_guild_checkname %}',
+				data: 	{
+					name: el.value,
+				},
+				success: function (res)
+				{
+					if (res == 0)
+					{
+						$('#guild_name_group').toggleClass('error', true);
+					}
+					else
+					{
+						$('#guild_name_group').toggleClass('error', false);
+					}
+				}
+			});
+		}
+	</script>
+	{% if errors %}
+		<div class="alert alert-error">
+			{% for error in errors %}
+				{{ error }}
+			{% endfor %}
+		</div>
+	{% endif %}
+	{% if success %}
+		<div class="alert alert-success">
+			<p>Congratulation !</p>
+			<p>You just created your guild, you can now : 
+				<ul>
+					<li>Post parse of your raids</li>
+					<li>Post your guild progression</li>
+					<li>Set up a recruitement page</li>
+				</ul>
+			</p>
+		</div>
+	{% else %}
+		{% if user.get_profile.has_guild %}
+			<div class="alert alert-error">
+				You already are part of guild.
+			</div>
+
+			<p class="center">Do you want to quit it ?</p>
+			<p class="center">
+				<a href="{% url guild_quit %}"><span class="btn btn-danger">Quit</span></a>
+			</p>
+		{% endif %}
+		<fieldset>
+			<legend>Join a guild</legend>
+			<form class="form form-vertical" action="{% url guild_create %}" method="post">
+				{% csrf_token %}
+				<label for="shard" class="label">Shard : </label>
+				<select name="shard" id="shard" >
+					<option value=""></option>
+					{% for zone in zones %}
+						{% for shard in zone.shards %}
+							<option value="{{ shard.id }}"> {{ zone.name }}_{{ shard.name }}</option>
+						{% endfor %}
+					{% endfor %}
+				</select>
+
+				<div class="control-group" id="guild_name_group">
+					<label for="name" class="label">Guild name:</label>
+					<input type="text" name="name" id="name" onKeyUp="checkGuildNameAvailability(this)" />
+				</div>
+
+				<label for="faction" class="label">Faction:</label>
+				<select name="faction" id="faction">
+					{% for faction in factions %}
+						<option value="{{ faction.0 }}"> {{ faction.1 }}</option>
+					{% endfor %}
+				</select>
+				
+
+				<p class="center">
+					<input type="submit" value="Create" class="btn btn-success" />
+				</p>
+			</form>
+		</fieldset>
+	{% endif %}
+{% endblock %}

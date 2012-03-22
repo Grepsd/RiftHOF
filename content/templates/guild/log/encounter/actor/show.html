@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load logparse_tpl_filters %}
+{% block "content" %}
+	<script type="text/javascript">
+      {% with timeline_array=timeline|dictsort:"time" %}
+      $(document).ready(function() {
+      	chart = new Highcharts.Chart({
+          chart: {
+                renderTo: 'timeline',
+                type: 'spline'
+            },
+
+            title: {
+                text: 'Timeline'
+            },
+            xAxis: {
+                categories: [{% for time in timeline_array %}'{{ time.time|secs }}',{% endfor %}],
+                tickInterval: 6,
+                plotLines: [
+                  {% for death in deathes %}
+                    {
+                        value : {{ death.time }} / 5,
+                        color: '#A00',
+                        width: 1,
+                        label: {text: '{{ death.player }}',},
+                    },
+                  {% endfor %}
+                  {% for r in rez %}
+                    {
+                        value : {{ r.time }} / 5,
+                        color: '#0A0',
+                        width: 1,
+                        label: {text: '{{ r.player }}',},
+                    },
+                  {% endfor %}
+                  ],
+                plotBands: [
+                  {% for buff in buffes %}
+                    {
+                      from: {{ buff.from }} / 5,
+                      to:   {{ buff.to }} / 5,
+                      color: '{% if buff.skill == "Couplet de joie" %}#CEF{% else %}#FEC{% endif %}',
+                    },
+                  {% endfor %}
+                ]
+            },
+
+ 
+            yAxis: {
+                title: {
+                    text: 'DPS/HPS'
+                },
+                labels: {
+                    formatter: function() {
+                        return this.value
+                    }
+                },
+                min: 0,
+            },
+
+            tooltip: {
+                crosshairs: true,
+                shared: true
+            },
+            plotOptions: {
+              series: {
+                marker: {
+                  enabled: false,
+                }
+              }
+            },
+
+            series: [{
+                name: 'DPS',
+                data: [{% for stats in timeline_array %}{{ stats.done.hits }} / 5,{% endfor %}]
+            },{
+                name: 'HPS',
+                data: [{% for stats in timeline_array %}{{ stats.done.heals }} / 5,{% endfor %}]
+            },{
+                name: 'DPS Taken',
+                data: [{% for stats in timeline_array %}{{ stats.received.hits }} / 5,{% endfor %}]
+            }]
+       	});
+    });
+    {% endwith %}
+	</script>
+	<h2>Details for {{ actor.name }} on <a href="{% url guild_log_encounter_show actor.encounter.id %}">{{ actor.encounter.boss.name }}</a>'s fight</h2>
+
+	<table class="table center">
+		<thead>
+			<tr>
+				<th>Global DPS</th>
+				<th>Global HPS</th>
+				<th>Global DPS Taken</th>
+		</thead>
+		<tbody>
+			<tr>
+				<td>{{ actor.get_dps|intcomma }}</td>
+				<td>{{ actor.get_hps|intcomma }}</td>
+				<td>{{ actor.get_taken|intcomma }}</td>
+		</tbody>
+	</table>
+
+	<br />
+
+	<div id="timeline"></div>
+	<br />
+
+	<table class="table table-condensed table-bordered center">
+		<thead>
+			<tr>
+				<th>Type</th>
+				<th>Total</th>
+				<th>Count</th>
+				<th>Avg</th>
+				<th>Crit rate</th>
+				<th>Per Second</th>
+		</thead>
+		<tbody>
+			<tr>
+				<th>Hits</th>
+				<td>{{ stats.done.hits|intcomma }}</td>
+				<td>{{ stats.done.hits_count|intcomma }}</td>
+				<td>{% widthratio stats.done.hits stats.done.hits_count 1 %}</td>
+				<td>{% widthratio stats.done.critical_hits_count stats.done.hits_count 100 %}%</td>
+				<td>{% widthratio stats.done.hits encounter_stats.duration 1 %}</td>
+			</tr>
+			<tr>
+				<th>Heals</th>
+				<td>{{ stats.done.heals|intcomma }}</td>
+				<td>{{ stats.done.heals_count|intcomma }}</td>
+				<td>{% widthratio stats.done.heals stats.done.heals_count 1 %}</td>
+				<td>{% widthratio stats.done.critical_heals_count stats.done.heals_count 100 %}%</td>
+				<td>{% widthratio stats.done.heals encounter_stats.duration 1 %}</td>
+			</tr>
+			<tr>
+				<th>Hits Taken</th>
+				<td>{{ stats.received.hits|intcomma }}</td>
+				<td>{{ stats.received.hits_count|intcomma }}</td>
+				<td>{% widthratio stats.received.hits stats.received.hits_count 1 %}</td>
+				<td>{% widthratio stats.received.critical_hits_count stats.received.hits_count 100 %}%</td>
+				<td>{% widthratio stats.received.hits encounter_stats.duration 1 %}</td>
+			</tr>
+		</tbody>
+	</table>
+{% endblock %}

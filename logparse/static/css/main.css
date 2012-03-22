@@ -1,0 +1,35 @@
+body {
+	padding:				10px;
+}
+
+.center {
+	text-align:				center;
+}
+
+.bg_grey {
+	background-color:		#787878;
+}
+
+.bold, tr.bold td {
+	font-weight:			bold;
+}
+
+.success, .success a {
+	color:					green;
+}
+
+.error, .error a {
+	color:					red;
+}
+
+table td.align-right {
+	text-align:				right;
+}
+
+table td.paddingright100 {
+	padding-right:			100px;
+}
+
+table.table {
+	width:					100%;
+}
