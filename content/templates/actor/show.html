@@ -4,7 +4,10 @@
 {% block "content" %}
 	<script type="text/javascript">
       {% with timeline_array=timeline|dictsort:"time" %}
+
+    $(function () {
       $(document).ready(function() {
+        $('#detailed_stats_by_skill').tablesorter();
       	chart = new Highcharts.Chart({
           chart: {
                 renderTo: 'timeline',
@@ -83,6 +86,7 @@
             }]
        	});
     });
+  });
     {% endwith %}
 	</script>
 	<h2>Details for {{ actor.name }} on <a href="{% url guild_log_encounter_show actor.encounter.id %}">{{ actor.encounter.boss.name }}</a>'s fight</h2>
@@ -106,6 +110,8 @@
 
 	<div id="timeline"></div>
 	<br />
+
+  <h2>Total Stats</h2>
 
 	<table class="table table-condensed table-bordered center">
 		<thead>
@@ -144,4 +150,33 @@
 			</tr>
 		</tbody>
 	</table>
+
+  <h2>Detail by skill</h2>
+
+  <table class="table table-condensed table-bordered tablesorter" id="detailed_stats_by_skill">
+    <thead>
+      <tr>
+        <th>Skill Name</th>
+        <th>Damages</th>
+        <th>DPS</th>
+        <th>% DPS</th>
+        <th>Heals</th>
+        <th>HPS</th>
+        <th>% HPS</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for stat in detailed_total_stats %}
+        <tr>
+          <td>{{ stat.skill_name }}</td>
+          <td>{{ stat.hits }}</td>
+          <td>{% widthratio stat.hits encounter_stats.duration 1 %}</td>
+          <td>{% widthratio stat.hits stats.done.hits 100 %}%</td>
+          <td>{{ stat.heals }}</td>
+          <td>{% widthratio stat.heals encounter_stats.duration 1 %}</td>
+          <td>{% widthratio stat.heals stats.done.heals 100 %}%</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 {% endblock %}

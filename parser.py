@@ -328,6 +328,73 @@ class Encounter:
 
 				self.stats['actor'][target]['received']['skill'][a][skill_id] += amount
 
+				"""
+					Stats by skills
+
+					What you received by skill_id
+					What you did by skill_id
+
+					You dont know who hit you, or who you hit, but you know what kind of hit it was.
+
+				"""
+
+				if skill_id not in self.stats['actor'][source]['done']['skill']['detail']:
+					self.stats['actor'][source]['done']['skill']['detail'][skill_id] = self.get_simple_struct()
+
+				self.stats['actor'][source]['done']['skill']['detail'][skill_id][a] 				+= amount
+				self.stats['actor'][source]['done']['skill']['detail'][skill_id]['%s_count' % a] 	+= 1
+				if line['action_name'] in ('CRITICALLY_HITS', 'CRITICALLY_HEALS'):
+					self.stats['actor'][source]['done']['skill']['detail'][skill_id]['critical_%s' % a] 		+= amount
+					self.stats['actor'][source]['done']['skill']['detail'][skill_id]['critical_%s_count' % a] 	+= 1
+
+				if skill_id not in self.stats['actor'][target]['received']['skill']['detail']:
+					self.stats['actor'][target]['received']['skill']['detail'][skill_id] = self.get_simple_struct()
+
+				self.stats['actor'][target]['received']['skill']['detail'][skill_id][a] 				+= amount
+				self.stats['actor'][target]['received']['skill']['detail'][skill_id]['%s_count' % a] 	+= 1
+				if line['action_name'] in ('CRITICALLY_HITS', 'CRITICALLY_HEALS'):
+					self.stats['actor'][target]['received']['skill']['detail'][skill_id]['critical_%s' % a] 		+= amount
+					self.stats['actor'][target]['received']['skill']['detail'][skill_id]['critical_%s_count' % a] 	+= 1
+
+
+				"""
+					Stats by actor then by skills
+
+					What you received by skill_id
+					What you did by skill_id
+
+					You dont know who hit you, or who you hit, and you know who did what to who.
+
+				"""
+
+				if target not in self.stats['actor'][source]['done']['actor_skill']:
+					self.stats['actor'][source]['done']['actor_skill'][target] = {}
+
+				if skill_id not in self.stats['actor'][source]['done']['actor_skill'][target]:
+					self.stats['actor'][source]['done']['actor_skill'][target][skill_id] = self.get_simple_struct()
+
+				self.stats['actor'][source]['done']['actor_skill'][target][skill_id][a] 				+= amount
+				self.stats['actor'][source]['done']['actor_skill'][target][skill_id]['%s_count' % a] 	+= 1
+				if line['action_name'] in ('CRITICALLY_HITS', 'CRITICALLY_HEALS'):
+					self.stats['actor'][source]['done']['actor_skill'][target][skill_id]['critical_%s' % a] 		+= amount
+					self.stats['actor'][source]['done']['actor_skill'][target][skill_id]['critical_%s_count' % a] 	+= 1
+
+
+
+				if source not in self.stats['actor'][target]['received']['actor_skill']:
+					self.stats['actor'][target]['received']['actor_skill'][source] = {}
+
+				if skill_id not in self.stats['actor'][target]['received']['actor_skill'][source]:
+					self.stats['actor'][target]['received']['actor_skill'][source][skill_id] = self.get_simple_struct()
+
+				self.stats['actor'][target]['received']['actor_skill'][source][skill_id][a] 				+= amount
+				self.stats['actor'][target]['received']['actor_skill'][source][skill_id]['%s_count' % a] 	+= 1
+				if line['action_name'] in ('CRITICALLY_HITS', 'CRITICALLY_HEALS'):
+					self.stats['actor'][target]['received']['actor_skill'][source][skill_id]['critical_%s' % a] 		+= amount
+					self.stats['actor'][target]['received']['actor_skill'][source][skill_id]['critical_%s_count' % a] 	+= 1
+
+
+
 				# add this amount and stats to the global stats of the target and source
 				self.stats['actor'][target]['global']['received'][a] 				+= amount
 				self.stats['actor'][target]['global']['received']['%s_count' % a] 	+= 1
@@ -383,12 +450,14 @@ class Encounter:
 		self.stats['actor'][actor['id']] = {
 			'global': 		self.get_detailed_struct(),
 			'done':			{
-				'skill':	{'heals': {}, 'hits': {}},
+				'skill':	{'heals': {}, 'hits': {}, 'detail': {}},
 				'actor':	{},
+				'actor_skill': {},
 			},
 			'received':		{
-				'skill':	{'heals': {}, 'hits': {}},
+				'skill':	{'heals': {}, 'hits': {}, 'detail': {}},
 				'actor':	{},
+				'actor_skill': {},
 			},
 			'buffes': {
 				'done':	{

@@ -474,6 +474,17 @@ class EncounterStats(models.Model):
 								})
 		return results
 	
+	def get_detailed_total_stats(self, actor_id):
+		actor_id = '%d' % actor_id
+		results	= []
+		for skill_id, stats in self.rdata['stats']['actor'][actor_id]['done']['skill']['detail'].items():
+			tmp = stats
+			tmp['skill_id'] = skill_id
+			tmp['skill_name']=self.rdata['skills'][skill_id]
+			results.append(tmp)
+		return results
+
+	
 	def create_actors(self):
 		for actor, stats in self.rdata['actors'].items():
 			if actor in self.rdata['players']:

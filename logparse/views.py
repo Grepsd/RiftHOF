@@ -182,7 +182,7 @@ def actor_show_detail(request, id_encounter, id_obj):
 		except:
 			stats.create_actors()
 			actor 		= Actor.objects.get(encounter__id=id_encounter, obj_id=id_obj)
-			
+
 		data 		= {
 			'actor': 		actor,
 			'deathes':		stats.get_deathlog(),
@@ -191,6 +191,7 @@ def actor_show_detail(request, id_encounter, id_obj):
 			'timeline':		stats.get_timeline(id_obj),
 			'stats':		stats.get_detailed_stats(id_obj),
 			'encounter_stats': stats,
+			'detailed_total_stats': stats.get_detailed_total_stats(id_obj),
 		}
 		cache.set("encounter_%d_actor_%d" % (id_encounter, id_obj), data, 6 * 15)
 	return render(request, 'actor/show.html', data)
