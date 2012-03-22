@@ -729,6 +729,15 @@ class Parser:
 								# did the raid kill the boss ?
 								encounter.wipe = not enc.boss_killed
 								encounter.save()
+								encounter.parse()
+								stats = encounter.stats()
+								if stats is not None:
+									stats.parse()
+									stats.create_actors()
+								else:
+									#stats.delete()
+									#encounter.delete()
+									pass
 
 								# memory efficiency fix.
 								del enc, encounter
