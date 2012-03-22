@@ -139,7 +139,8 @@ def guild_log_encounter_show(request, id_encounter):
 		boss_id 	= enc.boss.id
 		boss_name 	= enc.boss.name
 
-	#data = cache.get("encounter_%d" % id_encounter)
+	data = cache.get("encounter_%d" % id_encounter)
+	# to remove
 	data = None
 
 	if data is None:
@@ -168,12 +169,20 @@ def actor_show_detail(request, id_encounter, id_obj):
 	id_encounter	= int(id_encounter)
 	id_obj			= int(id_obj)
 	data 			= cache.get("encounter_%d_actor_%d" % (id_encounter, id_obj))
+
+	# to remove
 	data = None
+
 	if data is None:
-		actor 		= Actor.objects.get(encounter__id=id_encounter, obj_id=id_obj)
-		encounter 	= actor.encounter
+		encounter 	= Encounter.objects.get(id=id_encounter)
 		stats 		= encounter.stats()
 		stats.parse()
+		try:
+			actor 		= Actor.objects.get(encounter__id=id_encounter, obj_id=id_obj)
+		except:
+			stats.create_actors()
+			actor 		= Actor.objects.get(encounter__id=id_encounter, obj_id=id_obj)
+			
 		data 		= {
 			'actor': 		actor,
 			'deathes':		stats.get_deathlog(),
