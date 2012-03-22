@@ -178,7 +178,7 @@ class EncounterStats(models.Model):
 		if self.rdata is None:
 			self.rdata = cache.get("encounter_stats_%d" % self.encounter.id)
 		if self.rdata is None:
-			self.rdata = pickle.loads(self.data)
+			self.rdata = pickle.loads(str(self.data))
 			cache.set("encounter_stats_%d" % self.encounter.id, self.rdata, 60 * 15)
 
 	def top(self, stat='hits', view='done', type_actor='players'):
