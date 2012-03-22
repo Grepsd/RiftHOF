@@ -520,7 +520,7 @@ class Parser:
 		# if we're at the end of an encounter, let's do the saving and cleaning.
 		if self.last_byte is not None and self.start_time is not None:
 			# is this a worth of logging fight ? (more than 60 seconds.)
-			if (otime - self.start_time).total_seconds() > 60:
+			if (self.last_otime - self.start_time).total_seconds() > 60:
 
 				self.encounter_count 	+= 1
 				enc 					= Encounter(self.lines_buffer, self.start_offset, self.curr_offset, self.boss, self.boss_killed is not None)
@@ -748,14 +748,3 @@ class Parser:
 
 		if self.in_combat:
 			self.lines_buffer.append(line_data)
-
-#path = '/tmp/rift_heliasae_parser/'
-"""
-path = sys.argv[2]
-name = sys.argv[3]
-try:
-	os.stat(path)
-except OSError:
-	os.makedirs(path)
-parser = Parser(sys.argv[1])
-parser.parse()"""
