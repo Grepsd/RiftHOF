@@ -1,0 +1,17 @@
+This project allow everyone to share their parses.
+
+The project is made by making two system working together :
+- the rift combat log parser
+- the online viewer
+
+The rift combat log parser parse a file, a return a set of data, from the damages done by someone to the heals received by spell and by caster.
+
+The rift combat log parser only return encounter where a boss was hit.
+
+
+The online viewer allow you to have a detailled view of a parse, it included charts and detailled view and tools such as actor performance comparator which allow you to compare what did a set of actor on an encounter dps, hps, crit rate for example.
+
+
+We want this project to give you everything you could hopes to see on such a tool.
+
+Contact US : grepsd@gmail.com
