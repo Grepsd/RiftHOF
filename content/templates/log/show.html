@@ -32,7 +32,20 @@
 			</p>
 		</div>
 	{% else %}
+    <h2>Raid [{{ log.upload_date }}]</h2>
     <table>
+      {% regroup log.encounters by boss as en %}
+        {% for e in en %}
+          <tr><th class="left">{{ e.grouper }}</th></tr>
+          <tr><td>
+          {% for eee in e.list %}
+           <span class="{{ eee.wipe|yesno:"icon-remove,icon-ok" }}"></span> 
+            <span class="{{ eee.wipe|yesno:"error,success" }} {{ eee.wipe|yesno:"bold" }}"><a href="{% url guild_log_encounter_show eee.id %}">
+            {% if eee.boss.id > 0 %}{{ eee.boss.name }}{% else %}Unknown boss{% endif %}</a> {{ eee.stats.duration|secs }}</span>{% if forloop.last %}.{% else %},{% endif %}
+          {% endfor %}
+          </td></tr>
+      {% endfor %}
+      <!--
       {% for encounter in log.encounters %}
         <tr>
           <td class="{{ encounter.wipe|yesno:"error,success" }}">
@@ -42,6 +55,7 @@
           </td>
           <td></td>
       {% endfor %}
+      -->
     </table>
 	{% endif %}
 {% endblock %}
