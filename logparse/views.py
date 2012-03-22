@@ -98,14 +98,14 @@ def guild_log_upload(request):
 		model.save()
 		data['log'] = model
 
-	return render(request, 'guild/log/upload.html', data)
+	return render(request, 'log/upload.html', data)
 
 #@cache_page(60 * 15)
 def guild_log_show(request, id):
 	data	= {
 		'log':	 Log.objects.get(id=id)
 	}
-	return render(request, 'guild/log/show.html', data)
+	return render(request, 'log/show.html', data)
 
 def api_log_check_status(request, id):
 	log = Log.objects.get(id=id)
@@ -158,7 +158,7 @@ def guild_log_encounter_show(request, id_encounter):
 
 		cache.set("encounter_%d" % id_encounter, data, 6 * 15)
 
-	return render(request, 'guild/log/encounter/show.html', data)
+	return render(request, 'encounter/show.html', data)
 
 def ranking_boss(request, id):
 	data = {}
@@ -184,4 +184,4 @@ def actor_show_detail(request, id_encounter, id_obj):
 			'encounter_stats': stats,
 		}
 		cache.set("encounter_%d_actor_%d" % (id_encounter, id_obj), data, 6 * 15)
-	return render(request, 'guild/log/encounter/actor/show.html', data)
+	return render(request, 'actor/show.html', data)
