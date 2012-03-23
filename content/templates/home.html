@@ -1,1 +1,11 @@
 {% extends 'base.html' %}
+{% load humanize %}
+{% block "content" %}
+	<ul>
+		{% for log in logs %}
+			<dl>
+				{{ log.guild }} [{{ log.upload_date|naturaltime }}] <a href="{% url guild_log_show log.id %}">View</a>
+			</dl>
+		{% endfor %}
+	</ul>
+{% endblock %}

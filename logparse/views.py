@@ -9,9 +9,25 @@ from parser import Parser
 from django.conf import settings
 from django.views.decorators.cache import cache_page
 from django.core.cache import cache
+from django.contrib.auth.forms import UserCreationForm
 
 def home(request):
-	return render(request, 'home.html')
+	data 		= {
+		'logs': 	Log.objects.filter(private=False).order_by('-upload_date')
+		}
+	return render(request, 'home.html', data)
+
+def register(request):
+	data = {}
+	if request.method == 'POST':
+		form 	= UserCreationForm(request.POST)
+		if form.is_valid():
+			o = form.save()
+			data['new_user'] = o
+	else:
+		form 	= UserCreationForm()
+	data['form']	= form
+	return render(request, 'register.html', data)
 
 @login_required
 def guild_home(request):
