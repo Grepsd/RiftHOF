@@ -179,4 +179,37 @@
       {% endfor %}
     </tbody>
   </table>
+
+  <h2>Detail by actor, skill</h2>
+
+    {% regroup detailed_by_actor_stats by actor_id as actor_stats %}
+    {% for actor in actor_stats %}
+      <h3>{{ actor.list.0.actor_name }}</h3>
+    <table class="table table-condensed table-bordered tablesorter" id="detailed_stats_by_actor_{{ actor.grouper }}">
+      <thead>
+        <tr>
+          <th>Skill Name</th>
+          <th>Damages</th>
+          <th>DPS</th>
+          <th>% DPS</th>
+          <th>Heals</th>
+          <th>HPS</th>
+          <th>% HPS</th>
+        </tr>
+      </thead>
+      <tbody>
+          {% for stat in actor.list %}
+            <tr>
+              <td>{{ stat.skill_name }}</td>
+              <td>{{ stat.hits }}</td>
+              <td>{% widthratio stat.hits encounter_stats.duration 1 %}</td>
+              <td>{% widthratio stat.hits stats.done.hits 100 %}%</td>
+              <td>{{ stat.heals }}</td>
+              <td>{% widthratio stat.heals encounter_stats.duration 1 %}</td>
+              <td>{% widthratio stat.heals stats.done.heals 100 %}%</td>
+            </tr>
+          {% endfor %}
+        {% endfor %}
+    </tbody>
+  </table>
 {% endblock %}

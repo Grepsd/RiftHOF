@@ -15,20 +15,20 @@ def seconds_duration(secs):
 			if secs > 0:
 				return "%d:%02d:%02d" % (hours, minutes, secs)
 			else:
-				return "%d:%02d:0" % (hours, minutes)
+				return "%d:%02d:00" % (hours, minutes)
 		else:
 			if secs > 0:
-				return "%d:0:%02d" % (hours, secs)
+				return "%d:00:%02d" % (hours, secs)
 			else:
-				return "%d hours" % (hours)
+				return "%d:00:00" % (hours)
 	else:
 		if minutes > 0:
 			if secs > 0:
 				return "%d:%02d" % (minutes, secs)
 			else:
-				return "%d:0" % (minutes)
+				return "%d:00" % (minutes)
 		else:
 			if secs > 0:
-				return "%ds" % (secs)
+				return "0:%d" % (secs)
 
 register.filter('secs', seconds_duration)

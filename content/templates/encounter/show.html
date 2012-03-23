@@ -197,6 +197,15 @@
             xAxis: {
                 categories: [{% for time in timeline_list %}'{{ time.time|secs }}',{% endfor %}],
                 tickInterval: 6,
+                plotBands: [
+                  {% for buff in buffes %}
+                    {
+                      from: {{ buff.from }} / 5,
+                      to:   {{ buff.to }} / 5,
+                      color: '{% if buff.skill == "Couplet de joie" %}#CEF{% else %}#FEC{% endif %}',
+                    },
+                  {% endfor %}
+                ],
                 plotLines: [
                   {% for death in deathes %}
                     {
@@ -215,15 +224,6 @@
                     },
                   {% endfor %}
                   ],
-                plotBands: [
-                  {% for buff in buffes %}
-                    {
-                      from: {{ buff.from }} / 5,
-                      to:   {{ buff.to }} / 5,
-                      color: '{% if buff.skill == "Couplet de joie" %}#9CF{% else %}#FC9{% endif %}',
-                    },
-                  {% endfor %}
-                ]
             },
 
             yAxis: {
