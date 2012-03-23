@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 import sys, os
 import pickle, bz2
 import re
-import time
+#import time
 import logparse.models
 
 # boss list, this is temporary list which is working only for french bosses.
@@ -47,6 +47,10 @@ bosses_list 	= [
 	'Grand-prêtre Arakhurn'
 ]
 
+skill_blacklist = [
+	'Explosion fourchue',
+]
+
 # actors name blacklist. We dont want to see theses npc in the parses
 mob_blacklist	= [
 	'Concentration du Boss',
@@ -56,7 +60,7 @@ mob_blacklist	= [
 	'Inconnu',
 ]
 
-skills	= {}
+skills	= {0: 'Total'}
 today 		= datetime.today()
 
 class Encounter:
@@ -82,6 +86,9 @@ class Encounter:
 		# encounter start offset (used ?)
 		self.start_offset	= start_offset
 		self.end_offset		= end_offset
+
+		# flag telling us if the encounter as already been parsed.
+		self.parsed 		= False
 
 		# encounter global data by skill, actor and deathlog.
 		self.stats 			= {
@@ -147,19 +154,135 @@ class Encounter:
 			#'log':		self.log,
 		}
 
-	def parse(self):
-		l = 0
-		for line in self.log:
-			l += 1
-			# do we already parsed this fight ?
-			if l == 1:
-				if len(self.actors) > 3:
-					break
+	def handle_heal(self, source, target, amount, is_crit=False, over_heal=0):
+		pass
 
-			source 	= line['source_id']
-			target 	= line['target_id']
-			skill_id= line['skill_id']
-			time 	= line['time']
+	def handle_damage(self, source, target, amount, is_crit=False, over_damages=0):
+		pass
+
+	def get_buff(self, actor):
+		return self.stats['actor'][actor]['buffes']
+
+	def handle_buff(self, source, target, skill_id, type_buff, action_type):
+		time = self.line['time']
+		# see if the target is already in the list of the peoples who were affected by a buff/curse of the source.
+		if target not in self.get_buff(source)['done'][type_buff]:
+			self.get_buff(source)['done'][type_buff][target] 	= {}
+		# same as ahead but inverse it. It allow us to know who did something to a specific actor.
+		if source not in self.get_buff(target)['received'][type_buff]:
+			self.get_buff(target)['received'][type_buff][source]= {}
+
+		# does the target have already been affected by this skill from this source;
+		if skill_id not in self.get_buff(source)['done'][type_buff][target]:
+			self.get_buff(source)['done'][type_buff][target][skill_id] = []
+		# same as ahead but inverse it.
+		if skill_id not in self.get_buff(target)['received'][type_buff][source]:
+			self.get_buff(target)['received'][type_buff][source][skill_id] = []
+
+	
+		def handle_buff(self, source, target, skill_id, type_buff, action_type, time, view):
+		# track the buff/curse timeline (here for the source)
+			tt = self.get_buff(source)[view][type_buff][target][skill_id]
+			try:
+				l_done 	= tt.pop(len(tt) - 1)
+				no_last = False
+			except:
+				no_last = True
+				l_done 	= []
+
+			if action_type == 'up':
+				if no_last is False:
+					if len(l_done) < 2:
+						l_done.append(time)
+					tt.append(l_done)
+				tt.append([time])
+			else:
+				if no_last is False:
+					if len(l_done) < 2:
+						l_done.append(time)
+						tt.append(l_done)
+					else:
+						l_done = [l_done[0], time]
+						tt.append(l_done)
+				else:
+					l_done.append([self.start_time, time])
+		handle_buff(self, source, target, skill_id, type_buff, action_type, time, 'done')
+		handle_buff(self, target, source, skill_id, type_buff, action_type, time, 'received')
+			
+	
+	"""
+
+		Handle a death.
+
+		if it's a player kill, we add it to it's killboard,
+		if it's a player death, we add it to the deathlog.
+
+
+	"""
+	def handle_death(self, actor, is_death=False, target=None):
+		if is_death:
+			if self.is_player(actor):
+				
+				# if the source is a player, we log this attack so we know what killed him
+				if self.has_been_hit(actor):
+
+					last_attack 		= self.get_last_attack(actor)
+					last_attack['time']	= self.line['time']
+
+					self.stats['actor'][actor]['killboard']['death'][self.line['time']] = last_attack
+					
+					
+					# we add this death to the deathlog
+
+					last_attack['target'] = actor
+					self.stats['deathlog'].append(last_attack)
+
+					# tmp data to know if the player has been revived, see below.
+					self.deathes[actor] = self.line['time']
+		else:
+			# log when a player kill something.
+			self.add_kill(actor, target, self.line['time'])
+			
+	def add_kill(self, actor_id, target_id, time):
+		self.get_killboard(actor_id)['kill'].append({
+			'time':			time, 
+			'source':		actor_id,
+			'target':		target_id,
+		})
+
+	def get_killboard(self, actor_id):
+		return self.stats['actor'][actor_id]['killboard']
+
+	def is_player(self, actor_id):
+	 	return actor_id in self.players
+	  
+	def is_alive(self, actor_id):
+	 	return actor_id not in self.deathes
+
+	def has_been_hit(self, actor_id):
+	 	return 'source' in self.stats['actor'][actor_id]['last_attack']
+
+	def get_actor(self, actor_id):
+	 	return self.actors[actor_id]
+
+	def get_last_attack(self, actor_id):
+	 	return self.stats['actor'][actor_id]['last_attack']
+
+	def parse(self):
+		for line in self.log:
+			if self.parsed is True:
+				break
+
+
+			self.line 	 = line
+
+			source 		= line['source_id']
+			target 		= line['target_id']
+			skill_id	= line['skill_id']
+			time 		= line['time']
+
+			if self.skills[skill_id] in skill_blacklist:
+				continue
 
 
 			if source not in self.actors:
@@ -168,123 +291,24 @@ class Encounter:
 			if target not in self.actors:
 				self.create_actor(line, 'target')
 
-
 			if line['action_name'] in ('DIED', 'SLAIN'):
+				self.handle_death(source, line['action_name'] is 'DIED', target)
 
-				if line['action_name'] is 'DIED':
-
-					if source in self.players:
-						
-						# if the source is a player, we log this attack so we know what killed him
-						if 'source' in self.stats['actor'][source]['last_attack']:
-							self.stats['actor'][source]['killboard']['death'][line['time']] = {
-								'source':	self.stats['actor'][source]['last_attack']['source'],
-								'skill_id':	self.stats['actor'][source]['last_attack']['skill_id'],
-								'amount':	self.stats['actor'][source]['last_attack']['amount'],
-								'is_crit':	self.stats['actor'][source]['last_attack']['is_crit'],
-								'time':		line['time'],
-							}
-							
-							# we add this death to the deathlog
-							self.stats['deathlog'].append({
-								'source':	self.stats['actor'][source]['last_attack']['source'],
-								'skill_id':	self.stats['actor'][source]['last_attack']['skill_id'],
-								'amount':	self.stats['actor'][source]['last_attack']['amount'],
-								'is_crit':	self.stats['actor'][source]['last_attack']['is_crit'],
-								'target':  	source,
-								'time':		line['time'],
-							})
-							# tmp data to know if the player has been revived, see below.
-							self.deathes[source] = time
-				else:
-					# try to handle a kill board. Don't know if it works right now, haven't tested it yet.
-					self.stats['actor'][source]['killboard']['kill'].append({
-						'time':			line['time'], 
-						'source':		source,
-						'target':		target,
-					})
 				
 			# is the action related to the buffes and curses.
 			if line['action_name'] in ('GAINS', 'SUFFERS', 'AFFLICTED', 'FADES'):
 
 				# detect if it's a curse or a buff
+				type_buff 	= 'debuff'
 				if line['action_name'] in ('GAINS', 'FADES'):
 					type_buff 	= 'buff'
-				else:
-					type_buff 	= 'debuff'
 				
 				# detect if it's a start effect or an end effect.
+				action_type 	= 'down'
 				if line['action_name'] in ('GAINS', 'AFFLICTED'):
 					action_type 	= 'up'
-				else:
-					action_type 	= 'down'
-				
-				# see if the target is already in the list of the peoples who were affected by a buff/curse of the source.
-				if target not in self.stats['actor'][source]['buffes']['done'][type_buff]:
-					self.stats['actor'][source]['buffes']['done'][type_buff][target] 	= {}
-				# same as ahead but inverse it. It allow us to know who did something to a specific actor.
-				if source not in self.stats['actor'][target]['buffes']['received'][type_buff]:
-					self.stats['actor'][target]['buffes']['received'][type_buff][source]= {}
 
-				# does the target have already been affected by this skill from this source;
-				if skill_id not in self.stats['actor'][source]['buffes']['done'][type_buff][target]:
-					self.stats['actor'][source]['buffes']['done'][type_buff][target][skill_id] = []
-				# same as ahead but inverse it.
-				if skill_id not in self.stats['actor'][target]['buffes']['received'][type_buff][source]:
-					self.stats['actor'][target]['buffes']['received'][type_buff][source][skill_id] = []
-
-			
-				# track the buff/curse timeline (here for the source)
-				tt = self.stats['actor'][source]['buffes']['done'][type_buff][target][skill_id]
-				try:
-					l_done 	= tt.pop(len(tt) - 1)
-					no_last = False
-				except:
-					no_last = True
-					l_done 	= []
-
-				if action_type == 'up':
-					if no_last is False:
-						if len(l_done) < 2:
-							l_done.append(line['time'])
-						tt.append(l_done)
-					tt.append([line['time']])
-				else:
-					if no_last is False:
-						if len(l_done) < 2:
-							l_done.append(line['time'])
-							tt.append(l_done)
-						else:
-							l_done = [l_done[0], line['time']]
-							tt.append(l_done)
-					else:
-						l_done.append([self.start_time, line['time']])
-					
-				# and here for the target.
-				tt = self.stats['actor'][target]['buffes']['received'][type_buff][source][skill_id]
-				try:
-					l_done 	= tt.pop(len(tt) - 1)
-					no_last = False
-				except:
-					no_last = True
-					l_done 	= []
-
-				if action_type == 'up':
-					if no_last is False:
-						if len(l_done) < 2:
-							l_done.append(line['time'])
-						tt.append(l_done)
-					tt.append([line['time']])
-				else:
-					if no_last is False:
-						if len(l_done) < 2:
-							l_done.append(line['time'])
-							tt.append(l_done)
-						else:
-							l_done = [l_done[0], line['time']]
-							tt.append(l_done)
-					else:
-						l_done.append([self.start_time, line['time']])
+				self.handle_buff(source, target, skill_id, type_buff, action_type)
 
 			# is this a heal or a hit ?
 			if line['action_name'] in ('SUFFERS', 'HITS', 'CRITICALLY_HITS', 'HEALS', 'CRITICALLY_HEALS'):
@@ -356,6 +380,28 @@ class Encounter:
 					self.stats['actor'][target]['received']['skill']['detail'][skill_id]['critical_%s' % a] 		+= amount
 					self.stats['actor'][target]['received']['skill']['detail'][skill_id]['critical_%s_count' % a] 	+= 1
 
+				t = skill_id
+				skill_id = 0
+				if skill_id not in self.stats['actor'][source]['done']['skill']['detail']:
+					self.stats['actor'][source]['done']['skill']['detail'][skill_id] = self.get_simple_struct()
+
+				self.stats['actor'][source]['done']['skill']['detail'][skill_id][a] 				+= amount
+				self.stats['actor'][source]['done']['skill']['detail'][skill_id]['%s_count' % a] 	+= 1
+				if line['action_name'] in ('CRITICALLY_HITS', 'CRITICALLY_HEALS'):
+					self.stats['actor'][source]['done']['skill']['detail'][skill_id]['critical_%s' % a] 		+= amount
+					self.stats['actor'][source]['done']['skill']['detail'][skill_id]['critical_%s_count' % a] 	+= 1
+
+				if skill_id not in self.stats['actor'][target]['received']['skill']['detail']:
+					self.stats['actor'][target]['received']['skill']['detail'][skill_id] = self.get_simple_struct()
+
+				self.stats['actor'][target]['received']['skill']['detail'][skill_id][a] 				+= amount
+				self.stats['actor'][target]['received']['skill']['detail'][skill_id]['%s_count' % a] 	+= 1
+				if line['action_name'] in ('CRITICALLY_HITS', 'CRITICALLY_HEALS'):
+					self.stats['actor'][target]['received']['skill']['detail'][skill_id]['critical_%s' % a] 		+= amount
+					self.stats['actor'][target]['received']['skill']['detail'][skill_id]['critical_%s_count' % a] 	+= 1
+
+				skill_id = t
+
 
 				"""
 					Stats by actor then by skills
@@ -425,7 +471,8 @@ class Encounter:
 					self.stats['actor'][source]['done']['actor'][target]['critical_%s' % a] 		+= amount
 					self.stats['actor'][source]['done']['actor'][target]['critical_%s_count' % a] 	+= 1
 				
-
+		
+		self.parsed = True
 
 	# used to give the full structure of an actor (stored in self.actors)
 	# with this, we are able to know everything of an actor for the current fight.
@@ -663,9 +710,19 @@ class Parser:
 
 		rindex 	= line.index(')')
 
+
 		data 	= line[index + 2:rindex]
 		# striping elements to have "good" data to read.
 		d 		= [x.strip() for x in data.split(",")]
+
+		# a bad named npc with a , or a (, ) in is name ?
+		if len(d) < 10:
+			rindex1	= line.index(')', rindex + 1)
+			rindex 	= line.index(')', rindex1 + 1)
+			data 	= line[index + 2:rindex]
+			# striping elements to have "good" data to read.
+			d 		= [x.strip() for x in data.split(",")]
+			
 
 		action 		= int(d[0])
 		action_name = self.actions[action]
@@ -674,7 +731,10 @@ class Parser:
 		source_type = d[3]
 		target_type = d[4]
 		source_name = d[5]
-		target_name = d[6]
+		try:
+			target_name = d[6]
+		except:
+			raise
 		# some actor's name contain some unescaped chars such as "," which is used to split elements on the log line.
 		try:
 			amount 		= int(d[7])
@@ -767,6 +827,8 @@ class Parser:
 
 					# is this a worth of logging fight ? (more than 60 seconds.)
 					if (otime - self.start_time).total_seconds() > 60:
+
+						print self.boss
 
 						self.encounter_count 	+= 1
 						enc 					= Encounter(self.lines_buffer, self.start_offset, self.curr_offset, self.boss, self.boss_killed is not None)
