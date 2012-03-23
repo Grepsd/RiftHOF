@@ -128,6 +128,9 @@ class Encounter:
 			'received': self.get_simple_struct(),
 		}
 
+	def get_timeline_structure(self):
+		return 
+
 	# calcul fight duration
 	def get_duration(self):
 		return (self.end_time - self.start_time).total_seconds()
@@ -154,11 +157,162 @@ class Encounter:
 			#'log':		self.log,
 		}
 
-	def handle_heal(self, source, target, amount, is_crit=False, over_heal=0):
-		pass
+	def handle_heal(self, source, target, amount, skill_id, is_crit=False, over_heal=0):
+		if not self.is_alive(target) and (self.line['time'] - self.deathes[target]).total_seconds() > 2:
+			del self.deathes[target]
+			self.rez.append({'source': source, 'target': target, 'skill': skill_id, 'time': self.line['time']})
 
-	def handle_damage(self, source, target, amount, is_crit=False, over_damages=0):
-		pass
+	def handle_damage(self, source, target, amount, skill_id, is_crit=False, over_damages=0):
+		# log this attack as the last attack. Used for the death log (death recap)
+		self.stats['actor'][target]['last_attack'] = {
+			'source':	source,
+			'skill_id':	skill_id,
+			'amount':	amount,
+			'is_crit':	is_crit,
+		}
+
+	def handle_damage_and_heal(self, action_type, source, target, amount, skill_id, is_crit):
+		time = self.line['time']
+		# does anything already happened at this $time in the timeline for the source (and then for the target)
+		if time not in self.stats['actor'][source]['timeline']:
+			self.stats['actor'][source]['timeline'][time] = {'done': {'heals': 0, 'hits': 0}, 'received': {'heals': 0, 'hits': 0}}
+		if time not in self.stats['actor'][target]['timeline']:
+			self.stats['actor'][target]['timeline'][time] = {'done': {'heals': 0, 'hits': 0}, 'received': {'heals': 0, 'hits': 0}}
+		
+		# add the value of this action in the timeline.
+		self.stats['actor'][source]['timeline'][time]['done'][action_type] 	+= amount
+		self.stats['actor'][target]['timeline'][time]['received'][action_type]+= amount
+
+		# does this skill is already registered ? used to have a full report of what hits what and do 
+		# stats on it.
+		if skill_id not in self.stats['actor'][source]['done']['skill'][action_type]:
+			self.stats['actor'][source]['done']['skill'][action_type][skill_id] = 0
+
+		self.stats['actor'][source]['done']['skill'][action_type][skill_id] += amount
+
+		if skill_id not in self.stats['actor'][target]['received']['skill'][action_type]:
+			self.stats['actor'][target]['received']['skill'][action_type][skill_id] = 0
+
+		self.stats['actor'][target]['received']['skill'][action_type][skill_id] += amount
+
+		"""
+			Stats by skills
+
+			What you received by skill_id
+			What you did by skill_id
+
+			You dont know who hit you, or who you hit, but you know what kind of hit it was.
+
+		"""
+
+		if skill_id not in self.stats['actor'][source]['done']['skill']['detail']:
+			self.stats['actor'][source]['done']['skill']['detail'][skill_id] = self.get_simple_struct()
+
+		self.stats['actor'][source]['done']['skill']['detail'][skill_id][action_type] 				+= amount
+		self.stats['actor'][source]['done']['skill']['detail'][skill_id]['%s_count' % action_type] 	+= 1
+		if is_crit:
+			self.stats['actor'][source]['done']['skill']['detail'][skill_id]['critical_%s' % action_type] 		+= amount
+			self.stats['actor'][source]['done']['skill']['detail'][skill_id]['critical_%s_count' % action_type] 	+= 1
+
+		if skill_id not in self.stats['actor'][target]['received']['skill']['detail']:
+			self.stats['actor'][target]['received']['skill']['detail'][skill_id] = self.get_simple_struct()
+
+		self.stats['actor'][target]['received']['skill']['detail'][skill_id][action_type] 				+= amount
+		self.stats['actor'][target]['received']['skill']['detail'][skill_id]['%s_count' % action_type] 	+= 1
+		if is_crit:
+			self.stats['actor'][target]['received']['skill']['detail'][skill_id]['critical_%s' % action_type] 		+= amount
+			self.stats['actor'][target]['received']['skill']['detail'][skill_id]['critical_%s_count' % action_type] 	+= 1
+
+		t = skill_id
+		skill_id = 0
+		if skill_id not in self.stats['actor'][source]['done']['skill']['detail']:
+			self.stats['actor'][source]['done']['skill']['detail'][skill_id] = self.get_simple_struct()
+
+		self.stats['actor'][source]['done']['skill']['detail'][skill_id][action_type] 				+= amount
+		self.stats['actor'][source]['done']['skill']['detail'][skill_id]['%s_count' % action_type] 	+= 1
+		if is_crit:
+			self.stats['actor'][source]['done']['skill']['detail'][skill_id]['critical_%s' % action_type] 		+= amount
+			self.stats['actor'][source]['done']['skill']['detail'][skill_id]['critical_%s_count' % action_type] 	+= 1
+
+		if skill_id not in self.stats['actor'][target]['received']['skill']['detail']:
+			self.stats['actor'][target]['received']['skill']['detail'][skill_id] = self.get_simple_struct()
+
+		self.stats['actor'][target]['received']['skill']['detail'][skill_id][action_type] 				+= amount
+		self.stats['actor'][target]['received']['skill']['detail'][skill_id]['%s_count' % action_type] 	+= 1
+		if is_crit:
+			self.stats['actor'][target]['received']['skill']['detail'][skill_id]['critical_%s' % action_type] 		+= amount
+			self.stats['actor'][target]['received']['skill']['detail'][skill_id]['critical_%s_count' % action_type] 	+= 1
+
+		skill_id = t
+
+
+		"""
+			Stats by actor then by skills
+
+			What you received by skill_id
+			What you did by skill_id
+
+			You dont know who hit you, or who you hit, and you know who did what to who.
+
+		"""
+
+		if target not in self.stats['actor'][source]['done']['actor_skill']:
+			self.stats['actor'][source]['done']['actor_skill'][target] = {}
+
+		if skill_id not in self.stats['actor'][source]['done']['actor_skill'][target]:
+			self.stats['actor'][source]['done']['actor_skill'][target][skill_id] = self.get_simple_struct()
+
+		self.stats['actor'][source]['done']['actor_skill'][target][skill_id][action_type] 				+= amount
+		self.stats['actor'][source]['done']['actor_skill'][target][skill_id]['%s_count' % action_type] 	+= 1
+		if is_crit:
+			self.stats['actor'][source]['done']['actor_skill'][target][skill_id]['critical_%s' % action_type] 		+= amount
+			self.stats['actor'][source]['done']['actor_skill'][target][skill_id]['critical_%s_count' % action_type] 	+= 1
+
+
+
+		if source not in self.stats['actor'][target]['received']['actor_skill']:
+			self.stats['actor'][target]['received']['actor_skill'][source] = {}
+
+		if skill_id not in self.stats['actor'][target]['received']['actor_skill'][source]:
+			self.stats['actor'][target]['received']['actor_skill'][source][skill_id] = self.get_simple_struct()
+
+		self.stats['actor'][target]['received']['actor_skill'][source][skill_id][action_type] 				+= amount
+		self.stats['actor'][target]['received']['actor_skill'][source][skill_id]['%s_count' % action_type] 	+= 1
+		if is_crit:
+			self.stats['actor'][target]['received']['actor_skill'][source][skill_id]['critical_%s' % action_type] 		+= amount
+			self.stats['actor'][target]['received']['actor_skill'][source][skill_id]['critical_%s_count' % action_type] 	+= 1
+
+
+
+		# add this amount and stats to the global stats of the target and source
+		self.stats['actor'][target]['global']['received'][action_type] 				+= amount
+		self.stats['actor'][target]['global']['received']['%s_count' % action_type] 	+= 1
+		if is_crit:
+			self.stats['actor'][target]['global']['received']['critical_%s' % action_type] 		+= amount
+			self.stats['actor'][target]['global']['received']['critical_%s_count' % action_type] 	+= 1
+
+		self.stats['actor'][source]['global']['done'][action_type] 				+= amount
+		self.stats['actor'][source]['global']['done']['%s_count' % action_type] 	+= 1
+		if is_crit:
+			self.stats['actor'][source]['global']['done']['critical_%s' % action_type] 		+= amount
+			self.stats['actor'][source]['global']['done']['critical_%s_count' % action_type] 	+= 1
+
+		# track who did hit who.
+		if source not in self.stats['actor'][target]['received']['actor']:
+			self.stats['actor'][target]['received']['actor'][source] = self.get_simple_struct()
+		self.stats['actor'][target]['received']['actor'][source][action_type] 				+= amount
+		self.stats['actor'][target]['received']['actor'][source]['%s_count' % action_type] 	+= 1
+		if is_crit:
+			self.stats['actor'][target]['received']['actor'][source]['critical_%s' % action_type] 		+= amount
+			self.stats['actor'][target]['received']['actor'][source]['critical_%s_count' % action_type] 	+= 1
+
+		if target not in self.stats['actor'][source]['done']['actor']:
+			self.stats['actor'][source]['done']['actor'][target] = self.get_simple_struct()
+		self.stats['actor'][source]['done']['actor'][target][action_type] 				+= amount
+		self.stats['actor'][source]['done']['actor'][target]['%s_count' % action_type] 	+= 1
+		if is_crit:
+			self.stats['actor'][source]['done']['actor'][target]['critical_%s' % action_type] 		+= amount
+			self.stats['actor'][source]['done']['actor'][target]['critical_%s_count' % action_type] 	+= 1
 
 	def get_buff(self, actor):
 		return self.stats['actor'][actor]['buffes']
@@ -314,162 +468,19 @@ class Encounter:
 			if line['action_name'] in ('SUFFERS', 'HITS', 'CRITICALLY_HITS', 'HEALS', 'CRITICALLY_HEALS'):
 				amount 	= line['amount']
 
+				is_crit = line['action_name'][0:10] == 'CRITICALLY'
+
 				if line['action_name'] in ('HITS', 'CRITICALLY_HITS', 'SUFFERS'):
+
+					self.handle_damage(source, target, amount, skill_id, is_crit)
 					a = 'hits'
-					# log this attack as the last attack. Used for the death log (death recap)
-					self.stats['actor'][target]['last_attack'] = {
-						'source':	source,
-						'skill_id':	skill_id,
-						'amount':	amount,
-						'is_crit':	line['action_name'] is 'CRITICALLY_HITS',
-					}
 				else:
+					self.handle_heal(source, target, amount, skill_id, is_crit)
 					a = 'heals'
-					# does the target is dead ? if yes, it's a revive !
-					if target in self.deathes and (time - self.deathes[target]).total_seconds() > 2:
-						del self.deathes[target]
-						self.rez.append({'source': source, 'target': target, 'skill': skill_id, 'time': time})
 
-				# does anything already happened at this $time in the timeline for the source (and then for the target)
-				if time not in self.stats['actor'][source]['timeline']:
-					self.stats['actor'][source]['timeline'][time] = {'done': {'heals': 0, 'hits': 0}, 'received': {'heals': 0, 'hits': 0}}
-				if time not in self.stats['actor'][target]['timeline']:
-					self.stats['actor'][target]['timeline'][time] = {'done': {'heals': 0, 'hits': 0}, 'received': {'heals': 0, 'hits': 0}}
-				
-				# add the value of this action in the timeline.
-				self.stats['actor'][source]['timeline'][time]['done'][a] 	+= amount
-				self.stats['actor'][target]['timeline'][time]['received'][a]+= amount
+				type_action = a
+				self.handle_damage_and_heal(type_action, source, target, amount, skill_id, is_crit)
 
-				# does this skill is already registered ? used to have a full report of what hits what and do 
-				# stats on it.
-				if skill_id not in self.stats['actor'][source]['done']['skill'][a]:
-					self.stats['actor'][source]['done']['skill'][a][skill_id] = 0
-
-				self.stats['actor'][source]['done']['skill'][a][skill_id] += amount
-
-				if skill_id not in self.stats['actor'][target]['received']['skill'][a]:
-					self.stats['actor'][target]['received']['skill'][a][skill_id] = 0
-
-				self.stats['actor'][target]['received']['skill'][a][skill_id] += amount
-
-				"""
-					Stats by skills
-
-					What you received by skill_id
-					What you did by skill_id
-
-					You dont know who hit you, or who you hit, but you know what kind of hit it was.
-
-				"""
-
-				if skill_id not in self.stats['actor'][source]['done']['skill']['detail']:
-					self.stats['actor'][source]['done']['skill']['detail'][skill_id] = self.get_simple_struct()
-
-				self.stats['actor'][source]['done']['skill']['detail'][skill_id][a] 				+= amount
-				self.stats['actor'][source]['done']['skill']['detail'][skill_id]['%s_count' % a] 	+= 1
-				if line['action_name'] in ('CRITICALLY_HITS', 'CRITICALLY_HEALS'):
-					self.stats['actor'][source]['done']['skill']['detail'][skill_id]['critical_%s' % a] 		+= amount
-					self.stats['actor'][source]['done']['skill']['detail'][skill_id]['critical_%s_count' % a] 	+= 1
-
-				if skill_id not in self.stats['actor'][target]['received']['skill']['detail']:
-					self.stats['actor'][target]['received']['skill']['detail'][skill_id] = self.get_simple_struct()
-
-				self.stats['actor'][target]['received']['skill']['detail'][skill_id][a] 				+= amount
-				self.stats['actor'][target]['received']['skill']['detail'][skill_id]['%s_count' % a] 	+= 1
-				if line['action_name'] in ('CRITICALLY_HITS', 'CRITICALLY_HEALS'):
-					self.stats['actor'][target]['received']['skill']['detail'][skill_id]['critical_%s' % a] 		+= amount
-					self.stats['actor'][target]['received']['skill']['detail'][skill_id]['critical_%s_count' % a] 	+= 1
-
-				t = skill_id
-				skill_id = 0
-				if skill_id not in self.stats['actor'][source]['done']['skill']['detail']:
-					self.stats['actor'][source]['done']['skill']['detail'][skill_id] = self.get_simple_struct()
-
-				self.stats['actor'][source]['done']['skill']['detail'][skill_id][a] 				+= amount
-				self.stats['actor'][source]['done']['skill']['detail'][skill_id]['%s_count' % a] 	+= 1
-				if line['action_name'] in ('CRITICALLY_HITS', 'CRITICALLY_HEALS'):
-					self.stats['actor'][source]['done']['skill']['detail'][skill_id]['critical_%s' % a] 		+= amount
-					self.stats['actor'][source]['done']['skill']['detail'][skill_id]['critical_%s_count' % a] 	+= 1
-
-				if skill_id not in self.stats['actor'][target]['received']['skill']['detail']:
-					self.stats['actor'][target]['received']['skill']['detail'][skill_id] = self.get_simple_struct()
-
-				self.stats['actor'][target]['received']['skill']['detail'][skill_id][a] 				+= amount
-				self.stats['actor'][target]['received']['skill']['detail'][skill_id]['%s_count' % a] 	+= 1
-				if line['action_name'] in ('CRITICALLY_HITS', 'CRITICALLY_HEALS'):
-					self.stats['actor'][target]['received']['skill']['detail'][skill_id]['critical_%s' % a] 		+= amount
-					self.stats['actor'][target]['received']['skill']['detail'][skill_id]['critical_%s_count' % a] 	+= 1
-
-				skill_id = t
-
-
-				"""
-					Stats by actor then by skills
-
-					What you received by skill_id
-					What you did by skill_id
-
-					You dont know who hit you, or who you hit, and you know who did what to who.
-
-				"""
-
-				if target not in self.stats['actor'][source]['done']['actor_skill']:
-					self.stats['actor'][source]['done']['actor_skill'][target] = {}
-
-				if skill_id not in self.stats['actor'][source]['done']['actor_skill'][target]:
-					self.stats['actor'][source]['done']['actor_skill'][target][skill_id] = self.get_simple_struct()
-
-				self.stats['actor'][source]['done']['actor_skill'][target][skill_id][a] 				+= amount
-				self.stats['actor'][source]['done']['actor_skill'][target][skill_id]['%s_count' % a] 	+= 1
-				if line['action_name'] in ('CRITICALLY_HITS', 'CRITICALLY_HEALS'):
-					self.stats['actor'][source]['done']['actor_skill'][target][skill_id]['critical_%s' % a] 		+= amount
-					self.stats['actor'][source]['done']['actor_skill'][target][skill_id]['critical_%s_count' % a] 	+= 1
-
-
-
-				if source not in self.stats['actor'][target]['received']['actor_skill']:
-					self.stats['actor'][target]['received']['actor_skill'][source] = {}
-
-				if skill_id not in self.stats['actor'][target]['received']['actor_skill'][source]:
-					self.stats['actor'][target]['received']['actor_skill'][source][skill_id] = self.get_simple_struct()
-
-				self.stats['actor'][target]['received']['actor_skill'][source][skill_id][a] 				+= amount
-				self.stats['actor'][target]['received']['actor_skill'][source][skill_id]['%s_count' % a] 	+= 1
-				if line['action_name'] in ('CRITICALLY_HITS', 'CRITICALLY_HEALS'):
-					self.stats['actor'][target]['received']['actor_skill'][source][skill_id]['critical_%s' % a] 		+= amount
-					self.stats['actor'][target]['received']['actor_skill'][source][skill_id]['critical_%s_count' % a] 	+= 1
-
-
-
-				# add this amount and stats to the global stats of the target and source
-				self.stats['actor'][target]['global']['received'][a] 				+= amount
-				self.stats['actor'][target]['global']['received']['%s_count' % a] 	+= 1
-				if line['action_name'] == 'CRITICALLY_HITS':
-					self.stats['actor'][target]['global']['received']['critical_%s' % a] 		+= amount
-					self.stats['actor'][target]['global']['received']['critical_%s_count' % a] 	+= 1
-
-				self.stats['actor'][source]['global']['done'][a] 				+= amount
-				self.stats['actor'][source]['global']['done']['%s_count' % a] 	+= 1
-				if line['action_name'] == 'CRITICALLY_HITS':
-					self.stats['actor'][source]['global']['done']['critical_%s' % a] 		+= amount
-					self.stats['actor'][source]['global']['done']['critical_%s_count' % a] 	+= 1
-
-				# track who did hit who.
-				if source not in self.stats['actor'][target]['received']['actor']:
-					self.stats['actor'][target]['received']['actor'][source] = self.get_simple_struct()
-				self.stats['actor'][target]['received']['actor'][source][a] 				+= amount
-				self.stats['actor'][target]['received']['actor'][source]['%s_count' % a] 	+= 1
-				if line['action_name'] == 'CRITICALLY_HITS':
-					self.stats['actor'][target]['received']['actor'][source]['critical_%s' % a] 		+= amount
-					self.stats['actor'][target]['received']['actor'][source]['critical_%s_count' % a] 	+= 1
-
-				if target not in self.stats['actor'][source]['done']['actor']:
-					self.stats['actor'][source]['done']['actor'][target] = self.get_simple_struct()
-				self.stats['actor'][source]['done']['actor'][target][a] 				+= amount
-				self.stats['actor'][source]['done']['actor'][target]['%s_count' % a] 	+= 1
-				if line['action_name'] == 'CRITICALLY_HITS':
-					self.stats['actor'][source]['done']['actor'][target]['critical_%s' % a] 		+= amount
-					self.stats['actor'][source]['done']['actor'][target]['critical_%s_count' % a] 	+= 1
 				
 		
 		self.parsed = True
@@ -827,8 +838,6 @@ class Parser:
 
 					# is this a worth of logging fight ? (more than 60 seconds.)
 					if (otime - self.start_time).total_seconds() > 60:
-
-						print self.boss
 
 						self.encounter_count 	+= 1
 						enc 					= Encounter(self.lines_buffer, self.start_offset, self.curr_offset, self.boss, self.boss_killed is not None)
