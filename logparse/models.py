@@ -474,12 +474,11 @@ class EncounterStats(models.Model):
 								})
 		return results
 	
-	def get_detailed_total_stats(self, actor_id):
+	def get_detailed_total_stats(self, actor_id, view='done'):
+		print view
 		actor_id = '%d' % actor_id
 		results	= []
-		for skill_id, stats in self.rdata['stats']['actor'][actor_id]['done']['skill'].items():
-			if skill_id == 'hits':
-				print stats
+		for skill_id, stats in self.rdata['stats']['actor'][actor_id][view]['skill'].items():
 			tmp = stats
 			tmp['skill_id'] = skill_id
 			tmp['skill_name']=self.rdata['skills'][skill_id]

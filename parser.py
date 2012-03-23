@@ -120,6 +120,8 @@ class Encounter:
 			'heals_count':			0,
 			'critical_heals':		0,
 			'critical_heals_count': 0,
+			'heals_max':			0,
+			'hits_max':				0,
 		}
 
 	def get_detailed_struct(self, mask = None):
@@ -192,17 +194,13 @@ class Encounter:
 			tmp[skill_id] = self.get_simple_struct()
 		return tmp[skill_id]
 
-	def update_total_for_skill(self, source, action_type, skill_id, is_crit, amount, inverse_view=False):
-		if inverse_view:
-			tmp 				= self.get_total_for_skill(source, skill_id, 'received')
-		else:
-			self.update_total_for_skill(source, action_type, skill_id, is_crit, amount, True)
-			tmp 				= self.get_total_for_skill(source, skill_id, 'done')
+	def update_total_for_skill(self, source, action_type, skill_id, is_crit, amount, view='done'):
+		tmp 				= self.get_total_for_skill(source, skill_id, view)
 
 		self.update_simple_struct(tmp, action_type, amount, is_crit)
 
 		if skill_id != 0:
-			self.update_total_for_skill(source, action_type, 0, is_crit, amount)
+			self.update_total_for_skill(source, action_type, 0, is_crit, amount, view)
 
 	def get_actor_detail_for_actor_skill(self, source, target, view, type_action, skill_id):
 		tmp = self.stats['actor'][source][view]['actor_skill']
@@ -284,6 +282,7 @@ class Encounter:
 		#gtfs 	= self.get_total_for_skill(source, skill_id)
 
 		self.update_total_for_skill(source, action_type, skill_id, is_crit, amount)
+		self.update_total_for_skill(target, action_type, skill_id, is_crit, amount, 'received')
 		#self.update_total_for_skill(target, action_type, skill_id, is_crit, amount, 'received')
 
 		# source, target, skill

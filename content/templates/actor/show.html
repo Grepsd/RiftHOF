@@ -12,6 +12,7 @@
           $('#detailed_stats_by_actor_{{ actor.grouper }}').tablesorter();
         {% endfor %}
         $('#detailed_stats_by_skill').tablesorter();
+        $('#detailed_stats_by_skill_received').tablesorter();
       	chart = new Highcharts.Chart({
           chart: {
                 renderTo: 'timeline',
@@ -157,6 +158,8 @@
 
   <h2>Detail by skill</h2>
 
+  <h3>Done</h3>
+
   <table class="table table-condensed table-bordered tablesorter" id="detailed_stats_by_skill">
     <thead>
       <tr>
@@ -188,13 +191,11 @@
     </tbody>
   </table>
 
-  <h2>Detail by actor, skill</h2>
+  <h3>Received</h3>
 
-    {% for actor in actor_stats %}
-      <h3>{{ actor.list.0.actor_name }}</h3>
-    <table class="table table-condensed table-bordered tablesorter" id="detailed_stats_by_actor_{{ actor.grouper }}">
-      <thead>
-        <tr>
+  <table class="table table-condensed table-bordered tablesorter" id="detailed_stats_by_skill_received">
+    <thead>
+      <tr>
         <th style="width: 20%;">Skill Name</th>
         <th style="width: 10%;">Damages</th>
         <th style="width: 10%;">DPS</th>
@@ -204,23 +205,74 @@
         <th style="width: 10%;">HPS</th>
         <th style="width: 10%;">% HPS</th>
         <th style="width: 10%;">Crits</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for stat in detailed_total_stats_received %}
+        {% if stat.skill_name == 'Total' %}
+        <tr class="bold">
+          <td>{{ stat.skill_name }}</td>
+          <td>{{ stat.hits }}</td>
+          <td>{% widthratio stat.hits encounter_stats.duration 1 %}</td>
+          <td>100%</td>
+          <td>{% widthratio stat.critical_hits_count stat.hits_count 100 %}% ({{ stat.critical_hits_count }}/{{ stat.hits_count }})</td>
+          <td>{{ stat.heals }}</td>
+          <td>{% widthratio stat.heals encounter_stats.duration 1 %}</td>
+          <td>100%</td>
+          <td>{% widthratio stat.critical_heals_count stat.heals_count 100 %}% ({{ stat.critical_heals_count }}/{{ stat.heals_count }})</td>
         </tr>
-      </thead>
-      <tbody>
-          {% for stat in actor.list %}
-            <tr{% if stat.skill_name == 'Total' %} class="bold"{% endif %}>
-              <td>{{ stat.skill_name }}</td>
-              <td>{{ stat.hits }}</td>
-              <td>{% widthratio stat.hits encounter_stats.duration 1 %}</td>
-              <td>{% widthratio stat.hits stats.done.hits 100 %}%</td>
-              <td>{% widthratio stat.critical_hits_count stat.hits_count 100 %}% ({{ stat.critical_hits_count }}/{{ stat.hits_count }})</td>
-              <td>{{ stat.heals }}</td>
-              <td>{% widthratio stat.heals encounter_stats.duration 1 %}</td>
-              <td>{% widthratio stat.heals stats.done.heals 100 %}%</td>
-              <td>{% widthratio stat.critical_heals_count stat.heals_count 100 %}% ({{ stat.critical_heals_count }}/{{ stat.heals_count }})</td>
-            </tr>
-          {% endfor %}
-        {% endfor %}
+      {% else %}
+        <tr>
+          <td>{{ stat.skill_name }}</td>
+          <td>{{ stat.hits }}</td>
+          <td>{% widthratio stat.hits encounter_stats.duration 1 %}</td>
+          <td>{% widthratio stat.hits stats.done.hits 100 %}%</td>
+          <td>{% widthratio stat.critical_hits_count stat.hits_count 100 %}% ({{ stat.critical_hits_count }}/{{ stat.hits_count }})</td>
+          <td>{{ stat.heals }}</td>
+          <td>{% widthratio stat.heals encounter_stats.duration 1 %}</td>
+          <td>{% widthratio stat.heals stats.done.heals 100 %}%</td>
+          <td>{% widthratio stat.critical_heals_count stat.heals_count 100 %}% ({{ stat.critical_heals_count }}/{{ stat.heals_count }})</td>
+        </tr>
+      {% endif %}
+      {% endfor %}
     </tbody>
   </table>
+
+  <h2>Detail by actor, skill</h2>
+
+    {% for actor in actor_stats %}
+      {% if actor.list|length > 0 %}
+        <h3>{{ actor.list.0.actor_name }}</h3>
+      <table class="table table-condensed table-bordered tablesorter" id="detailed_stats_by_actor_{{ actor.grouper }}">
+        <thead>
+          <tr>
+          <th style="width: 20%;">Skill Name</th>
+          <th style="width: 10%;">Damages</th>
+          <th style="width: 10%;">DPS</th>
+          <th style="width: 10%;">% DPS</th>
+          <th style="width: 10%;">Crits</th>
+          <th style="width: 10%;">Heals</th>
+          <th style="width: 10%;">HPS</th>
+          <th style="width: 10%;">% HPS</th>
+          <th style="width: 10%;">Crits</th>
+          </tr>
+        </thead>
+        <tbody>
+            {% for stat in actor.list %}
+              <tr{% if stat.skill_name == 'Total' %} class="bold"{% endif %}>
+                <td>{{ stat.skill_name }}</td>
+                <td>{{ stat.hits }}</td>
+                <td>{% widthratio stat.hits encounter_stats.duration 1 %}</td>
+                <td>{% widthratio stat.hits stats.done.hits 100 %}%</td>
+                <td>{% widthratio stat.critical_hits_count stat.hits_count 100 %}% ({{ stat.critical_hits_count }}/{{ stat.hits_count }})</td>
+                <td>{{ stat.heals }}</td>
+                <td>{% widthratio stat.heals encounter_stats.duration 1 %}</td>
+                <td>{% widthratio stat.heals stats.done.heals 100 %}%</td>
+                <td>{% widthratio stat.critical_heals_count stat.heals_count 100 %}% ({{ stat.critical_heals_count }}/{{ stat.heals_count }})</td>
+              </tr>
+            {% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
+    {% endfor %}
 {% endblock %}
