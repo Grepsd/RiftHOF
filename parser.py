@@ -129,7 +129,7 @@ class Encounter:
 		}
 
 	def get_timeline_structure(self):
-		return 
+		return {'done': {'heals': 0, 'hits': 0}, 'received': {'heals': 0, 'hits': 0}} 
 
 	# calcul fight duration
 	def get_duration(self):
@@ -170,149 +170,129 @@ class Encounter:
 			'amount':	amount,
 			'is_crit':	is_crit,
 		}
+		
+	def get_actor_timeline(self, actor_id, time=None):
+		if time is not None:
+			tmp = self.get_actor_timeline(actor_id)
+			if time not in tmp:
+				tmp[time] = self.get_timeline_structure()
+			return tmp[time]
+		return self.stats['actor'][actor_id]['timeline']
+
+	def update_actor_timeline(self, time, source, target, action_type, amount):
+		self.get_actor_timeline(source, time)['done'][action_type]	 	+= amount
+		self.get_actor_timeline(target, time)['received'][action_type] 	+= amount
+
+	def get_total_skill(self, source, view):
+		return self.stats['actor'][source][view]['skill']
+
+	def get_total_for_skill(self, source, skill_id, view):
+		tmp = self.get_total_skill(source, view)
+		if skill_id not in tmp:
+			tmp[skill_id] = self.get_simple_struct()
+		return tmp[skill_id]
+
+	def update_total_for_skill(self, source, action_type, skill_id, is_crit, amount, inverse_view=False):
+		if inverse_view:
+			tmp 				= self.get_total_for_skill(source, skill_id, 'received')
+		else:
+			self.update_total_for_skill(source, action_type, skill_id, is_crit, amount, True)
+			tmp 				= self.get_total_for_skill(source, skill_id, 'done')
+
+		self.update_simple_struct(tmp, action_type, amount, is_crit)
+
+		if skill_id != 0:
+			self.update_total_for_skill(source, action_type, 0, is_crit, amount)
+
+	def get_actor_detail_for_actor_skill(self, source, target, view, type_action, skill_id):
+		tmp = self.stats['actor'][source][view]['actor_skill']
+
+		if target not in tmp:
+			tmp[target] = {}
+
+		if skill_id not in tmp[target]:
+			tmp[target][skill_id] = self.get_simple_struct()
+
+		return tmp[target][skill_id]
+
+	def update_actor_detail_for_actor_skill(self, source, target, type_action, skill_id, amount, is_crit, inverse_view=False):
+		if inverse_view:
+			tmp = self.get_actor_detail_for_actor_skill(target, source, 'received', type_action, skill_id)
+		else:
+			self.update_actor_detail_for_actor_skill(source, target, type_action, skill_id, amount, is_crit, True)
+			tmp = self.get_actor_detail_for_actor_skill(source, target, 'done', type_action, skill_id)
+
+		self.update_simple_struct(tmp, type_action, amount, is_crit)
+		
+		if skill_id != 0:
+			self.update_actor_detail_for_actor_skill(source, target, type_action, 0, amount, is_crit)
+
+	def get_actor_global_stats(self, actor, view):
+		return self.stats['actor'][actor]['global'][view]
+
+	def update_actor_global_stats(self, source, target, action_type, amount, is_crit, inverse_view=False):
+		if inverse_view:
+			tmp = self.get_actor_global_stats(target, 'received')
+		else:
+			self.update_actor_global_stats(source, target, action_type, amount, is_crit, True)
+			tmp = self.get_actor_global_stats(source, 'done')
+
+		self.update_simple_struct(tmp, action_type, amount, is_crit)
+
+
+
+	def get_actor_stats_for_actor(self, source, target, view):
+		tmp = self.stats['actor'][source][view]
+		if target not in tmp:
+			tmp[target] = self.get_simple_struct()
+		return tmp[target]
+
+	def update_actor_stats_for_actor(self, source, target, action_type, amount, is_crit, inverse_view=False):
+		if inverse_view:
+			tmp = self.get_actor_stats_for_actor(target, source, 'received')
+		else:
+			self.update_actor_stats_for_actor(source, target, action_type, amount, is_crit, True)
+			tmp = self.get_actor_stats_for_actor(source, target, 'done')
+
+		self.update_simple_struct(tmp, action_type, amount, is_crit)
+
+	def update_simple_struct(self, tmp, key, amount, is_crit):
+		tmp[key] 				+= amount
+		tmp[key + '_count'] 	+= 1
+
+		if is_crit:
+			key = 'critical_' + key
+
+			tmp[key] 				+= amount
+			tmp[key + '_count'] 	+= 1
+
 
 	def handle_damage_and_heal(self, action_type, source, target, amount, skill_id, is_crit):
 		time = self.line['time']
+
 		# does anything already happened at this $time in the timeline for the source (and then for the target)
-		if time not in self.stats['actor'][source]['timeline']:
-			self.stats['actor'][source]['timeline'][time] = {'done': {'heals': 0, 'hits': 0}, 'received': {'heals': 0, 'hits': 0}}
-		if time not in self.stats['actor'][target]['timeline']:
-			self.stats['actor'][target]['timeline'][time] = {'done': {'heals': 0, 'hits': 0}, 'received': {'heals': 0, 'hits': 0}}
+		self.get_actor_timeline(source, time)
+		self.get_actor_timeline(target, time)
 		
 		# add the value of this action in the timeline.
-		self.stats['actor'][source]['timeline'][time]['done'][action_type] 	+= amount
-		self.stats['actor'][target]['timeline'][time]['received'][action_type]+= amount
+		self.update_actor_timeline(time, source, target, action_type, amount)
 
 		# does this skill is already registered ? used to have a full report of what hits what and do 
 		# stats on it.
-		if skill_id not in self.stats['actor'][source]['done']['skill'][action_type]:
-			self.stats['actor'][source]['done']['skill'][action_type][skill_id] = 0
 
-		self.stats['actor'][source]['done']['skill'][action_type][skill_id] += amount
+		# get and update total stats per source, skill_id
+		#gtfs 	= self.get_total_for_skill(source, skill_id)
 
-		if skill_id not in self.stats['actor'][target]['received']['skill'][action_type]:
-			self.stats['actor'][target]['received']['skill'][action_type][skill_id] = 0
+		self.update_total_for_skill(source, action_type, skill_id, is_crit, amount)
+		#self.update_total_for_skill(target, action_type, skill_id, is_crit, amount, 'received')
 
-		self.stats['actor'][target]['received']['skill'][action_type][skill_id] += amount
+		# source, target, skill
+		self.update_actor_detail_for_actor_skill(source, target, action_type, skill_id, amount, is_crit)
 
-		"""
-			Stats by skills
+		self.update_actor_global_stats(source, target, action_type, amount, is_crit)
 
-			What you received by skill_id
-			What you did by skill_id
+		self.update_actor_stats_for_actor(source, target, action_type, amount, is_crit)
 
-			You dont know who hit you, or who you hit, but you know what kind of hit it was.
-
-		"""
-
-		if skill_id not in self.stats['actor'][source]['done']['skill']['detail']:
-			self.stats['actor'][source]['done']['skill']['detail'][skill_id] = self.get_simple_struct()
-
-		self.stats['actor'][source]['done']['skill']['detail'][skill_id][action_type] 				+= amount
-		self.stats['actor'][source]['done']['skill']['detail'][skill_id]['%s_count' % action_type] 	+= 1
-		if is_crit:
-			self.stats['actor'][source]['done']['skill']['detail'][skill_id]['critical_%s' % action_type] 		+= amount
-			self.stats['actor'][source]['done']['skill']['detail'][skill_id]['critical_%s_count' % action_type] 	+= 1
-
-		if skill_id not in self.stats['actor'][target]['received']['skill']['detail']:
-			self.stats['actor'][target]['received']['skill']['detail'][skill_id] = self.get_simple_struct()
-
-		self.stats['actor'][target]['received']['skill']['detail'][skill_id][action_type] 				+= amount
-		self.stats['actor'][target]['received']['skill']['detail'][skill_id]['%s_count' % action_type] 	+= 1
-		if is_crit:
-			self.stats['actor'][target]['received']['skill']['detail'][skill_id]['critical_%s' % action_type] 		+= amount
-			self.stats['actor'][target]['received']['skill']['detail'][skill_id]['critical_%s_count' % action_type] 	+= 1
-
-		t = skill_id
-		skill_id = 0
-		if skill_id not in self.stats['actor'][source]['done']['skill']['detail']:
-			self.stats['actor'][source]['done']['skill']['detail'][skill_id] = self.get_simple_struct()
-
-		self.stats['actor'][source]['done']['skill']['detail'][skill_id][action_type] 				+= amount
-		self.stats['actor'][source]['done']['skill']['detail'][skill_id]['%s_count' % action_type] 	+= 1
-		if is_crit:
-			self.stats['actor'][source]['done']['skill']['detail'][skill_id]['critical_%s' % action_type] 		+= amount
-			self.stats['actor'][source]['done']['skill']['detail'][skill_id]['critical_%s_count' % action_type] 	+= 1
-
-		if skill_id not in self.stats['actor'][target]['received']['skill']['detail']:
-			self.stats['actor'][target]['received']['skill']['detail'][skill_id] = self.get_simple_struct()
-
-		self.stats['actor'][target]['received']['skill']['detail'][skill_id][action_type] 				+= amount
-		self.stats['actor'][target]['received']['skill']['detail'][skill_id]['%s_count' % action_type] 	+= 1
-		if is_crit:
-			self.stats['actor'][target]['received']['skill']['detail'][skill_id]['critical_%s' % action_type] 		+= amount
-			self.stats['actor'][target]['received']['skill']['detail'][skill_id]['critical_%s_count' % action_type] 	+= 1
-
-		skill_id = t
-
-
-		"""
-			Stats by actor then by skills
-
-			What you received by skill_id
-			What you did by skill_id
-
-			You dont know who hit you, or who you hit, and you know who did what to who.
-
-		"""
-
-		if target not in self.stats['actor'][source]['done']['actor_skill']:
-			self.stats['actor'][source]['done']['actor_skill'][target] = {}
-
-		if skill_id not in self.stats['actor'][source]['done']['actor_skill'][target]:
-			self.stats['actor'][source]['done']['actor_skill'][target][skill_id] = self.get_simple_struct()
-
-		self.stats['actor'][source]['done']['actor_skill'][target][skill_id][action_type] 				+= amount
-		self.stats['actor'][source]['done']['actor_skill'][target][skill_id]['%s_count' % action_type] 	+= 1
-		if is_crit:
-			self.stats['actor'][source]['done']['actor_skill'][target][skill_id]['critical_%s' % action_type] 		+= amount
-			self.stats['actor'][source]['done']['actor_skill'][target][skill_id]['critical_%s_count' % action_type] 	+= 1
-
-
-
-		if source not in self.stats['actor'][target]['received']['actor_skill']:
-			self.stats['actor'][target]['received']['actor_skill'][source] = {}
-
-		if skill_id not in self.stats['actor'][target]['received']['actor_skill'][source]:
-			self.stats['actor'][target]['received']['actor_skill'][source][skill_id] = self.get_simple_struct()
-
-		self.stats['actor'][target]['received']['actor_skill'][source][skill_id][action_type] 				+= amount
-		self.stats['actor'][target]['received']['actor_skill'][source][skill_id]['%s_count' % action_type] 	+= 1
-		if is_crit:
-			self.stats['actor'][target]['received']['actor_skill'][source][skill_id]['critical_%s' % action_type] 		+= amount
-			self.stats['actor'][target]['received']['actor_skill'][source][skill_id]['critical_%s_count' % action_type] 	+= 1
-
-
-
-		# add this amount and stats to the global stats of the target and source
-		self.stats['actor'][target]['global']['received'][action_type] 				+= amount
-		self.stats['actor'][target]['global']['received']['%s_count' % action_type] 	+= 1
-		if is_crit:
-			self.stats['actor'][target]['global']['received']['critical_%s' % action_type] 		+= amount
-			self.stats['actor'][target]['global']['received']['critical_%s_count' % action_type] 	+= 1
-
-		self.stats['actor'][source]['global']['done'][action_type] 				+= amount
-		self.stats['actor'][source]['global']['done']['%s_count' % action_type] 	+= 1
-		if is_crit:
-			self.stats['actor'][source]['global']['done']['critical_%s' % action_type] 		+= amount
-			self.stats['actor'][source]['global']['done']['critical_%s_count' % action_type] 	+= 1
-
-		# track who did hit who.
-		if source not in self.stats['actor'][target]['received']['actor']:
-			self.stats['actor'][target]['received']['actor'][source] = self.get_simple_struct()
-		self.stats['actor'][target]['received']['actor'][source][action_type] 				+= amount
-		self.stats['actor'][target]['received']['actor'][source]['%s_count' % action_type] 	+= 1
-		if is_crit:
-			self.stats['actor'][target]['received']['actor'][source]['critical_%s' % action_type] 		+= amount
-			self.stats['actor'][target]['received']['actor'][source]['critical_%s_count' % action_type] 	+= 1
-
-		if target not in self.stats['actor'][source]['done']['actor']:
-			self.stats['actor'][source]['done']['actor'][target] = self.get_simple_struct()
-		self.stats['actor'][source]['done']['actor'][target][action_type] 				+= amount
-		self.stats['actor'][source]['done']['actor'][target]['%s_count' % action_type] 	+= 1
-		if is_crit:
-			self.stats['actor'][source]['done']['actor'][target]['critical_%s' % action_type] 		+= amount
-			self.stats['actor'][source]['done']['actor'][target]['critical_%s_count' % action_type] 	+= 1
 
 	def get_buff(self, actor):
 		return self.stats['actor'][actor]['buffes']
@@ -508,12 +488,12 @@ class Encounter:
 		self.stats['actor'][actor['id']] = {
 			'global': 		self.get_detailed_struct(),
 			'done':			{
-				'skill':	{'heals': {}, 'hits': {}, 'detail': {}},
+				'skill':	{},
 				'actor':	{},
 				'actor_skill': {},
 			},
 			'received':		{
-				'skill':	{'heals': {}, 'hits': {}, 'detail': {}},
+				'skill':	{},
 				'actor':	{},
 				'actor_skill': {},
 			},
