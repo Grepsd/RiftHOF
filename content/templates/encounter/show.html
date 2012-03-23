@@ -12,6 +12,7 @@
       $(document).ready(function() {
           $('.nav-tabs a:last').tab()
           $("#damages").tablesorter(); 
+          $("#npc_table").tablesorter(); 
           chart = new Highcharts.Chart({
               chart: {
                   renderTo: 'dps_chart',
@@ -339,6 +340,7 @@
     </div>
   </div>
   -->
+  <a href="{% url guild_log_show encounter.log.id %}"><span class="btn btn-success">< < Back</span></a><br /><br />
 
   <ul class="nav nav-tabs">
     <li class="active"><a href="#timeline" data-toggle="tab">Timeline</a></li>
@@ -403,7 +405,7 @@
       </table>
     </div>
     <div class="tab-pane" id="npcs" style="min-width: 1100px;">
-      <table class="table table-condensed">
+      <table class="table table-condensed table-bordered tablesorter" id="npc_table">
         <thead>
           <tr>
             <th>Name</th>
