@@ -8,7 +8,8 @@ urlpatterns = patterns('',
     # Examples:
     url(r'^$', 						'logparse.views.home', 					name='home'),
     url(r'^login$', 				'django.contrib.auth.views.login', {'template_name': 'login.html'}, name='login'),
-    url(r'^logout$', 				'django.contrib.auth.views.logout', {'next_page': '/'}, name='logout'),
+    url(r'^logout$',                'django.contrib.auth.views.logout', {'next_page': '/'}, name='logout'),
+    url(r'^register$',              'logparse.views.register',              name='register'),
 
 
     url(r'^guild$', 				'logparse.views.guild_home', 			name='guild_home'),

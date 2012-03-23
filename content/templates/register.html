@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block "content" %}
+	{% if new_user %}
+		<p>Welcome {{ new_user.username }}.</p>
+
+		<p>You can now login to you account :</p>
+		<p><a href="{% url login %}"><span class="btn btn-success">login</span></a></p>
+	{% else %}
+		{% if form.errors %}
+			<div class="alert alert-error">
+				{{ form.errors }}
+			</div>
+		{% endif %}
+		<table class="table">
+			<form action="{% url register %}" method="post" class="form">
+				{% csrf_token %}
+				{{ form }}
+				<tr>
+					<td colspan="2">
+						<input type="submit" value="register" class="btn btn-success" />
+					</td>
+			</form>
+		</table>
+	{% endif %}
+{% endblock %}
