@@ -234,7 +234,7 @@ class EncounterStats(models.Model):
 					'id':			actor,
 					'skills':		{},
 				}
-				for skill_id, value in stats[view]['skill'][stat].items():
+				for skill_id, value in stats[view]['skill'].items():
 					if view not in el['skills']:
 						el['skills'][view] = {}
 					if stat not in el['skills'][view]:
@@ -242,8 +242,8 @@ class EncounterStats(models.Model):
 					if el['original'] == 0:
 						ratio = 0
 					else:
-						ratio = float(value) / el['original'] * 100
-					d = {'name': self.rdata['skills'][skill_id], 'value': value, 'ratio': ratio}
+						ratio = float(value[stat]) / el['original'] * 100
+					d = {'name': self.rdata['skills'][skill_id], 'value': value[stat], 'ratio': ratio}
 					el['skills'][view][stat].append(d)
 
 				el['by_time'] 	= int(el['original'] / self.duration)
@@ -477,7 +477,9 @@ class EncounterStats(models.Model):
 	def get_detailed_total_stats(self, actor_id):
 		actor_id = '%d' % actor_id
 		results	= []
-		for skill_id, stats in self.rdata['stats']['actor'][actor_id]['done']['skill']['detail'].items():
+		for skill_id, stats in self.rdata['stats']['actor'][actor_id]['done']['skill'].items():
+			if skill_id == 'hits':
+				print stats
 			tmp = stats
 			tmp['skill_id'] = skill_id
 			tmp['skill_name']=self.rdata['skills'][skill_id]

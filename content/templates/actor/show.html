@@ -177,7 +177,7 @@
           <td>{{ stat.skill_name }}</td>
           <td>{{ stat.hits }}</td>
           <td>{% widthratio stat.hits encounter_stats.duration 1 %}</td>
-          <td>{% widthratio stat.hits stats.done.hits 100 %}%</td>
+          <td>{% if stat.skill_name == 'Total' %}100{% else %}{% widthratio stat.hits stats.done.hits 100 %}{% endif %}%</td>
           <td>{% widthratio stat.critical_hits_count stat.hits_count 100 %}% ({{ stat.critical_hits_count }}/{{ stat.hits_count }})</td>
           <td>{{ stat.heals }}</td>
           <td>{% widthratio stat.heals encounter_stats.duration 1 %}</td>

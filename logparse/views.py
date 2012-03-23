@@ -10,6 +10,7 @@ from django.conf import settings
 from django.views.decorators.cache import cache_page
 from django.core.cache import cache
 from django.contrib.auth.forms import UserCreationForm
+from django.core.exceptions import MultipleObjectsReturned
 
 def home(request):
 	data 		= {
@@ -155,7 +156,7 @@ def guild_log_encounter_show(request, id_encounter):
 		boss_id 	= enc.boss.id
 		boss_name 	= enc.boss.name
 
-	data = cache.get("encounter_%d" % id_encounter)
+	#data = cache.get("encounter_%d" % id_encounter)
 	# to remove
 	data = None
 
@@ -173,7 +174,7 @@ def guild_log_encounter_show(request, id_encounter):
 			'life_and_death':stats.get_life_and_death(),
 			}
 
-		cache.set("encounter_%d" % id_encounter, data, 6 * 15)
+		#cache.set("encounter_%d" % id_encounter, data, 6 * 15)
 
 	return render(request, 'encounter/show.html', data)
 
@@ -184,7 +185,8 @@ def ranking_boss(request, id):
 def actor_show_detail(request, id_encounter, id_obj):
 	id_encounter	= int(id_encounter)
 	id_obj			= int(id_obj)
-	data 			= cache.get("encounter_%d_actor_%d" % (id_encounter, id_obj))
+
+	#data 			= cache.get("encounter_%d_actor_%d" % (id_encounter, id_obj))
 
 	# to remove
 	data = None
@@ -194,6 +196,9 @@ def actor_show_detail(request, id_encounter, id_obj):
 		stats 		= encounter.stats()
 		stats.parse()
 		try:
+			actor 		= Actor.objects.get(encounter__id=id_encounter, obj_id=id_obj)
+		except MultipleObjectsReturned:
+			Actor.objects.filter(encounter__id=id_encounter, obj_id=id_obj)[1].delete()
 			actor 		= Actor.objects.get(encounter__id=id_encounter, obj_id=id_obj)
 		except:
 			stats.create_actors()
@@ -209,6 +214,6 @@ def actor_show_detail(request, id_encounter, id_obj):
 			'encounter_stats': stats,
 			'detailed_total_stats': stats.get_detailed_total_stats(id_obj),
 			'detailed_by_actor_stats': stats.get_detailed_by_actor_stats(id_obj),
-		}
-		cache.set("encounter_%d_actor_%d" % (id_encounter, id_obj), data, 6 * 15)
+			}
+		#cache.set("encounter_%d_actor_%d" % (id_encounter, id_obj), data, 6 * 15)
 	return render(request, 'actor/show.html', data)
