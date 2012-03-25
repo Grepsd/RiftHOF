@@ -51,6 +51,18 @@
                       color: '{% if buff.skill == "Couplet de joie" %}#CEF{% else %}#FEC{% endif %}',
                     },
                   {% endfor %}
+                  {% for buff in important_buffes %}
+                    {% for time in buff.timeline %}
+                      {
+                        from: {{ time.from }} / 5,
+                        to:   {{ time.to }} / 5,
+                        color: '#A20',
+                        label: {
+                          text: '{{ buff.skill_name|escapejs }}'
+                        }
+                      },
+                    {% endfor %}
+                  {% endfor %}
                 ]
             },
 
@@ -165,10 +177,12 @@
       <tr>
         <th style="width: 20%;">Skill Name</th>
         <th style="width: 10%;">Damages</th>
+        <th style="width: 10%;">Max Dmg</th>
         <th style="width: 10%;">DPS</th>
         <th style="width: 10%;">% DPS</th>
         <th style="width: 10%;">Crits</th>
         <th style="width: 10%;">Heals</th>
+        <th style="width: 10%;">Max Heals</th>
         <th style="width: 10%;">HPS</th>
         <th style="width: 10%;">% HPS</th>
         <th style="width: 10%;">Crits</th>
@@ -179,10 +193,12 @@
         <tr{% if stat.skill_name == 'Total' %} class="bold"{% endif %}>
           <td>{{ stat.skill_name }}</td>
           <td>{{ stat.hits }}</td>
+          <td>{% widthratio stat.hits stat.hits_count 1 %} / {{ stat.max_hits }} ({{ stat.hits_count }})</td>
           <td>{% widthratio stat.hits encounter_stats.duration 1 %}</td>
           <td>{% if stat.skill_name == 'Total' %}100{% else %}{% widthratio stat.hits stats.done.hits 100 %}{% endif %}%</td>
           <td>{% widthratio stat.critical_hits_count stat.hits_count 100 %}% ({{ stat.critical_hits_count }}/{{ stat.hits_count }})</td>
           <td>{{ stat.heals }}</td>
+          <td>{% widthratio stat.heals stat.heals_count 1 %} / {{ stat.max_heals }} ({{ stat.heals_count }})</td>
           <td>{% widthratio stat.heals encounter_stats.duration 1 %}</td>
           <td>{% widthratio stat.heals stats.done.heals 100 %}%</td>
           <td>{% widthratio stat.critical_heals_count stat.heals_count 100 %}% ({{ stat.critical_heals_count }}/{{ stat.heals_count }})</td>

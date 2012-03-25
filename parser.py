@@ -120,8 +120,8 @@ class Encounter:
 			'heals_count':			0,
 			'critical_heals':		0,
 			'critical_heals_count': 0,
-			'heals_max':			0,
-			'hits_max':				0,
+			'max_hits': 			0,
+			'max_heals':			0,
 		}
 
 	def get_detailed_struct(self, mask = None):
@@ -255,6 +255,13 @@ class Encounter:
 		self.update_simple_struct(tmp, action_type, amount, is_crit)
 
 	def update_simple_struct(self, tmp, key, amount, is_crit):
+		type_action = 'heals'
+		if 'hits' in key:
+			type_action = 'hits'
+
+		if amount > tmp['max_' + type_action]:
+			tmp['max_' + type_action] = amount
+
 		tmp[key] 				+= amount
 		tmp[key + '_count'] 	+= 1
 
@@ -315,6 +322,9 @@ class Encounter:
 	
 		def handle_buff(self, source, target, skill_id, type_buff, action_type, time, view):
 		# track the buff/curse timeline (here for the source)
+			if view == 'received':
+				if skill_id == 2117300275:
+					print time, action_type, self.get_actor(source)['name']
 			tt = self.get_buff(source)[view][type_buff][target][skill_id]
 			try:
 				l_done 	= tt.pop(len(tt) - 1)
@@ -429,7 +439,7 @@ class Encounter:
 
 				
 			# is the action related to the buffes and curses.
-			if line['action_name'] in ('GAINS', 'SUFFERS', 'AFFLICTED', 'FADES'):
+			if line['action_name'] in ('GAINS', 'AFFLICTED', 'FADES', 'DISSIPATES'):
 
 				# detect if it's a curse or a buff
 				type_buff 	= 'debuff'

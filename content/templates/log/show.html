@@ -36,7 +36,7 @@
     <table class="table">
       {% regroup log.encounters by boss as en %}
         {% for e in en %}
-          <tr><th class="left">{{ e.grouper }}</th></tr>
+          <tr><th class="left">{{ e.grouper }} ({{ e.list|length }})</th></tr>
           <tr><td>
           {% for eee in e.list %}
            <a href="{% url guild_log_encounter_show eee.id %}">

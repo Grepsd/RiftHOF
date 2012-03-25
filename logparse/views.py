@@ -215,6 +215,7 @@ def actor_show_detail(request, id_encounter, id_obj):
 			'detailed_total_stats': stats.get_detailed_total_stats(id_obj),
 			'detailed_total_stats_received': stats.get_detailed_total_stats(id_obj, 'received'),
 			'detailed_by_actor_stats': stats.get_detailed_by_actor_stats(id_obj),
+			'important_buffes': 		stats.get_actor_important_buffes(id_obj),
 			}
 		#cache.set("encounter_%d_actor_%d" % (id_encounter, id_obj), data, 6 * 15)
 	return render(request, 'actor/show.html', data)

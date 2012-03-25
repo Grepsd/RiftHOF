@@ -254,16 +254,16 @@
 
 
 
-            series: [{
+            series: [ {
+                name: 'Taken',
+                data: [{% for stats in timeline_list %}{{ stats.total.players.received.hits }} / 5,{% endfor %}]
+            },{
                 name: 'DPS',
                 data: [{% for stats in timeline_list %}{{ stats.total.players.done.hits }} / 5,{% endfor %}]
             }, {
                 name: 'HPS',
                 data: [{% for stats in timeline_list %}{{ stats.total.players.done.heals }} / 5,{% endfor %}]
-            }, {
-                name: 'Taken',
-                data: [{% for stats in timeline_list %}{{ stats.total.players.received.hits }} / 5,{% endfor %}]
-            }]
+            },]
         });
       });
       {% endwith %}

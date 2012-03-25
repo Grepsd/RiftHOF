@@ -438,6 +438,26 @@ class EncounterStats(models.Model):
 			final.append(d)
 		return final
 
+	def get_actor_important_buffes(self, actor):
+		actor = '%s' % actor
+		results = []
+		for source, skills in self.rdata['stats']['actor'][actor]['buffes']['received']['buff'].items():
+			for skill_id, timeline in skills.items():
+				if skill_id == 2117300275:
+					timeline_t = []
+					for time in timeline:
+						a = {
+							'from': self.get_sec(time[0]),
+						}
+						if len(time) == 2:
+							a['to'] = self.get_sec(time[1])
+						else:
+							a['to'] = self.get_sec(self.rdata['end_time'])
+							
+						timeline_t.append(a)
+					results.append({'skill_id': skill_id, 'skill_name': self.rdata['skills'][skill_id], 'timeline': timeline_t})
+		return results
+
 
 	def get_important_buffes(self):
 		results 	= []
@@ -475,7 +495,6 @@ class EncounterStats(models.Model):
 		return results
 	
 	def get_detailed_total_stats(self, actor_id, view='done'):
-		print view
 		actor_id = '%d' % actor_id
 		results	= []
 		for skill_id, stats in self.rdata['stats']['actor'][actor_id][view]['skill'].items():
