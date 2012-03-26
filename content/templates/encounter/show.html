@@ -13,7 +13,7 @@
           $('.nav-tabs a:last').tab()
           $("#damages").tablesorter(); 
           $("#npc_table").tablesorter(); 
-          chart = new Highcharts.Chart({
+          dps_chart = new Highcharts.Chart({
               chart: {
                   renderTo: 'dps_chart',
                   type: 'bar',
@@ -71,7 +71,7 @@
                   data: [{% for el in all_tops|dictsortreversed:"damages_value" %}{% if el.name != 'total' %}{{ el.damages_by_time }},{% endif %}{% endfor %}],
               }]
           });
-          chart = new Highcharts.Chart({
+          hps_chart = new Highcharts.Chart({
               chart: {
                   renderTo: 'hps_chart',
                   type: 'bar',
@@ -128,7 +128,7 @@
                   data: [{% for el in all_tops|dictsortreversed:"heals_value" %}{% if el.name != 'total' %}{{ el.heals_by_time }},{% endif %}{% endfor %}],
               }]
           });
-          chart = new Highcharts.Chart({
+          dmg_taken_chart = new Highcharts.Chart({
               chart: {
                   renderTo: 'taken_chart',
                   type: 'bar',
@@ -184,7 +184,9 @@
                   name: 'taken',
                   data: [{% for el in all_tops|dictsortreversed:"taken_value" %}{% if el.name != 'total' %}{{ el.taken_by_time }},{% endif %}{% endfor %}],
               }]
-          });        chart = new Highcharts.Chart({
+          });     
+             
+          timeline_chart = new Highcharts.Chart({
 
           {% with timeline_list=timeline|dictsort:"time" %}
           chart: {
@@ -200,20 +202,51 @@
                 tickInterval: 6,
                 plotBands: [
                   {% for buff in buffes %}
-                    {
-                      from: {{ buff.from }} / 5,
-                      to:   {{ buff.to }} / 5,
-                      color: '{% if buff.skill == "Couplet de joie" %}#CEF{% else %}#FEC{% endif %}',
-                    },
+                    {% if buff.render == 'band' %}
+                      {
+                        from: {{ buff.from }} / 5,
+                        to:   {{ buff.to }} / 5,
+                        {% if buff.color %}
+                          color: '{{ buff.color }}',
+                        {% else %}
+                          color: '{% if buff.skill == "Couplet de joie" %}#CEF{% else %}#FEC{% endif %}',
+                        {% endif %}
+                        {% if buff.display or buff.display_player %}
+                          label: {
+                              text: '{% if buff.display %}{{ buff.skill }}{% endif %} {% if buff.display_player %}{{ buff.player }}{% endif %}',
+                              rotation: 90,
+                          },
+                        {% endif %}
+                      },
+                    {% endif %}
                   {% endfor %}
                 ],
                 plotLines: [
+                  {% for buff in buffes %}
+                    {% if buff.render == 'line' %}
+                      {
+                        value: {{ buff.from }} / 5,
+                        color: '{{ buff.color }}',
+                        {% if buff.display or buff.display_player %}
+                          label: {
+                              text: '{% if buff.display %}{{ buff.skill }}{% endif %} {% if buff.display_player %}{{ buff.player }}{% endif %}',
+                              rotation: 45,
+                         },
+                         width: 1,
+                         zindex: 10,
+                        dashStyle: 'dot',
+                        {% endif %}
+                      },
+                    {% endif %}
+                  {% endfor %}
                   {% for death in deathes %}
                     {
                         value : {{ death.time }} / 5,
                         color: '#A00',
                         width: 1,
-                        label: {text: '{{ death.player }}',},
+                        label: {text: '{{ death.player }}',
+                        rotation: 90,},
+                         zindex: 10,
                     },
                   {% endfor %}
                   {% for r in rez %}
@@ -221,7 +254,9 @@
                         value : {{ r.time }} / 5,
                         color: '#0A0',
                         width: 1,
-                        label: {text: '{{ r.player }}',},
+                        label: {text: '{{ r.player }}',
+                        rotation: 90,},
+                         zindex: 10,
                     },
                   {% endfor %}
                   ],
@@ -237,6 +272,8 @@
                     }
                 },
                 min: 0,
+                plotLines: [
+                ],
             },
 
             tooltip: {
@@ -245,6 +282,9 @@
             },
 
             plotOptions: {
+              series: {
+                showCheckbox: true,
+              },
               spline: {
                 marker: {
                   enabled: false,
@@ -265,8 +305,108 @@
                 data: [{% for stats in timeline_list %}{{ stats.total.players.done.heals }} / 5,{% endfor %}]
             },]
         });
+        {% endwith %}
+
+        timeline_by_actor_chart = new Highcharts.Chart({
+
+          chart: {
+                renderTo: 'timeline_by_actor',
+                type: 'spline'
+            },
+
+            title: {
+                text: 'Timeline'
+            },
+            xAxis: {
+                categories: [{% for time in timeline_list %}'{{ time.time|secs }}',{% endfor %}],
+                tickInterval: 6,
+                plotBands: [
+                  {% for buff in buffes %}
+                    {% if buff.render == 'band' %}
+                      {
+                        from: {{ buff.from }} / 5,
+                        to:   {{ buff.to }} / 5,
+                        {% if buff.color %}
+                          color: '{{ buff.color }}',
+                        {% else %}
+                          color: '{% if buff.skill == "Couplet de joie" %}#CEF{% else %}#FEC{% endif %}',
+                        {% endif %}
+                        {% if buff.display or buff.display_player %}
+                          label: {
+                              text: '{% if buff.display %}{{ buff.skill }}{% endif %} {% if buff.display_player %}{{ buff.player }}{% endif %}',
+                              rotation: 90,
+                          },
+                        {% endif %}
+                      },
+                    {% endif %}
+                  {% endfor %}
+                ],
+                plotLines: [
+                  {% for death in deathes %}
+                    {
+                        value : {{ death.time }} / 5,
+                        color: '#A00',
+                        width: 1,
+                        label: {text: '{{ death.player }}',
+                        rotation: 90,},
+                         zindex: 10,
+                    },
+                  {% endfor %}
+                  {% for r in rez %}
+                    {
+                        value : {{ r.time }} / 5,
+                        color: '#0A0',
+                        width: 1,
+                        label: {text: '{{ r.player }}',
+                        rotation: 90,},
+                         zindex: 10,
+                    },
+                  {% endfor %}
+                  ],
+            },
+
+            yAxis: {
+                title: {
+                    text: 'DPS/HPS'
+                },
+                labels: {
+                    formatter: function() {
+                        return this.value
+                    }
+                },
+                min: 0,
+                plotLines: [
+                ],
+            },
+
+            tooltip: {
+                crosshairs: true,
+                shared: true
+            },
+
+            plotOptions: {
+              series: {
+                showCheckbox: true,
+              },
+              spline: {
+                marker: {
+                  enabled: false,
+                }
+              }
+            },
+
+
+
+            series: [
+            {% for actor, timeline_actor in timeline_by_actor.items %}
+              {
+                  name: '{{ actor }}',
+                  data: [{% for stats in timeline_actor.timeline %}{{ stats.done.hits }} / 5,{% endfor %}],
+                  visible: false,
+              },
+            {% endfor %}]
+        });
       });
-      {% endwith %}
       {% for stats in all_tops|dictsortreversed:"damages_original" %}
         $('#tooltip_{{ stats.name }}').popover({placement: 'bottom'{% if stats.name != 'total' %}, content: 'Name : {{ stats.name|escapejs }}<br /><table style="width: 100%;" class="table table-condensed table-bordered">' +
             '<thead>' +
@@ -347,6 +487,7 @@
     <li><a href="#dps_chart" data-toggle="tab">DPS</a></li>
     <li><a href="#hps_chart" data-toggle="tab">HPS</a></li>
     <li><a href="#taken_chart" data-toggle="tab">Taken</a></li>
+    <li><a href="#timeline_by_actor" data-toggle="tab">DPS By Actor</a></li>
   </ul>
 
   <div class="tab-content">
@@ -354,6 +495,7 @@
     <div class="tab-pane" id="dps_chart" style="min-width: 1100px;"></div>
     <div class="tab-pane" id="hps_chart" style="min-width: 1100px;"></div>
     <div class="tab-pane" id="taken_chart" style="min-width: 1100px;"></div>
+    <div class="tab-pane" id="timeline_by_actor" style="min-width: 1100px;"></div>
   </div>
 
   <br />

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
@@ -6,6 +7,7 @@ from parser import Parser, mob_blacklist
 from django.conf import settings
 import pickle
 from django.core.cache import cache
+from copy import copy, deepcopy
 
 
 zones 	= (
@@ -340,7 +342,9 @@ class EncounterStats(models.Model):
 							a['taken_%s' % key] = value
 		return result
 
-	def get_timeline(self, id_obj=None):
+	def get_timeline(self, id_obj=None, by_actor=False):
+		if by_actor is True:
+			return self.get_timeline_by_actor()
 		if id_obj is not None:
 			return self.get_actor_timeline(id_obj)
 		timeline = {}
@@ -348,13 +352,15 @@ class EncounterStats(models.Model):
 			actor_name 	= self.rdata['actors'][actor]['name']
 			for time, stat in stats['timeline'].items():
 				time = int((time - self.rdata['start_time']).total_seconds() / 5) * 5
+
+				tmp = 'npcs'
 				if actor in self.rdata['players']:
 					tmp = 'players'
-				else:
-					tmp = 'npcs'
+
 				if time not in timeline:
 					timeline[time] = {'total': {'players': {'done': {'heals': 0, 'hits': 0},'received': {'heals': 0, 'hits': 0}}, 'npcs': {'done': {'heals': 0, 'hits': 0},'received': {'heals': 0, 'hits': 0}}}}
-					timeline[time]['total'][tmp]= stat
+					timeline[time]['total'][tmp]= deepcopy(stat)
+				"""
 				if actor not in timeline[time]:
 					timeline[time][actor_name] 	= stat
 				else:
@@ -362,6 +368,8 @@ class EncounterStats(models.Model):
 					timeline[time][actor_name]['done']['heals']	 	+= stat['done']['heals']
 					timeline[time][actor_name]['received']['hits'] 	+= stat['received']['hits']
 					timeline[time][actor_name]['received']['heals'] += stat['received']['heals']
+				"""
+				
 				
 				timeline[time]['total'][tmp]['done']['hits'] 		+= stat['done']['hits']
 				timeline[time]['total'][tmp]['done']['heals']	 	+= stat['done']['heals']
@@ -372,10 +380,19 @@ class EncounterStats(models.Model):
 			s['time'] = f
 			final.append(s)
 		return final
+
+	def get_timeline_by_actor(self):
+		result = {}
+		for actor in self.rdata['players']:
+			actor_name 			= self.get_actor(actor)['name']
+			actor 				= int(actor)
+			result[actor_name] 	= {'timeline': self.get_actor_timeline(actor), 'actor_id': actor}
+		return result
 	
 	def get_actor_timeline(self, id_obj):
 		id_obj 		= '%d' % id_obj
 		results 	= {}
+		aaaa= {}
 		for time,stats in self.rdata['stats']['actor'][id_obj]['timeline'].items():
 			t = (int(self.get_sec(time)) / 5) * 5
 			if 'time' not in stats:
@@ -385,11 +402,15 @@ class EncounterStats(models.Model):
 					if view != 'time':
 						for action, s2 in s1.items():
 							results[t][view][action] += s2
+							if action + "_count" not in results[t][view]:
+								results[t][view][action + "_count"] = 0
+							results[t][view][action + "_count"] += 1
 			else:
 				results[t] = stats
 		final = []
 		for f, data in results.items():
 			final.append(data)
+		
 		return final
 
 	def get_detailed_stats(self, obj_id):
@@ -452,8 +473,8 @@ class EncounterStats(models.Model):
 						if len(time) == 2:
 							a['to'] = self.get_sec(time[1])
 						else:
-							a['to'] = self.get_sec(self.rdata['end_time'])
-							
+								a['to'] = self.get_sec(self.rdata['end_time'])
+
 						timeline_t.append(a)
 					results.append({'skill_id': skill_id, 'skill_name': self.rdata['skills'][skill_id], 'timeline': timeline_t})
 		return results
@@ -469,7 +490,28 @@ class EncounterStats(models.Model):
 			a = self.rdata['actors'][actor]['name']
 			for view, buffes in stats['buffes'].items():
 				if view != "done":
-					continue
+					for target, skills in buffes['buff'].items():
+						for skill_id, timeline in skills.items():
+							if skill_id == 2117300275:
+								s = self.rdata['skills'][skill_id]
+								for time in timeline:
+									b = {
+										'from': time[0],
+									}
+									if len(time) == 2:
+										b['to'] = time[1]
+									else:
+										b['to'] = self.rdata['end_time']
+									results.append({
+										'player':	a,
+										'skill':	s,
+										'display':	False,
+										'display_player': True,
+										'from':		self.get_sec(b['from']),
+										'to':		self.get_sec(b['to']),
+										'color':	'#000',
+										'render': 	'line',
+									})
 				for type_buff, targets in buffes.items():
 					for target, skills in targets.items():
 						t = self.rdata['actors'][target]['name']
@@ -489,8 +531,11 @@ class EncounterStats(models.Model):
 								results.append({
 									'player':	a,
 									'skill':	s,
+									'display':	False,
+									'display_player': False,
 									'from':		self.get_sec(b[0]),
 									'to':		self.get_sec(b[1]),
+									'render':	'band',
 								})
 		return results
 	

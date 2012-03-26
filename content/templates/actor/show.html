@@ -48,6 +48,7 @@
                     {
                       from: {{ buff.from }} / 5,
                       to:   {{ buff.to }} / 5,
+                      rotation: 90,
                       color: '{% if buff.skill == "Couplet de joie" %}#CEF{% else %}#FEC{% endif %}',
                     },
                   {% endfor %}
@@ -58,7 +59,8 @@
                         to:   {{ time.to }} / 5,
                         color: '#A20',
                         label: {
-                          text: '{{ buff.skill_name|escapejs }}'
+                          text: '{{ buff.skill_name|escapejs }}',
+                          rotation: 90,
                         }
                       },
                     {% endfor %}

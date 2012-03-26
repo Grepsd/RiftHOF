@@ -8,47 +8,53 @@ import logparse.models
 
 # boss list, this is temporary list which is working only for french bosses.
 # do need a list with the boss name in each languge we want to support
-bosses_list 	= [
-	'Murdantix', 
-	'Étripeur d\'âmes Zilas', 
-	'Grugonim', 
-	'Roi runique Molinar', 
-	'Estrode',
-	'Matrone Zamira', 
-	'Sicaron', 
-	'Inquisiteur Garau', 
-	'Inwar Noirflux', 
-	'Akylios', 
+bosses_list 	= {
+	'Murdantix':				'murdantix', 
+	'Étripeur d\'âmes Zilas': 	'zilas',
+	'Soulrender Zilas': 		'zilas',
+	'Grugonim':					'grugonim', 
+	'Roi runique Molinar': 		'Rune King Molinar', 
+	'Estrode':					'estrode',
+	'Matrone Zamira':			'zamira', 
+	'Matron Zamira':			'zamira',
+	'Sicaron':					'sicaron', 
+	'Inquisiteur Garau':		'garau', 
+	'Inquisitor Garau':			'garau',
+	'Inwar Noirflux':			'inwar', 
+	'Inwar Darktide':			'inwar',
+	'Akylios':					'akylios', 
 
-	'Duc Letareus', 
-	'Infiltrateur Johlen',
-	'Oracle Aleria', 
-	'Prince Hylas', 
-	'Seigneur Vertécaille', 
+	'Duc Letareus':				'letareus', 
+	'Infiltrateur Johlen':		'johlen',
+	'Oracle Aleria':			'aleria', 
+	'Prince Hylas':				'hylas', 
+	'Seigneur Vertécaille':		'vertecailles', 
 
-	'Maître de guerre Galenir', 
-	'Héraut Gaurath', 'Plutonus l\'Immortel',
-	'Alsbeth la Discordante', 
-	'Balise ténébreuse', 
+	'Maître de guerre Galenir':	'galenir', 
+	'Héraut Gaurath':			'gaurath', 
+	'Plutonus l\'Immortel': 	'plutonus',
+	'Alsbeth la Discordante': 	'alsbeth', 
+	'Balise ténébreuse': 		'balise_teneb', 
 
-	'Commandant d\'assaut Jorb', 
-	'Joloral Ragemarée', 
-	'Isskal', 
-	'Grande prêtresse Hydriss',
+	'Commandant d\'assaut Jorb':'jorb', 
+	'Joloral Ragemarée':		'joloral', 
+	'Isskal':					'isskal',
+	'Grande prêtresse Hydriss':	'hydriss',
 
-	'Anrak l\'ignoble', 
-	'Guurloth', 
-	'Thalguur', 
-	'Uruluuk', 
+	'Anrak l\'ignoble':			'anrak', 
+	'Guurloth':					'guurloth', 
+	'Thalguur':					'thalguur', 
+	'Uruluuk':					'uruluuk', 
 
-	'Ereandorn', 
-	'Beruhast', 
-	'Général Silgen', 
-	'Grand-prêtre Arakhurn'
-]
+	'Ereandorn':				'ereandorn', 
+	'Beruhast':					'beruhast', 
+	'Général Silgen':			'silgen', 
+	'Grand-prêtre Arakhurn':	'arkhurn',
+}
 
 skill_blacklist = [
 	'Explosion fourchue',
+	'Flammes mortelles',
 ]
 
 # actors name blacklist. We dont want to see theses npc in the parses
@@ -322,9 +328,6 @@ class Encounter:
 	
 		def handle_buff(self, source, target, skill_id, type_buff, action_type, time, view):
 		# track the buff/curse timeline (here for the source)
-			if view == 'received':
-				if skill_id == 2117300275:
-					print time, action_type, self.get_actor(source)['name']
 			tt = self.get_buff(source)[view][type_buff][target][skill_id]
 			try:
 				l_done 	= tt.pop(len(tt) - 1)
@@ -813,9 +816,9 @@ class Parser:
 
 		# detect the current encounter boss from target and source.
 		if self.boss is None and line_data['target_name'] in bosses_list:
-			self.boss = line_data['target_name']
+			self.boss = bosses_list[line_data['target_name']]
 		if self.boss is None and line_data['source_name'] in bosses_list:
-			self.boss = line_data['source_name']
+			self.boss = bosses_list[line_data['source_name']]
 
 		if not self.combat_status and self.in_combat and self.last_attack is not None:
 

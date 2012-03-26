@@ -102,6 +102,7 @@ def api_guild_checkname(request):
 	return HttpResponse(result, mimetype="application/json")
 
 @login_required
+@user_passes_test(lambda u: u.is_active, login_url='/unauthorized')
 def guild_log_upload(request):
 	data 			= {}
 	form 			= LogForm(request.POST, request.FILES)
@@ -117,13 +118,17 @@ def guild_log_upload(request):
 
 	return render(request, 'log/upload.html', data)
 
-#@cache_page(60 * 15)
+@login_required
+@user_passes_test(lambda u: u.is_active, login_url='/unauthorized')
+@cache_page(60 * 60 * 24)
 def guild_log_show(request, id):
 	data	= {
 		'log':	 Log.objects.get(id=id)
 	}
 	return render(request, 'log/show.html', data)
 
+@login_required
+@user_passes_test(lambda u: u.is_active, login_url='/unauthorized')
 def api_log_check_status(request, id):
 	log = Log.objects.get(id=id)
 	if not log.processed:
@@ -133,7 +138,9 @@ def api_log_check_status(request, id):
 		parser.parse(False)
 	return HttpResponse(int(log.processed), mimetype="application/json") 
 
-#cache_page(60 * 15)
+@login_required
+@user_passes_test(lambda u: u.is_active, login_url='/unauthorized')
+@cache_page(60 * 60 * 24)
 def guild_log_encounter_show(request, id_encounter):
 
 	id_encounter = int(id_encounter)
@@ -156,9 +163,9 @@ def guild_log_encounter_show(request, id_encounter):
 		boss_id 	= enc.boss.id
 		boss_name 	= enc.boss.name
 
-	#data = cache.get("encounter_%d" % id_encounter)
+	data = cache.get("encounter_%d" % id_encounter)
 	# to remove
-	data = None
+	#data = None
 
 	if data is None:
 		data 	= {
@@ -172,24 +179,29 @@ def guild_log_encounter_show(request, id_encounter):
 			'rez':			stats.get_rez(),
 			'buffes':		stats.get_important_buffes(),
 			'life_and_death':stats.get_life_and_death(),
+			'timeline_by_actor': stats.get_timeline(by_actor=True),
 			}
 
-		#cache.set("encounter_%d" % id_encounter, data, 6 * 15)
+		cache.set("encounter_%d" % id_encounter, data, 6 * 15)
 
 	return render(request, 'encounter/show.html', data)
 
+@login_required
 def ranking_boss(request, id):
 	data = {}
 	return render(request, 'ranking/boss/show.html', data)
 
+@login_required
+@user_passes_test(lambda u: u.is_active, login_url='/unauthorized')
+@cache_page(60 * 60 * 24)
 def actor_show_detail(request, id_encounter, id_obj):
 	id_encounter	= int(id_encounter)
 	id_obj			= int(id_obj)
 
-	#data 			= cache.get("encounter_%d_actor_%d" % (id_encounter, id_obj))
+	data 			= cache.get("encounter_%d_actor_%d" % (id_encounter, id_obj))
 
 	# to remove
-	data = None
+	#data = None
 
 	if data is None:
 		encounter 	= Encounter.objects.get(id=id_encounter)
@@ -217,5 +229,8 @@ def actor_show_detail(request, id_encounter, id_obj):
 			'detailed_by_actor_stats': stats.get_detailed_by_actor_stats(id_obj),
 			'important_buffes': 		stats.get_actor_important_buffes(id_obj),
 			}
-		#cache.set("encounter_%d_actor_%d" % (id_encounter, id_obj), data, 6 * 15)
+		cache.set("encounter_%d_actor_%d" % (id_encounter, id_obj), data, 6 * 15)
 	return render(request, 'actor/show.html', data)
+
+def unauthorized(request):
+	return render(request, 'unauthorized.html')

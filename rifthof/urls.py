@@ -21,6 +21,7 @@ urlpatterns = patterns('',
     url(r'^log/(\d+)$', 	        'logparse.views.guild_log_show', 		name='guild_log_show'),
     url(r'^encounter/(\d+)$',       'logparse.views.guild_log_encounter_show',        name='guild_log_encounter_show'),
     url(r'^encounter/(\d+)/(\d+)$', 'logparse.views.actor_show_detail',        name='actor_show_detail'),
+    url(r'^unauthorized$',          'logparse.views.unauthorized',          name='unauthorized'),
     
 
     url(r'^ranking/boss/(\d+)$',    'logparse.views.ranking_boss',          name='ranking_boss'),
