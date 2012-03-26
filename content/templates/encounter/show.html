@@ -222,23 +222,6 @@
                   {% endfor %}
                 ],
                 plotLines: [
-                  {% for buff in buffes %}
-                    {% if buff.render == 'line' %}
-                      {
-                        value: {{ buff.from }} / 5,
-                        color: '{{ buff.color }}',
-                        {% if buff.display or buff.display_player %}
-                          label: {
-                              text: '{% if buff.display %}{{ buff.skill }}{% endif %} {% if buff.display_player %}{{ buff.player }}{% endif %}',
-                              rotation: 45,
-                         },
-                         width: 1,
-                         zindex: 10,
-                        dashStyle: 'dot',
-                        {% endif %}
-                      },
-                    {% endif %}
-                  {% endfor %}
                   {% for death in deathes %}
                     {
                         value : {{ death.time }} / 5,
