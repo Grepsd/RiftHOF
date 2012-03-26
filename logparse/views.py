@@ -139,7 +139,7 @@ def api_log_check_status(request, id):
 	return HttpResponse(int(log.processed), mimetype="application/json") 
 
 @login_required
-@user_passes_tesst(lambda u: u.is_active, login_url='/unauthorized')
+@user_passes_test(lambda u: u.is_active, login_url='/unauthorized')
 #@cache_page(60 * 60 * 24)
 def guild_log_encounter_show(request, id_encounter):
 
