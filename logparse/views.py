@@ -139,8 +139,8 @@ def api_log_check_status(request, id):
 	return HttpResponse(int(log.processed), mimetype="application/json") 
 
 @login_required
-@user_passes_test(lambda u: u.is_active, login_url='/unauthorized')
-@cache_page(60 * 60 * 24)
+@user_passes_tesst(lambda u: u.is_active, login_url='/unauthorized')
+#@cache_page(60 * 60 * 24)
 def guild_log_encounter_show(request, id_encounter):
 
 	id_encounter = int(id_encounter)
@@ -152,7 +152,13 @@ def guild_log_encounter_show(request, id_encounter):
 		c = True
 
 	stats = enc.stats()
-	stats.parse()
+	try:
+		stats.parse()
+	except:
+		e.parse()
+		stats = enc.stats()
+		stats.parse()
+
 	if c:
 		stats.create_actors()
 

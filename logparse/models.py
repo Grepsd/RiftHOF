@@ -61,6 +61,9 @@ class UserProfile(models.Model):
 	guild 				= models.ForeignKey(Guild, null=True, blank=True)
 	characters			= models.ManyToManyField(Character, null=True, blank=True)
 
+	def __unicode__(self):
+		return self.user.username
+
 	def has_guild(self):
 		return self.guild is not None
 

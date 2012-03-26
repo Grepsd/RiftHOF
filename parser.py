@@ -23,6 +23,7 @@ bosses_list 	= {
 	'Inwar Noirflux':			'inwar', 
 	'Inwar Darktide':			'inwar',
 	'Akylios':					'akylios', 
+	'Vladmal Prime':			'vladmal',
 
 	'Duc Letareus':				'letareus', 
 	'Infiltrateur Johlen':		'johlen',
