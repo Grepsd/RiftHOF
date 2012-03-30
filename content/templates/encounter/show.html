@@ -188,7 +188,8 @@
              
           timeline_chart = new Highcharts.Chart({
 
-          {% with timeline_list=timeline|dictsort:"time" %}
+          {% with timeline_list=timeline.total|dictsort:"time" %}
+          
           chart: {
                 renderTo: 'timeline',
                 type: 'spline'
@@ -279,13 +280,13 @@
 
             series: [ {
                 name: 'Taken',
-                data: [{% for stats in timeline_list %}{{ stats.total.players.received.hits }} / 5,{% endfor %}]
+                data: [{% for stats in timeline_list %}{{ stats.players.received.hits }} / 5,{% endfor %}]
             },{
                 name: 'DPS',
-                data: [{% for stats in timeline_list %}{{ stats.total.players.done.hits }} / 5,{% endfor %}]
+                data: [{% for stats in timeline_list %}{{ stats.players.done.hits }} / 5,{% endfor %}]
             }, {
                 name: 'HPS',
-                data: [{% for stats in timeline_list %}{{ stats.total.players.done.heals }} / 5,{% endfor %}]
+                data: [{% for stats in timeline_list %}{{ stats.players.done.heals }} / 5,{% endfor %}]
             },]
         });
         {% endwith %}
@@ -301,7 +302,7 @@
                 text: 'Timeline'
             },
             xAxis: {
-                categories: [{% for time in timeline_list %}'{{ time.time|secs }}',{% endfor %}],
+                categories: [{% for time in timeline.total %}'{{ time.time|secs }}',{% endfor %}],
                 tickInterval: 6,
                 plotBands: [
                   {% for buff in buffes %}
@@ -381,12 +382,121 @@
 
 
             series: [
-            {% for actor, timeline_actor in timeline_by_actor.items %}
+            {% for actor, timeline_actor in timeline.items %}
+              {% if actor != "total" %}
               {
-                  name: '{{ actor }}',
-                  data: [{% for stats in timeline_actor.timeline %}{{ stats.done.hits }} / 5,{% endfor %}],
+                  name: '{{ actor|escapejs }}',
+                  data: [{% for stats in timeline_actor %}{{ stats.done.hits }} / 5,{% endfor %}],
                   visible: false,
               },
+              {% endif %}
+            {% endfor %}]
+        });
+
+
+        timeline_by_actor_chart_heals = new Highcharts.Chart({
+
+          chart: {
+                renderTo: 'timeline_by_actor_heals',
+                type: 'spline'
+            },
+
+            title: {
+                text: 'Timeline'
+            },
+            xAxis: {
+                categories: [{% for time in timeline.total %}'{{ time.time|secs }}',{% endfor %}],
+                tickInterval: 6,
+                plotBands: [
+                  {% for buff in buffes %}
+                    {% if buff.render == 'band' %}
+                      {
+                        from: {{ buff.from }} / 5,
+                        to:   {{ buff.to }} / 5,
+                        {% if buff.color %}
+                          color: '{{ buff.color }}',
+                        {% else %}
+                          color: '{% if buff.skill == "Couplet de joie" %}#CEF{% else %}#FEC{% endif %}',
+                        {% endif %}
+                        {% if buff.display or buff.display_player %}
+                          label: {
+                              text: '{% if buff.display %}{{ buff.skill }}{% endif %} {% if buff.display_player %}{{ buff.player }}{% endif %}',
+                              rotation: 90,
+                          },
+                        {% endif %}
+                      },
+                    {% endif %}
+                  {% endfor %}
+                ],
+                plotLines: [
+                  {% for death in deathes %}
+                    {
+                        value : {{ death.time }} / 5,
+                        color: '#A00',
+                        width: 1,
+                        label: {
+                          text: '{{ death.player }}',
+                          rotation: 90,
+                        },
+                         zindex: 10,
+                    },
+                  {% endfor %}
+                  {% for r in rez %}
+                    {
+                        value : {{ r.time }} / 5,
+                        color: '#0A0',
+                        width: 1,
+                        label: {
+                          text: '{{ r.player }}',
+                          rotation: 90,
+                        },
+                         zindex: 10,
+                    },
+                  {% endfor %}
+                  ],
+            },
+
+            yAxis: {
+                title: {
+                    text: 'DPS/HPS'
+                },
+                labels: {
+                    formatter: function() {
+                        return this.value
+                    }
+                },
+                min: 0,
+                plotLines: [
+                ],
+            },
+
+            tooltip: {
+                crosshairs: true,
+                shared: true
+            },
+
+            plotOptions: {
+              series: {
+                showCheckbox: true,
+              },
+              spline: {
+                marker: {
+                  enabled: false,
+                }
+              }
+            },
+
+
+
+            series: [
+            {% for actor, timeline_actor in timeline.items %}
+              {% if actor != "total" %}
+              {
+                  name: '{{ actor|escapejs }}',
+                  data: [{% for stats in timeline_actor %}{{ stats.done.heals }} / 5,{% endfor %}],
+                  visible: false,
+              },
+              {% endif %}
             {% endfor %}]
         });
       });
@@ -438,31 +548,7 @@
     });
     </script>
   <h2 class="center"><span class="{{ encounter.wipe|yesno:"icon-remove,icon-ok" }}"></span> <a href="{% url ranking_boss boss_id %}">{{ boss_name }}</a> [{{ encounter.stats.duration|secs }}]</h2>
-  <!--
-  <br /><br />
-  <a href="{% url guild_log_show encounter.log.id %}"><span class="btn btn-success">< < Back</span></a>
-  <br /><br />
 
-  <div class="navbar">
-    <div class="navbar-inner">
-      <div class="container">
-        <ul class="nav">
-          <li><a href="#player_damages">Player Damages</a></li>
-          <li class="divider-vertical"></li>
-          <li><a href="#player_heals">Player Heals</a></li>
-          <li class="divider-vertical"></li>
-          <li><a href="#player_taken">Player Damages Taken</a></li>
-          <li class="divider-vertical"></li>
-          <li><a href="#npc_damages">NPC Damages</a></li>
-          <li class="divider-vertical"></li>
-          <li><a href="#npc_heals">NPC Heals</a></li>
-          <li class="divider-vertical"></li>
-          <li><a href="#npc_taken">NPC Damages Taken</a></li>
-        </ul>
-      </div>
-    </div>
-  </div>
-  -->
   <a href="{% url guild_log_show encounter.log.id %}"><span class="btn btn-success">< < Back</span></a><br /><br />
 
   <ul class="nav nav-tabs">
@@ -471,6 +557,7 @@
     <li><a href="#hps_chart" data-toggle="tab">HPS</a></li>
     <li><a href="#taken_chart" data-toggle="tab">Taken</a></li>
     <li><a href="#timeline_by_actor" data-toggle="tab">DPS By Actor</a></li>
+    <li><a href="#timeline_by_actor_heals" data-toggle="tab">HPS By Actor</a></li>
   </ul>
 
   <div class="tab-content">
@@ -479,6 +566,7 @@
     <div class="tab-pane" id="hps_chart" style="min-width: 1100px;"></div>
     <div class="tab-pane" id="taken_chart" style="min-width: 1100px;"></div>
     <div class="tab-pane" id="timeline_by_actor" style="min-width: 1100px;"></div>
+    <div class="tab-pane" id="timeline_by_actor_heals" style="min-width: 1100px;"></div>
   </div>
 
   <br />
@@ -565,7 +653,7 @@
     </div>
     <div class="tab-pane" id="life_and_death" style="min-width: 1100px;">
       {% for event in life_and_death|dictsort:"time" %}
-        <span class="{% if event.type == 'death' %}error{% else %}success{% endif %}">{{ event.time|secs }} {{ event.player }}</span><br />
+        <span class="{% if event.type == 'death' %}error{% else %}success{% endif %}">{% if event.type == 'death' %}[D]{% else %}[L]{% endif %} {{ event.time|secs }} {{ event.player }}</span><br />
       {% endfor %}
     </div>
   </div>

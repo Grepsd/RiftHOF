@@ -94,6 +94,7 @@ class Log(models.Model):
 	processed 			= models.BooleanField(default=False)
 	private 			= models.BooleanField(default=False)
 	user 				= models.ForeignKey(User)
+	#processing 			= models.BooleanField(default=False)
 
 	def __unicode__(self):
 		return "%d parse %s" % (self.id, self.guild)
@@ -109,32 +110,31 @@ class Encounter(models.Model):
 	private 			= models.BooleanField(default=False)
 	wipe 				= models.BooleanField(default=False)
 	parsed 				= models.BooleanField(default=False)
+	#processing 			= models.BooleanField(default=False)
 
 	cache 				= None
 
 	def __unicode__(self):
-		return "%d against %s" % (self.id, self.boss)
+		return "%d against %s" % (self.id, u'%s' % self.boss)
 
 	def parse(self):
 		if not self.parsed:
-			parser 		= Parser(settings.BASEPATH + '/content' + self.log.log_file.url, self.start_offset, self.end_offset)
+			parser 		= Parser(settings.BASEPATH + '/content' + self.log.log_file.url, self.start_offset, self.end_offset, log_id=self.log.id)
 			parser.parse(full=True)
+			encounters= parser.get_encounters()
+			encounter = encounters[0]
+			encounter.parse()
+			self.cache 	= pickle.dumps(encounter.serialize())
 			try:
-				encounter 	= parser.get_encounters()[0]
-				encounter.parse()
-				self.cache 	= pickle.dumps(encounter.serialize())
-				try:
-					enc = EncounterStats.objects.get(encounter=self)
-					if len(enc.data) == 0:
-						enc.data = self.cache
-						enc.save()
-				except:
-					enc = EncounterStats(encounter=self, data=self.cache)
+				enc = EncounterStats.objects.get(encounter=self)
+				if len(enc.data) == 0:
+					enc.data = self.cache
 					enc.save()
-				self.parsed = True
-				self.save()
 			except:
-				self.delete()
+				enc = EncounterStats(encounter=self, data=self.cache)
+				enc.save()
+			self.parsed = True
+			self.save()
 
 	def stats(self):
 		try:
@@ -145,7 +145,8 @@ class Encounter(models.Model):
 				e.data = self.cache
 			try:
 				e.save()
-			except:
+				return e
+			except Exception as e:
 				pass
 
 	def reset(self):
@@ -346,13 +347,18 @@ class EncounterStats(models.Model):
 		return result
 
 	def get_timeline(self, id_obj=None, by_actor=False):
+
 		if by_actor is True:
+
 			return self.get_timeline_by_actor()
 		if id_obj is not None:
+
 			return self.get_actor_timeline(id_obj)
-		timeline = {}
+		timeline = {'total': {}}
+
 		for actor, stats in self.rdata['stats']['actor'].items():
 			actor_name 	= self.rdata['actors'][actor]['name']
+
 			for time, stat in stats['timeline'].items():
 				time = int((time - self.rdata['start_time']).total_seconds() / 5) * 5
 
@@ -360,28 +366,59 @@ class EncounterStats(models.Model):
 				if actor in self.rdata['players']:
 					tmp = 'players'
 
-				if time not in timeline:
-					timeline[time] = {'total': {'players': {'done': {'heals': 0, 'hits': 0},'received': {'heals': 0, 'hits': 0}}, 'npcs': {'done': {'heals': 0, 'hits': 0},'received': {'heals': 0, 'hits': 0}}}}
-					timeline[time]['total'][tmp]= deepcopy(stat)
-				"""
-				if actor not in timeline[time]:
-					timeline[time][actor_name] 	= stat
-				else:
-					timeline[time][actor_name]['done']['hits'] 		+= stat['done']['hits']
-					timeline[time][actor_name]['done']['heals']	 	+= stat['done']['heals']
-					timeline[time][actor_name]['received']['hits'] 	+= stat['received']['hits']
-					timeline[time][actor_name]['received']['heals'] += stat['received']['heals']
-				"""
+				if time not in timeline['total']:
+					timeline['total'][time] 	= {
+						'time':		time,
+						'players': {
+							'done': {
+								'heals': 0, 
+								'hits': 0,
+							},
+							'received': {
+								'heals': 0, 
+								'hits': 0,
+							}
+						}, 
+						'npcs': {
+							'done': {
+								'heals': 0, 
+								'hits': 0,
+							},
+							'received': {
+								'heals': 0, 
+								'hits': 0,
+							}
+						}
+					}
+
+					timeline['total'][time][tmp]= deepcopy(stat)
+				
+				if actor_name not in timeline:
+					timeline[actor_name]		= {}
+
+				if time not in timeline[actor_name]:
+					timeline[actor_name][time] 	= deepcopy(stat)
+				
+				timeline[actor_name][time]['done']['hits'] 			+= stat['done']['hits']
+				timeline[actor_name][time]['done']['heals']	 		+= stat['done']['heals']
+				timeline[actor_name][time]['received']['hits'] 		+= stat['received']['hits']
+				timeline[actor_name][time]['received']['heals'] 	+= stat['received']['heals']
 				
 				
-				timeline[time]['total'][tmp]['done']['hits'] 		+= stat['done']['hits']
-				timeline[time]['total'][tmp]['done']['heals']	 	+= stat['done']['heals']
-				timeline[time]['total'][tmp]['received']['hits'] 	+= stat['received']['hits']
-				timeline[time]['total'][tmp]['received']['heals'] 	+= stat['received']['heals']
-		final = []
-		for f, s in timeline.items():
-			s['time'] = f
-			final.append(s)
+				
+				timeline['total'][time][tmp]['done']['hits'] 		+= stat['done']['hits']
+				timeline['total'][time][tmp]['done']['heals']	 	+= stat['done']['heals']
+				timeline['total'][time][tmp]['received']['hits'] 	+= stat['received']['hits']
+				timeline['total'][time][tmp]['received']['heals'] 	+= stat['received']['heals']
+
+		final 	= {}
+		for actor, values in timeline.items():
+			for time, stats in values.items():
+				if actor not in final:
+					final[actor] = []
+				stats['time'] = time
+				final[actor].append(stats)
+
 		return final
 
 	def get_timeline_by_actor(self):

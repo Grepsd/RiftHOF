@@ -5,6 +5,8 @@ import pickle, bz2
 import re
 #import time
 import logparse.models
+from zipfile import ZipFile
+from django.conf import settings
 
 # boss list, this is temporary list which is working only for french bosses.
 # do need a list with the boss name in each languge we want to support
@@ -603,6 +605,21 @@ class Parser:
 			self.last_byte		= None
 		# if the log_id is defined, we can save the encounters and link them to the given Log object.
 		self.log_id				= log_id
+		self.actors 			= []
+
+	def handle_file(self):
+		try:
+			f = open(settings.MEDIA_ROOT + '/combat_logs/%d/CombatLog.txt' % self.log_id, 'r')
+			f.close()
+		except Exception as e:
+			print e
+			z = ZipFile(self.filename, 'r')
+			try:
+				e = z.extract('CombatLog.txt', settings.MEDIA_ROOT + '/combat_logs/%d' % self.log_id)
+			except KeyError:
+				return False
+		return True
+
 
 	"""
 		Parse the file.
@@ -610,7 +627,12 @@ class Parser:
 		object property which is telling if we have to jump to the fight we want or not.
 	"""
 	def parse(self, full=False):
-		self.file 		= file(self.filename, 'r', 1024)
+
+
+		if not self.handle_file():
+			return False
+		self.file 		= file(settings.MEDIA_ROOT + '/combat_logs/%d/CombatLog.txt' % self.log_id, 'r', 1024)
+		#self.file 		= file(self.filename, 'r')
 
 		# seek to the fight we want
 		if self.first_byte > 0:
@@ -638,47 +660,19 @@ class Parser:
 			parsed 	= self.parse_line(line, full)
 		
 		# if we're at the end of an encounter, let's do the saving and cleaning.
-		if self.last_byte is not None and self.start_time is not None:
-			# is this a worth of logging fight ? (more than 60 seconds.)
-			if (self.last_otime - self.start_time).total_seconds() > 60:
+		if not self.combat_status and self.in_combat and self.last_attack is not None:
 
-				self.encounter_count 	+= 1
-				enc 					= Encounter(self.lines_buffer, self.start_offset, self.curr_offset, self.boss, self.boss_killed is not None)
 
-				data 					= enc.serialize()
-				
-				if data['bosses'] is not None:
-					if full:
-						enc.parse()
+			if len(self.lines_buffer) > 0:
 
-					# the parse is one to save the data of the fight in the encounter datastore.
-					if self.log_id is not None:
+				self.in_combat 			= False
 
-						l 						= logparse.models.Log.objects.get(id=self.log_id)
-						encounter 				= logparse.models.Encounter(log=l)
+				# is this a worth of logging fight ? (more than 60 seconds.)
+				if (self.last_otime - self.start_time).total_seconds() > 60:
+					if self.boss is not None:
+						self.save_encounter(full)
 
-						encounter.start_offset	= enc.start_offset
-						encounter.end_offset 	= enc.end_offset
-
-						# we try to load the boss from the database
-						try:
-							encounter.boss 			= logparse.models.Boss.objects.get(name=enc.bosses)
-						# if this boss isn't in the database, we create it
-						except:
-							b = logparse.models.Boss(name=enc.bosses)
-							b.save()
-							encounter.boss = b
-						
-						# did the raid kill the boss ?
-						encounter.wipe = not enc.boss_killed
-						encounter.save()
-
-						# memory efficiency fix.
-						del enc, encounter
-
-					else:
-
-						self.encounters.append(enc)
+		return True
 
 	def get_encounters(self):
 		return self.encounters
@@ -791,11 +785,16 @@ class Parser:
 			'target_registration': target_registration
 		}
 
+		if line_data['source_name'] not in self.actors:
+			self.actors.append(line_data['source_name'])
+		if line_data['target_name'] not in self.actors:
+			self.actors.append(line_data['target_name'])
+
 		# detect the bosses killed in the fight.
 		if line_data['action'] == 11:
 			# the actor who's dead was a boss ? It's important to detect wether or not the raid wiped on the boss.
 			if line_data['target_name'] in bosses_list:
-				self.boss_killed = line_data['target_name']
+				self.boss_killed = bosses_list[line_data['target_name']]
 			# if the actor who's dead is a player, add him to the KIA list.
 			if line_data['target_name'] not in self.kia and line_data['target_primary_type'] == 'P':
 				self.kia.append(line_data['target_name'])
@@ -825,68 +824,70 @@ class Parser:
 
 			if (otime - self.last_attack).total_seconds() > 10:
 
-				if len(self.lines_buffer) > 0:
+				self.in_combat 			= False
 
-					self.in_combat 			= False
+				# is this a worth of logging fight ? (more than 60 seconds.)
+				if (otime - self.start_time).total_seconds() > 60:
+					if self.boss is not None:
+						self.save_encounter(full)
 
-					# is this a worth of logging fight ? (more than 60 seconds.)
-					if (otime - self.start_time).total_seconds() > 60:
-
-						self.encounter_count 	+= 1
-						enc 					= Encounter(self.lines_buffer, self.start_offset, self.curr_offset, self.boss, self.boss_killed is not None)
-
-						data 					= enc.serialize()
-						
-						if data['bosses'] is not None:
-							if full:
-								enc.parse()
-
-							# the parse is one to save the data of the fight in the encounter datastore.
-							if self.log_id is not None:
-
-								l 						= logparse.models.Log.objects.get(id=self.log_id)
-								encounter 				= logparse.models.Encounter(log=l)
-
-								encounter.start_offset	= enc.start_offset
-								encounter.end_offset 	= enc.end_offset
-
-								# we try to load the boss from the database
-								try:
-									encounter.boss 			= logparse.models.Boss.objects.get(name=enc.bosses)
-								# if this boss isn't in the database, we create it
-								except:
-									b = logparse.models.Boss(name=enc.bosses)
-									b.save()
-									encounter.boss = b
-								
-								# did the raid kill the boss ?
-								encounter.wipe = not enc.boss_killed
-								encounter.save()
-								encounter.parse()
-								stats = encounter.stats()
-								if stats is not None:
-									stats.parse()
-									stats.create_actors()
-								else:
-									#stats.delete()
-									#encounter.delete()
-									pass
-
-								# memory efficiency fix.
-								del enc, encounter
-
-							else:
-
-								self.encounters.append(enc)
-
-					# flush the buffers and reset the tmp data.
-					self.lines_buffer 		= []
-					self.boss 				= None
-					self.boss_killed 		= None
-					self.kia 				= []
+				# flush the buffers and reset the tmp data.
+				self.lines_buffer 		= []
+				self.boss 				= None
+				self.boss_killed 		= None
+				self.kia 				= []
 		
 		if is_attack:
 			self.last_attack = otime
 
 		if self.in_combat:
 			self.lines_buffer.append(line_data)
+
+	def save_encounter(self, full):
+		self.encounter_count 	+= 1
+		enc 					= Encounter(self.lines_buffer, self.start_offset, self.curr_offset, self.boss, self.boss_killed is not None)
+
+		data 					= enc.serialize()
+	
+		if full:
+			enc.parse()
+		self.actors = []
+
+		# the parse is one to save the data of the fight in the encounter datastore.
+		if not full:
+
+			l 						= logparse.models.Log.objects.get(id=self.log_id)
+			encounter 				= logparse.models.Encounter(log=l)
+
+			encounter.start_offset	= enc.start_offset
+			encounter.end_offset 	= enc.end_offset
+
+			# we try to load the boss from the database
+			try:
+				encounter.boss 			= logparse.models.Boss.objects.get(name=enc.bosses)
+			# if this boss isn't in the database, we create it
+			except:
+				b = logparse.models.Boss(name=enc.bosses)
+				b.save()
+				encounter.boss = b
+			
+			# did the raid kill the boss ?
+			encounter.wipe = not enc.boss_killed
+			encounter.save()
+			encounter.parse()
+			stats = encounter.stats()
+			if stats is not None:
+				stats.parse()
+				stats.create_actors()
+			else:
+				print "!!!", encounter, encounter.id
+				#stats.delete()
+				#encounter.delete()
+				pass
+
+			# memory efficiency fix.
+			del enc, encounter
+
+		else:
+
+			self.encounters.append(enc)

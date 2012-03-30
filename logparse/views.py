@@ -120,22 +120,25 @@ def guild_log_upload(request):
 
 @login_required
 @user_passes_test(lambda u: u.is_active, login_url='/unauthorized')
-@cache_page(60 * 60 * 24)
+#@cache_page(60 * 60 * 24)
 def guild_log_show(request, id):
 	data	= {
 		'log':	 Log.objects.get(id=id)
 	}
 	return render(request, 'log/show.html', data)
 
-@login_required
+#@login_required
 @user_passes_test(lambda u: u.is_active, login_url='/unauthorized')
 def api_log_check_status(request, id):
+	id = int(id)
 	log = Log.objects.get(id=id)
 	if not log.processed:
 		log.processed = True
 		log.save()
-		parser = Parser(settings.BASEPATH + '/content' + log.log_file.url, log_id=log.id)
-		parser.parse(False)
+		parser = Parser(settings.BASEPATH + '/content' + log.log_file.url, log_id=id)
+		if not parser.parse(False):
+			log.processed = False
+			log.save()
 	return HttpResponse(int(log.processed), mimetype="application/json") 
 
 @login_required
@@ -155,7 +158,7 @@ def guild_log_encounter_show(request, id_encounter):
 	try:
 		stats.parse()
 	except:
-		e.parse()
+		enc.parse()
 		stats = enc.stats()
 		stats.parse()
 
@@ -185,21 +188,20 @@ def guild_log_encounter_show(request, id_encounter):
 			'rez':			stats.get_rez(),
 			'buffes':		stats.get_important_buffes(),
 			'life_and_death':stats.get_life_and_death(),
-			'timeline_by_actor': stats.get_timeline(by_actor=True),
 			}
 
 		cache.set("encounter_%d" % id_encounter, data, 6 * 15)
 
 	return render(request, 'encounter/show.html', data)
 
-@login_required
+#@login_required
 def ranking_boss(request, id):
 	data = {}
 	return render(request, 'ranking/boss/show.html', data)
 
 @login_required
 @user_passes_test(lambda u: u.is_active, login_url='/unauthorized')
-@cache_page(60 * 60 * 24)
+#@cache_page(60 * 60 * 24)
 def actor_show_detail(request, id_encounter, id_obj):
 	id_encounter	= int(id_encounter)
 	id_obj			= int(id_obj)
