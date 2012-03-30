@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block "content" %}
+	<h2>Boss list</h2>
+	{% regroup boss_list by raid as bosses %}
+	{% for raid in bosses %}
+		<h3>{{ raid.grouper }}</h3>
+		{% for boss in raid.list|dictsort:"order" %}
+			{{ boss.name }}
+		{% endfor %}
+	{% endfor %}
+{% endblock %}
