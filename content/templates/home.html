@@ -1,11 +1,58 @@
 {% extends 'base.html' %}
 {% load humanize %}
 {% block "content" %}
-	<ul>
-		{% for log in logs %}
-			<dl>
-				{{ log.guild }} [{{ log.upload_date|naturaltime }}] <a href="{% url guild_log_show log.id %}">View</a>
-			</dl>
-		{% endfor %}
-	</ul>
+	<h2>Upload your logs !</h2>
+	{% if user.is_active %}
+		<form action="{% url guild_log_upload %}" class="form form-inline" method="post" enctype="multipart/form-data">
+			{% csrf_token %}
+			<div class="control-group">
+				<label for="id_log_file" class="label">Combat Log File : </label>
+				{{ log_form.log_file }}
+			</div>
+
+			<div class="control-group">
+				<label for="id_private" class="label">Is private ? : </label>
+				{{ log_form.private }}
+			</div>
+			<div class="control-group">
+				<input type="submit" value="upload" class="btn btn-info" />
+			</div>
+		</form>
+		<table class="table">
+			{% for log in guild.logs|dictsortreversed:"upload_date" %}
+				<tr>
+					<td><a href="{% url guild_log_show log.id %}">{% url guild_log_show log.id %}</a> {{ log.upload_date|naturaltime }}</td>
+				</tr>
+			{% endfor %}
+		</table>
+	{% else %}
+		<div class="alert alert-error">
+			Create or join a guild if you want to upload your logs.
+			<a href="{% url guild_create %}">Create your guild</a> / Join a guild
+		</div>
+	{% endif %}
+	<table class="valid_top width100">
+		<tr>
+			<td style="width: 50%;">
+				<h2>Latest public logs</h2>
+				<ul>
+				{% for log in logs %}
+					<dl>
+						{{ log.guild }} [{{ log.upload_date|naturaltime }}] <a href="{% url guild_log_show log.id %}">View</a>
+					</dl>
+				{% endfor %}
+				</ul>
+			</td>
+			<td style="width: 50%;">
+				<h2>Your guild logs</h2>
+				<ul>
+				{% for log in guild_logs %}
+					<dl>
+						{{ log.guild }} [{{ log.upload_date|naturaltime }}] <a href="{% url guild_log_show log.id %}">View</a>
+					</dl>
+				{% endfor %}
+				</ul>
+			</td>
+		</tr>
+	</table>
 {% endblock %}

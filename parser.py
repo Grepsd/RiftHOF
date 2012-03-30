@@ -15,7 +15,7 @@ bosses_list 	= {
 	'Étripeur d\'âmes Zilas': 	'zilas',
 	'Soulrender Zilas': 		'zilas',
 	'Grugonim':					'grugonim', 
-	'Roi runique Molinar': 		'Rune King Molinar', 
+	'Roi runique Molinar': 		'molinar', 
 	'Estrode':					'estrode',
 	'Matrone Zamira':			'zamira', 
 	'Matron Zamira':			'zamira',
@@ -612,7 +612,6 @@ class Parser:
 			f = open(settings.MEDIA_ROOT + '/combat_logs/%d/CombatLog.txt' % self.log_id, 'r')
 			f.close()
 		except Exception as e:
-			print e
 			z = ZipFile(self.filename, 'r')
 			try:
 				e = z.extract('CombatLog.txt', settings.MEDIA_ROOT + '/combat_logs/%d' % self.log_id)
@@ -671,7 +670,7 @@ class Parser:
 				if (self.last_otime - self.start_time).total_seconds() > 60:
 					if self.boss is not None:
 						self.save_encounter(full)
-
+		print self.boss, (self.last_otime - self.start_time).total_seconds(), self.get_encounters()
 		return True
 
 	def get_encounters(self):
@@ -822,7 +821,7 @@ class Parser:
 
 		if not self.combat_status and self.in_combat and self.last_attack is not None:
 
-			if (otime - self.last_attack).total_seconds() > 10:
+			if (otime - self.last_attack).total_seconds() > 15:
 
 				self.in_combat 			= False
 

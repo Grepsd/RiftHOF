@@ -40,3 +40,11 @@ table.table {
 .padding_left_10 {
 	padding-left:			10px;
 }
+
+table.valid_top td {
+	vertical-align:			top;
+}
+
+.width100 {
+	width:					100%;
+}

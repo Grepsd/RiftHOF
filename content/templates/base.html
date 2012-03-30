@@ -31,12 +31,15 @@
               <a class="brand" href="/">Rift HallOfFames</a>
               <div class="nav-collapse">
                 <ul class="nav">
-                  <li><a href="">Home</a></li>
-                  <li><a href="">Browse</a></li>
+                  <li><a href="/">Home</a></li>
+                  <li><a href="{% url boss_list %}">Browse</a></li>
                   <li><a href="">Ranking</a></li>
                   <li><a href="">Progression</a></li>
                 </ul>
                     {% if user.is_authenticated %}
+                      <ul class="nav">  
+                        <li><a>{{ user.username }} from {{ user.get_profile.guild.name }}</a></li>
+                      </ul>
                         <ul class="nav pull-right">
                             <li class="divider-vertical"></li>
                             <li><a href="{% url guild_home %}">Your guild</a></li>
@@ -56,7 +59,7 @@
                             <li><a href="{% url register %}">Register</a></li>
                         </ul>
                     {% endif %}
-              </div><!--/.nav-collapse -->
+              </div>
             </div>
           </div>
         </div>

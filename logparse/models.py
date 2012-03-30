@@ -82,25 +82,39 @@ class Raid(models.Model):
 class Boss(models.Model):
 	name 				= models.CharField(max_length=200)
 	raid 				= models.ForeignKey(Raid, null=True, blank=True)
+	order 				= models.IntegerField(default=0)
 
 	def __unicode__(self):
-		return self.name
+		return "%s of %s" % (self.name, self.raid)
 
 class Log(models.Model):
 	guild 				= models.ForeignKey(Guild)
 	log_file 			= models.FileField(upload_to='combat_logs')
 	upload_date			= models.DateTimeField(auto_now=True)
-	processing_date 	= models.DateTimeField(null=True)
+	processing_date 	= models.DateTimeField(null=True, blank=True)
 	processed 			= models.BooleanField(default=False)
 	private 			= models.BooleanField(default=False)
 	user 				= models.ForeignKey(User)
-	#processing 			= models.BooleanField(default=False)
+	processing 			= models.BooleanField(default=False)
 
 	def __unicode__(self):
 		return "%d parse %s" % (self.id, self.guild)
 
 	def encounters(self):
 		return Encounter.objects.filter(log=self).order_by('id')
+
+	def parse(self):
+		if not self.processed and not self.processing:
+			self.processing = True
+			self.save()
+			parser = Parser(settings.BASEPATH + '/content' + self.log_file.url, log_id=self.id)
+			if not parser.parse(False):
+				self.processed = False
+			else:
+				self.processed = True
+			self.processing = False
+			self.save()
+		return self.processed
 
 class Encounter(models.Model):
 	boss 				= models.ForeignKey(Boss, blank=True, null=True)
@@ -110,7 +124,7 @@ class Encounter(models.Model):
 	private 			= models.BooleanField(default=False)
 	wipe 				= models.BooleanField(default=False)
 	parsed 				= models.BooleanField(default=False)
-	#processing 			= models.BooleanField(default=False)
+	processing 			= models.BooleanField(default=False)
 
 	cache 				= None
 
@@ -532,6 +546,7 @@ class EncounterStats(models.Model):
 				if view != "done":
 					for target, skills in buffes['buff'].items():
 						for skill_id, timeline in skills.items():
+							# sicaron's contract
 							if skill_id == 2117300275:
 								s = self.rdata['skills'][skill_id]
 								for time in timeline:

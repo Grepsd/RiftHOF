@@ -302,7 +302,7 @@
                 text: 'Timeline'
             },
             xAxis: {
-                categories: [{% for time in timeline.total %}'{{ time.time|secs }}',{% endfor %}],
+                categories: [{% for time in timeline.total|dictsort:"time" %}'{{ time.time|secs }}',{% endfor %}],
                 tickInterval: 6,
                 plotBands: [
                   {% for buff in buffes %}
@@ -386,7 +386,7 @@
               {% if actor != "total" %}
               {
                   name: '{{ actor|escapejs }}',
-                  data: [{% for stats in timeline_actor %}{{ stats.done.hits }} / 5,{% endfor %}],
+                  data: [{% for stats in timeline_actor|dictsort:"time" %}{{ stats.done.hits }} / 5,{% endfor %}],
                   visible: false,
               },
               {% endif %}
@@ -405,7 +405,7 @@
                 text: 'Timeline'
             },
             xAxis: {
-                categories: [{% for time in timeline.total %}'{{ time.time|secs }}',{% endfor %}],
+                categories: [{% for time in timeline.total|dictsort:"time" %}'{{ time.time|secs }}',{% endfor %}],
                 tickInterval: 6,
                 plotBands: [
                   {% for buff in buffes %}
@@ -493,7 +493,7 @@
               {% if actor != "total" %}
               {
                   name: '{{ actor|escapejs }}',
-                  data: [{% for stats in timeline_actor %}{{ stats.done.heals }} / 5,{% endfor %}],
+                  data: [{% for stats in timeline_actor|dictsort:"time" %}{{ stats.done.heals }} / 5,{% endfor %}],
                   visible: false,
               },
               {% endif %}

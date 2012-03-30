@@ -14,7 +14,9 @@ from django.core.exceptions import MultipleObjectsReturned
 
 def home(request):
 	data 		= {
-		'logs': 	Log.objects.filter(private=False).order_by('-upload_date')
+		'logs': 	Log.objects.filter(private=False, processed=True, processing=False).order_by('-upload_date')[0:10],
+		'guild_logs':Log.objects.filter(guild=request.user.get_profile().guild, processed=True, processing=False).order_by('-upload_date')[0:10],
+		'log_form': 	LogForm(),
 		}
 	return render(request, 'home.html', data)
 
@@ -130,16 +132,7 @@ def guild_log_show(request, id):
 #@login_required
 @user_passes_test(lambda u: u.is_active, login_url='/unauthorized')
 def api_log_check_status(request, id):
-	id = int(id)
-	log = Log.objects.get(id=id)
-	if not log.processed:
-		log.processed = True
-		log.save()
-		parser = Parser(settings.BASEPATH + '/content' + log.log_file.url, log_id=id)
-		if not parser.parse(False):
-			log.processed = False
-			log.save()
-	return HttpResponse(int(log.processed), mimetype="application/json") 
+	return HttpResponse(int(Log.objects.get(id=int(id)).processed), mimetype="application/json") 
 
 @login_required
 @user_passes_test(lambda u: u.is_active, login_url='/unauthorized')
@@ -242,3 +235,9 @@ def actor_show_detail(request, id_encounter, id_obj):
 
 def unauthorized(request):
 	return render(request, 'unauthorized.html')
+
+def boss_list(request):
+	data = {
+		'boss_list':	Boss.objects.all().order_by('raid__id'),
+	}
+	return render(request, 'boss/list.html', data)
