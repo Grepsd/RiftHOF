@@ -12,7 +12,10 @@ class Command(BaseCommand):
         l = Log.objects.filter(processing=True).count()
         if l < settings.MAX_PROCESSING:
             todo_list = Log.objects.filter(processing=False, processed=False)
-            log = todo_list[0]
+            try:
+                log = todo_list[0]
+            except IndexError:
+                return
             print "Processing log %d" % log.id
             start_time = datetime.now()
             log.start_processing_time = start_time
