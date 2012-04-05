@@ -45,14 +45,14 @@
 		</table>
 	{% else %}
 		<div class="alert alert-error">
-			Create or join a guild if you want to upload your logs.
-			<a href="{% url guild_create %}">Create your guild</a> / Join a guild
+			{% blocktrans %}Create or join a guild if you want to upload your logs.{% endblocktrans %}
+			<a href="{% url guild_create %}">{% blocktrans %}Create your guild{% endblocktrans %}</a> / {% blocktrans %}Join a guild{% endblocktrans %}
 		</div>
 	{% endif %}
 	<table class="valid_top width100">
 		<tr>
 			<td style="width: 50%;">
-				<h2>Latest public logs</h2>
+				<h2>{% blocktrans %}Latest public logs{% endblocktrans %}</h2>
 				<ul>
 				{% for log in logs %}
 					<dl>
@@ -62,17 +62,17 @@
 				</ul>
 			</td>
 			<td style="width: 50%;">
-				<h2>Your guild logs</h2>
+				<h2>{% blocktrans %}Your guild logs{% endblocktrans %}</h2>
 				{% if user.is_authenticated %}
 					<ul>
 					{% for log in guild_logs %}
 						<dl>
-							{{ log.guild }} [{{ log.upload_date|naturaltime }}] <a href="{% url guild_log_show log.id %}">View</a>
+							{{ log.guild }} [{{ log.upload_date|naturaltime }}] <a href="{% url guild_log_show log.id %}">{% blocktrans %}View{% endblocktrans %}</a>
 						</dl>
 					{% endfor %}
 					</ul>
 				{% else %}
-					<div class="alert alert-error">You're not part of any guild.</a>
+					<div class="alert alert-error">{% blocktrans %}You're not part of any guild.{% endblocktrans %}</a>
 				{% endif %}
 			</td>
 		</tr>

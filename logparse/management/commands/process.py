@@ -15,7 +15,11 @@ class Command(BaseCommand):
             log = todo_list[0]
             print "Processing log %d" % log.id
             start_time = datetime.now()
+            log.start_processing_time = start_time
+            log.save()
             log.parse()
+            log.end_processing_time = datetime.now()
+            log.save()
             duration = (datetime.now() - start_time).total_seconds()
             print "Log %d processed in %ds" % (log.id, duration)
             

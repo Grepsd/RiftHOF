@@ -48,3 +48,7 @@ table.valid_top td {
 .width100 {
 	width:					100%;
 }
+
+p.little {
+	font-size:				0.8em;
+}

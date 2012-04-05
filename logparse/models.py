@@ -96,6 +96,8 @@ class Log(models.Model):
 	private 			= models.BooleanField(default=False)
 	user 				= models.ForeignKey(User)
 	processing 			= models.BooleanField(default=False)
+	start_processing_time= models.DateTimeField(null=True, blank=True)
+	end_processing_time =  models.DateTimeField(null=True, blank=True)
 
 	def reset(self):
 		self.processed = False

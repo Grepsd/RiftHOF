@@ -65,5 +65,6 @@
         {% endfor %}
       {% endfor %}
     </table>
+    <p class="little">{% blocktrans with start_time=log.start_processing_time end_time=log.end_processing_time %}Processing data : From {{ start_time }} to {{ end_time }}.{% endblocktrans %}</p>
 	{% endif %}
 {% endblock %}
