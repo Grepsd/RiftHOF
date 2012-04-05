@@ -1,17 +1,35 @@
 {% extends 'base.html' %}
+{% load i18n %}
 {% load humanize %}
 {% block "content" %}
-	<h2>Upload your logs !</h2>
+	<h2>{% trans "News" %}</h2>
+	{% for new in news %}
+		<table class="table">
+			<tr>
+				<th colspan="2">{{ new.title }}</th>
+			</tr>
+			<tr>
+				<td colspan="2">
+					{{ new.body|linebreaks }}
+				</td>
+			</tr>
+			<tr>
+				<td>{{ new.comments|length }} comments</td>
+				<td>{% blocktrans with author=new.author.username publication_date=new.publication_date|naturaltime %}Posted by {{ author }} {{ publication_date }}{% endblocktrans %}</td>
+			</tr>
+		</table>
+	{% endfor %}
+	<h2>{% trans "Upload your logs !" %}</h2>
 	{% if user.is_active %}
 		<form action="{% url guild_log_upload %}" class="form form-inline" method="post" enctype="multipart/form-data">
 			{% csrf_token %}
 			<div class="control-group">
-				<label for="id_log_file" class="label">Combat Log File : </label>
+				<label for="id_log_file" class="label">{% trans "Combat Log File" %} : </label>
 				{{ log_form.log_file }}
 			</div>
 
 			<div class="control-group">
-				<label for="id_private" class="label">Is private ? : </label>
+				<label for="id_private" class="label">{% trans "Is private ?" %} : </label>
 				{{ log_form.private }}
 			</div>
 			<div class="control-group">
@@ -45,13 +63,17 @@
 			</td>
 			<td style="width: 50%;">
 				<h2>Your guild logs</h2>
-				<ul>
-				{% for log in guild_logs %}
-					<dl>
-						{{ log.guild }} [{{ log.upload_date|naturaltime }}] <a href="{% url guild_log_show log.id %}">View</a>
-					</dl>
-				{% endfor %}
-				</ul>
+				{% if user.is_authenticated %}
+					<ul>
+					{% for log in guild_logs %}
+						<dl>
+							{{ log.guild }} [{{ log.upload_date|naturaltime }}] <a href="{% url guild_log_show log.id %}">View</a>
+						</dl>
+					{% endfor %}
+					</ul>
+				{% else %}
+					<div class="alert alert-error">You're not part of any guild.</a>
+				{% endif %}
 			</td>
 		</tr>
 	</table>

@@ -1,16 +1,21 @@
 from django.conf.urls import patterns, include, url
+from django.conf.urls.i18n import i18n_patterns
 
 # Uncomment the next two lines to enable the admin:
 from django.contrib import admin
 admin.autodiscover()
 
 urlpatterns = patterns('',
+    (r'^i18n/',                     include('django.conf.urls.i18n')),
+)
+
+urlpatterns += i18n_patterns('',
     # Examples:
     url(r'^$', 						'logparse.views.home', 					name='home'),
     url(r'^login$', 				'django.contrib.auth.views.login', {'template_name': 'login.html'}, name='login'),
     url(r'^logout$',                'django.contrib.auth.views.logout', {'next_page': '/'}, name='logout'),
     url(r'^register$',              'logparse.views.register',              name='register'),
-    url(r'^boss/list$',              'logparse.views.boss_list',              name='boss_list'),
+    url(r'^boss/list$',             'logparse.views.boss_list',             name='boss_list'),
 
 
     url(r'^guild$', 				'logparse.views.guild_home', 			name='guild_home'),
@@ -20,8 +25,8 @@ urlpatterns = patterns('',
     url(r'^guild/quit/act$', 		'logparse.views.guild_quit_act', 		name='guild_quit_act'),
     url(r'^log/upload$', 		    'logparse.views.guild_log_upload', 		name='guild_log_upload'),
     url(r'^log/(\d+)$', 	        'logparse.views.guild_log_show', 		name='guild_log_show'),
-    url(r'^encounter/(\d+)$',       'logparse.views.guild_log_encounter_show',        name='guild_log_encounter_show'),
-    url(r'^encounter/(\d+)/(\d+)$', 'logparse.views.actor_show_detail',        name='actor_show_detail'),
+    url(r'^encounter/(\d+)$',       'logparse.views.guild_log_encounter_show',name='guild_log_encounter_show'),
+    url(r'^encounter/(\d+)/(\d+)$', 'logparse.views.actor_show_detail',     name='actor_show_detail'),
     url(r'^unauthorized$',          'logparse.views.unauthorized',          name='unauthorized'),
     
 
@@ -29,7 +34,7 @@ urlpatterns = patterns('',
 
     url(r'^api/guild/list$', 		'logparse.views.api_guild_list', 		name='api_guild_list'),
     url(r'^api/guild/checkname$',   'logparse.views.api_guild_checkname',	name='api_guild_checkname'),
-    url(r'^api/guild/log/check/(\d+)$','logparse.views.api_log_check_status',	name='api_log_check_status'),
+    url(r'^api/guild/log/check/(\d+)$','logparse.views.api_log_check_status',name='api_log_check_status'),
   
     # url(r'^rifthof/', include('rifthof.foo.urls')),
 

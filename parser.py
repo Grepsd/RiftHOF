@@ -670,7 +670,7 @@ class Parser:
 				if (self.last_otime - self.start_time).total_seconds() > 60:
 					if self.boss is not None:
 						self.save_encounter(full)
-		print self.boss, (self.last_otime - self.start_time).total_seconds(), self.get_encounters()
+		#print self.boss, (self.last_otime - self.start_time).total_seconds(), self.get_encounters()
 		return True
 
 	def get_encounters(self):
@@ -786,8 +786,10 @@ class Parser:
 
 		if line_data['source_name'] not in self.actors:
 			self.actors.append(line_data['source_name'])
+			#print line_data['source_name']
 		if line_data['target_name'] not in self.actors:
 			self.actors.append(line_data['target_name'])
+			#print line_data['target_name']
 
 		# detect the bosses killed in the fight.
 		if line_data['action'] == 11:
@@ -879,7 +881,6 @@ class Parser:
 				stats.parse()
 				stats.create_actors()
 			else:
-				print "!!!", encounter, encounter.id
 				#stats.delete()
 				#encounter.delete()
 				pass

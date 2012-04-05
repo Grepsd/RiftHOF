@@ -97,6 +97,11 @@ class Log(models.Model):
 	user 				= models.ForeignKey(User)
 	processing 			= models.BooleanField(default=False)
 
+	def reset(self):
+		self.processed = False
+		self.processing= False
+		self.save()
+
 	def __unicode__(self):
 		return "%d parse %s" % (self.id, self.guild)
 
@@ -248,31 +253,46 @@ class EncounterStats(models.Model):
 				if type_actor == 'npc':
 					if self.rdata['actors'][actor]['name'] in mob_blacklist:
 						continue
-				el = {
-					'name': 		self.rdata['actors'][actor]['name'],
-					'original': 	int(stats['global'][view][stat]),
-					'id':			actor,
-					'skills':		{},
-				}
-				for skill_id, value in stats[view]['skill'].items():
-					if view not in el['skills']:
-						el['skills'][view] = {}
-					if stat not in el['skills'][view]:
-						el['skills'][view][stat] = []
-					if el['original'] == 0:
-						ratio = 0
-					else:
-						ratio = float(value[stat]) / el['original'] * 100
-					d = {'name': self.rdata['skills'][skill_id], 'value': value[stat], 'ratio': ratio}
-					el['skills'][view][stat].append(d)
+				found = False
+				for e in result:
+					if e['name'] == self.rdata['actors'][actor]['name']:
+						found = True
+						e['original'] 	+= int(stats['global'][view][stat])
+						e['by_time'] 	= int(e['original'] / self.duration)
+						e['value'] 		= int(e['original'])
+						e['count']		+= 1
 
-				el['by_time'] 	= int(el['original'] / self.duration)
-				el['value'] 	= int(el['original'])
+						total 			+= e['value']
+						total_original	+= e['original']
+						total_by_time 	+= e['by_time']
+				if not found:
+					el = {
+						'name': 		self.rdata['actors'][actor]['name'],
+						'original': 	int(stats['global'][view][stat]),
+						'id':			actor,
+						'skills':		{},
+						'count':		1,
+						'is_player':	self.is_player(actor),
+					}
+					for skill_id, value in stats[view]['skill'].items():
+						if view not in el['skills']:
+							el['skills'][view] = {}
+						if stat not in el['skills'][view]:
+							el['skills'][view][stat] = []
+						if el['original'] == 0:
+							ratio = 0
+						else:
+							ratio = float(value[stat]) / el['original'] * 100
+						d = {'name': self.rdata['skills'][skill_id], 'value': value[stat], 'ratio': ratio, 'id': skill_id}
+						el['skills'][view][stat].append(d)
 
-				total 			+= el['value']
-				total_original	+= el['original']
-				total_by_time 	+= el['by_time']
-				result.append(el)
+					el['by_time'] 	= int(el['original'] / self.duration)
+					el['value'] 	= int(el['original'])
+
+					total 			+= el['value']
+					total_original	+= el['original']
+					total_by_time 	+= el['by_time']
+					result.append(el)
 
 		for el in result:
 			if total == 0:
@@ -527,11 +547,46 @@ class EncounterStats(models.Model):
 						if len(time) == 2:
 							a['to'] = self.get_sec(time[1])
 						else:
-								a['to'] = self.get_sec(self.rdata['end_time'])
+							a['to'] = self.get_sec(self.rdata['end_time'])
 
 						timeline_t.append(a)
 					results.append({'skill_id': skill_id, 'skill_name': self.rdata['skills'][skill_id], 'timeline': timeline_t})
 		return results
+
+	def get_actor_buffes(self, actor):
+		final_return = []
+		actor_name 	= self.get_actor(actor)['name']
+		tmp = self.rdata['stats']['actor'][actor]['buffes']
+		for view, type_buffes in tmp.items():
+			for type_buff, sources in type_buffes.items():
+				for source_id, skills in sources.items():
+					source_name = self.get_actor(source_id)['name']
+					for skill_id, timeline in skills.items():
+						skill_name 	= self.rdata['skills'][skill_id]
+						skill_data = {
+							'name':				skill_name,
+							'uptime':			0,
+							'total_duration':	0,
+							'view':				view,
+							'type_buff':		type_buff,
+							'actor2_name':		source_name,
+							'actor_name':		actor_name,
+							'skill_id':			skill_id,
+						}
+						for time in timeline:
+							a = {
+								'from': self.get_sec(time[0]),
+							}
+							if len(time) == 2:
+								a['to'] = self.get_sec(time[1])
+							else:
+								a['to'] = self.get_sec(self.rdata['end_time'])
+							a['duration'] = a['to'] - a['from']
+							skill_data['total_duration'] += a['duration']
+						skill_data['uptime'] = "%i" % (float(skill_data['total_duration']) / self.duration * 100)
+						final_return.append(skill_data)
+		return final_return
+						
 
 
 	def get_important_buffes(self):
@@ -613,6 +668,7 @@ class EncounterStats(models.Model):
 			for skill_id, stats in skills.items():
 				tmp = stats
 				tmp['actor_id'] = actor
+				tmp['is_player'] = "%s" % actor in self.rdata['players']
 				tmp['actor_name']= actor_name
 				tmp['skill_id'] = skill_id
 				tmp['skill_name']=self.rdata['skills'][skill_id]
@@ -652,6 +708,25 @@ def create_user_profile(sender, instance, created, **kwargs):
         UserProfile.objects.create(user=instance)
 
 post_save.connect(create_user_profile, sender=User)
+
+class News(models.Model):
+	title 				= models.CharField(max_length=300)
+	body				= models.TextField()
+	author 				= models.ForeignKey(User)
+	publication_date	= models.DateTimeField(auto_now=True)
+
+	def __unicode__(self):
+		return "%s by %s" % (self.title, self.author.username)
+
+	def comments(self):
+		return NewsComment.objects.filter(news=self)
+
+class NewsComment(models.Model):
+	news 				= models.ForeignKey(News)
+	title 				= models.CharField(max_length=300)
+	body				= models.TextField()
+	author 				= models.ForeignKey(User)
+	publication_date	= models.DateTimeField(auto_now=True)
 
 
 class LogForm(ModelForm):

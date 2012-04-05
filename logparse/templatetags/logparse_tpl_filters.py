@@ -1,4 +1,5 @@
 from django import template
+from django.template.defaultfilters import stringfilter
 
 register = template.Library()
 
@@ -30,5 +31,15 @@ def seconds_duration(secs):
 		else:
 			if secs > 0:
 				return "0:%d" % (secs)
+@stringfilter
+@register.filter
+def concat(string, args):
+	final = [string] + args.split(',')
+	return "".join(final)
+
+@register.filter
+@stringfilter
+def prepend(string, arg):
+	return arg + string
 
 register.filter('secs', seconds_duration)

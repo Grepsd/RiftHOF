@@ -1,3 +1,4 @@
+ {% load i18n %}
  <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
   <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
@@ -32,9 +33,9 @@
               <div class="nav-collapse">
                 <ul class="nav">
                   <li><a href="/">Home</a></li>
-                  <li><a href="{% url boss_list %}">Browse</a></li>
-                  <li><a href="">Ranking</a></li>
-                  <li><a href="">Progression</a></li>
+                  <li><a href="{% url boss_list %}">{% trans "Browse" %}</a></li>
+                  <li><a href="">{% trans "Ranking" %}</a></li>
+                  <li><a href="">{% trans "Progression" %}</a></li>
                 </ul>
                     {% if user.is_authenticated %}
                       <ul class="nav">  
@@ -42,21 +43,21 @@
                       </ul>
                         <ul class="nav pull-right">
                             <li class="divider-vertical"></li>
-                            <li><a href="{% url guild_home %}">Your guild</a></li>
-                            <li><a href="{% url logout %}">Logout</a></li>
+                            <li><a href="{% url guild_home %}">{% trans "Your guild" %}</a></li>
+                            <li><a href="{% url logout %}">{% trans "Logout" %}</a></li>
                         </ul>
                         {% if user.is_staff %}
               						<ul class="nav pull-right">
               							<li class="divider-vertical"></li>
-              							<li><a href="" class="pull-right">Dashboard</a></li>
-              							<li><a href="/admin" class="pull-right">Admin</a></li>
+              							<li><a href="" class="pull-right">{% trans "Dashboard" %}</a></li>
+              							<li><a href="/admin" class="pull-right">{% trans "Admin" %}</a></li>
               						</ul>
                         {% endif %}
                    {% else %}
                         <ul class="nav pull-right">
                             <li class="divider-vertical"></li>
-                            <li><a href="{% url login %}">Login</a></li>
-                            <li><a href="{% url register %}">Register</a></li>
+                            <li><a href="{% url login %}">{% trans "Login" %}</a></li>
+                            <li><a href="{% url register %}">{% trans "Register" %}</a></li>
                         </ul>
                     {% endif %}
               </div>
@@ -77,6 +78,19 @@
                 {% endblock %}
                 <hr>
                 <p class="pull-right">&copy;RiftHOF by <a href="mailto:grepsd@gmail.com">Grepsd</a>. 2012.</p>
+                <form action="/i18n/setlang/" method="post">
+                {% get_current_language as LNG %}
+                {% csrf_token %}
+                  <input name="next" type="hidden" value="{{ redirect_to }}" />
+                  <select name="language">
+
+                    {% get_language_info_list for LANGUAGES as languages %}
+                    {% for language in languages %}
+                      <option value="{{ language.code }}"{% if language.code == LNG %} selected{% endif %}>{{ language.name_local }} ({{ language.code }})</option>
+                    {% endfor %}
+                  </select>
+                  <input type="submit" value="Go" />
+                </form>
             </div>
         </div>
     </body>

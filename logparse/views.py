@@ -14,10 +14,12 @@ from django.core.exceptions import MultipleObjectsReturned
 
 def home(request):
 	data 		= {
-		'logs': 	Log.objects.filter(private=False, processed=True, processing=False).order_by('-upload_date')[0:10],
-		'guild_logs':Log.objects.filter(guild=request.user.get_profile().guild, processed=True, processing=False).order_by('-upload_date')[0:10],
-		'log_form': 	LogForm(),
+		'logs': 			Log.objects.filter(private=False, processed=True, processing=False).order_by('-upload_date')[0:10],
+		'log_form': 		LogForm(),
+		'news':				News.objects.all().order_by('-id')[0:5],
 		}
+	if request.user.is_authenticated():
+		data['guild_logs']	= Log.objects.filter(guild=request.user.get_profile().guild, processed=True, processing=False).order_by('-upload_date')[0:10]
 	return render(request, 'home.html', data)
 
 def register(request):
@@ -125,7 +127,7 @@ def guild_log_upload(request):
 #@cache_page(60 * 60 * 24)
 def guild_log_show(request, id):
 	data	= {
-		'log':	 Log.objects.get(id=id)
+		'log':	 Log.objects.get(id=id),
 	}
 	return render(request, 'log/show.html', data)
 
@@ -229,6 +231,7 @@ def actor_show_detail(request, id_encounter, id_obj):
 			'detailed_total_stats_received': stats.get_detailed_total_stats(id_obj, 'received'),
 			'detailed_by_actor_stats': stats.get_detailed_by_actor_stats(id_obj),
 			'important_buffes': 		stats.get_actor_important_buffes(id_obj),
+			'actor_buffes':				stats.get_actor_buffes("%d" % id_obj),
 			}
 		cache.set("encounter_%d_actor_%d" % (id_encounter, id_obj), data, 6 * 15)
 	return render(request, 'actor/show.html', data)

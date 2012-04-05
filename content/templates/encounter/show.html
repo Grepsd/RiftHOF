@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load humanize %}
+{% load i18n %}
 {% load logparse_tpl_filters %}
 {% block "content" %}
   <script type="text/javascript">
@@ -68,7 +69,7 @@
               },
               series: [{
                   name: 'dps',
-                  data: [{% for el in all_tops|dictsortreversed:"damages_value" %}{% if el.name != 'total' %}{{ el.damages_by_time }},{% endif %}{% endfor %}],
+                  data: [{% for el in all_tops|dictsortreversed:"damages_value" %}{% if el.name != 'total' %}{{ el.damages_by_time }}{% if not forloop.last %},{% endif %}{% endif %}{% endfor %}],
               }]
           });
           hps_chart = new Highcharts.Chart({
@@ -266,9 +267,6 @@
             },
 
             plotOptions: {
-              series: {
-                showCheckbox: true,
-              },
               spline: {
                 marker: {
                   enabled: false,
@@ -369,9 +367,6 @@
             },
 
             plotOptions: {
-              series: {
-                showCheckbox: true,
-              },
               spline: {
                 marker: {
                   enabled: false,
@@ -476,9 +471,6 @@
             },
 
             plotOptions: {
-              series: {
-                showCheckbox: true,
-              },
               spline: {
                 marker: {
                   enabled: false,
@@ -504,16 +496,16 @@
         $('#tooltip_{{ stats.name }}').popover({placement: 'bottom'{% if stats.name != 'total' %}, content: 'Name : {{ stats.name|escapejs }}<br /><table style="width: 100%;" class="table table-condensed table-bordered">' +
             '<thead>' +
               '<tr>' +
-                '<th>Spell</th>' +
-                '<th>Value</th>' +
-                '<th>Ratio</th>' +
-                '<th>Spell</th>' +
-                '<th>Value</th>' +
-                '<th>Ratio</th>' +
+                '<th>{% trans "Spell" %}</th>' +
+                '<th>{% trans "Value" %}</th>' +
+                '<th>{% trans "Ratio" %}</th>' +
+                '<th>{% trans "Spell" %}</th>' +
+                '<th>{% trans "Value" %}</th>' +
+                '<th>{% trans "Ratio" %}</th>' +
               '</tr>' +
             '</thead>' +
             '<tbody>' +
-             '<th colspan=\"6\">Damages</th></tr>' +
+             '<th colspan=\"6\">{% trans "Damages" %}</th></tr>' +
           {% for skill in stats.damages_skills.done.hits|dictsortreversed:"value" %}
             {% if forloop.first %}
               {% cycle '' '\'</tr>\'+' %}
@@ -521,7 +513,7 @@
             {% else %}
               {% cycle '\'</tr><tr>\'+' '' %}
             {% endif %}
-              '<td>{{ skill.name|escapejs }}</td>' +
+              '<td>{{ skill.id|prepend:"skill_" }}</td>' +
               '<td>{{ skill.value|intcomma }}</td>' +
               '<td>{{ skill.ratio|floatformat }}%</td>' +
             {% if forloop.last %}
@@ -547,17 +539,17 @@
       {% endfor %}
     });
     </script>
-  <h2 class="center"><span class="{{ encounter.wipe|yesno:"icon-remove,icon-ok" }}"></span> <a href="{% url ranking_boss boss_id %}">{{ boss_name }}</a> [{{ encounter.stats.duration|secs }}]</h2>
+  <h2 class="center"><span class="{{ encounter.wipe|yesno:"icon-remove,icon-ok" }}"></span> <a href="{% url ranking_boss boss_id %}">{% trans boss_name %}</a> [{{ encounter.stats.duration|secs }}]</h2>
 
-  <a href="{% url guild_log_show encounter.log.id %}"><span class="btn btn-success">< < Back</span></a><br /><br />
+  <a href="{% url guild_log_show encounter.log.id %}"><span class="btn btn-success">< < {% trans "Back" %}</span></a><br /><br />
 
   <ul class="nav nav-tabs">
-    <li class="active"><a href="#timeline" data-toggle="tab">Timeline</a></li>
-    <li><a href="#dps_chart" data-toggle="tab">DPS</a></li>
-    <li><a href="#hps_chart" data-toggle="tab">HPS</a></li>
-    <li><a href="#taken_chart" data-toggle="tab">Taken</a></li>
-    <li><a href="#timeline_by_actor" data-toggle="tab">DPS By Actor</a></li>
-    <li><a href="#timeline_by_actor_heals" data-toggle="tab">HPS By Actor</a></li>
+    <li class="active"><a href="#timeline" data-toggle="tab">{% trans "Timeline" %}</a></li>
+    <li><a href="#dps_chart" data-toggle="tab">{% trans "DPS" %}</a></li>
+    <li><a href="#hps_chart" data-toggle="tab">{% trans "HPS" %}</a></li>
+    <li><a href="#taken_chart" data-toggle="tab">{% trans "Taken" %}</a></li>
+    <li><a href="#timeline_by_actor" data-toggle="tab">{% trans "DPS By Actor" %}</a></li>
+    <li><a href="#timeline_by_actor_heals" data-toggle="tab">{% trans "HPS By Actor" %}</a></li>
   </ul>
 
   <div class="tab-content">
@@ -573,9 +565,9 @@
   <br />
 
   <ul class="nav nav-tabs">
-    <li class="active"><a href="#players" data-toggle="tab">Players</a></li>
-    <li><a href="#npcs" data-toggle="tab">NPCs</a></li>
-    <li><a href="#life_and_death" data-toggle="tab">Life&Death</a></li>
+    <li class="active"><a href="#players" data-toggle="tab">{% trans "Players" %}</a></li>
+    <li><a href="#npcs" data-toggle="tab">{% trans "NPCs" %}</a></li>
+    <li><a href="#life_and_death" data-toggle="tab">{% trans "Life&Death" %}</a></li>
   </ul>
 
   <div class="tab-content">
@@ -583,16 +575,16 @@
       <table class="table table-condensed table-bordered tablesorter" id="damages">
         <thead>
           <tr>
-            <th style="width: 10%;">Name</th>
-            <th style="width: 10%;">Damages</th>
-            <th style="width: 10%;">DPS</th>
-            <th style="width: 10%;">% Dmg</th>
-            <th style="width: 10%;">Heals</th>
-            <th style="width: 10%;">HPS</th>
-            <th style="width: 10%;">% heals</th>
-            <th style="width: 10%;">Dmg taken</th>
-            <th style="width: 10%;">DPS taken</th>
-            <th style="width: 10%;">% taken</th>
+            <th style="width: 10%;">{% trans "Name" %}</th>
+            <th style="width: 10%;">{% trans "Damages" %}</th>
+            <th style="width: 10%;">{% trans "DPS" %}</th>
+            <th style="width: 10%;">{% trans "% Dmg" %}</th>
+            <th style="width: 10%;">{% trans "Heals" %}</th>
+            <th style="width: 10%;">{% trans "HPS" %}</th>
+            <th style="width: 10%;">{% trans "% heals" %}</th>
+            <th style="width: 10%;">{% trans "Dmg taken" %}</th>
+            <th style="width: 10%;">{% trans "DPS taken" %}</th>
+            <th style="width: 10%;">{% trans "% taken" %}</th>
           </tr>
         </thead>
         <tbody>
@@ -601,7 +593,7 @@
               {% if stats.damages_id > 0 %}
                 <td><a href="{% url actor_show_detail encounter.id stats.damages_id %}">{{ stats.name }}</a></td>
               {% else %}
-                <td>{{ stats.name }}</td>
+                <td>{% trans stats.name %}</td>
               {% endif %}
               <td>{{ stats.damages_original }}</td>
               <td>{{ stats.damages_by_time }}</td>
@@ -621,22 +613,26 @@
       <table class="table table-condensed table-bordered tablesorter" id="npc_table">
         <thead>
           <tr>
-            <th>Name</th>
-            <th>Total Dmg</th>
-            <th>DPS</th>
-            <th>% Dmg</th>
-            <th>Total Heals</th>
-            <th>HPS</th>
-            <th>% heals</th>
-            <th>Total Dms taken</th>
-            <th>DPS taken</th>
-            <th>% taken</th>
+           <th style="width: 10%;">{% trans "Name" %}</th>
+            <th style="width: 10%;">{% trans "Damages" %}</th>
+            <th style="width: 10%;">{% trans "DPS" %}</th>
+            <th style="width: 10%;">{% trans "% Dmg" %}</th>
+            <th style="width: 10%;">{% trans "Heals" %}</th>
+            <th style="width: 10%;">{% trans "HPS" %}</th>
+            <th style="width: 10%;">{% trans "% heals" %}</th>
+            <th style="width: 10%;">{% trans "Dmg taken" %}</th>
+            <th style="width: 10%;">{% trans "DPS taken" %}</th>
+            <th style="width: 10%;">{% trans "% taken" %}</th>
           </tr>
         </thead>
         <tbody>
           {% for stats in npc_all_tops|dictsortreversed:"damages_original" %}
             <tr>
-              <td>{{ stats.name }}</td>
+              {% if stats.damages_id > 0 %}
+                <td>{{ stats.name }} ({{ stats.damages_count }})</td>
+              {% else %}
+                <td>{% trans stats.name %}</td>
+              {% endif %}
               <td>{{ stats.damages_original|intcomma }}</td>
               <td>{{ stats.damages_by_time|intcomma }}</td>
               <td>{{ stats.damages_ratio|intcomma }}%</td>
@@ -657,5 +653,5 @@
       {% endfor %}
     </div>
   </div>
-  <a href="{% url guild_log_show encounter.log.id %}"><span class="btn btn-success">< < Back</span></a>
+  <a href="{% url guild_log_show encounter.log.id %}"><span class="btn btn-success">< < {% trans "Back" %}</span></a>
 {% endblock %}
