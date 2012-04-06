@@ -274,7 +274,7 @@ class EncounterStats(models.Model):
 						'id':			actor,
 						'skills':		{},
 						'count':		1,
-						'is_player':	self.is_player(actor),
+						'is_player':	actor in self.rdata['players'],
 					}
 					for skill_id, value in stats[view]['skill'].items():
 						if view not in el['skills']:
