@@ -3,26 +3,37 @@ from django.utils import translation
 from logparse.models import *
 from parser import Parser
 from django.conf import settings
-from datetime import datetime
+from datetime import datetime, timedelta
+from django.utils.timezone import utc
 
 class Command(BaseCommand):
     can_import_settings = True
 
     def handle(self, *args, **options):
+        self.trash_olds()
         l = Log.objects.filter(processing=True).count()
         if l < settings.MAX_PROCESSING:
             todo_list = Log.objects.filter(processing=False, processed=False)
             try:
                 log = todo_list[0]
             except IndexError:
+                print "nothing to do"
                 return
             print "Processing log %d" % log.id
-            start_time = datetime.now()
-            log.start_processing_time = start_time
+            start_time                  = datetime.utcnow().replace(tzinfo=utc)
+            log.start_processing_time   = start_time
             log.save()
             log.parse()
-            log.end_processing_time = datetime.now()
+            log.end_processing_time     = datetime.utcnow().replace(tzinfo=utc)
             log.save()
-            duration = (datetime.now() - start_time).total_seconds()
+            duration                    = (datetime.utcnow().replace(tzinfo=utc) - start_time).total_seconds()
             print "Log %d processed in %ds" % (log.id, duration)
-            
+        else:
+            print "max parallel processing exceeded."
+
+    def trash_olds(self):
+        trashs = Log.objects.filter(processing=True, start_processing_time__lt=datetime.utcnow().replace(tzinfo=utc) - timedelta(hours=1))
+        for trash in trashs:
+            trash.processing = False
+            trash.start_processing_time = None
+            trash.save()

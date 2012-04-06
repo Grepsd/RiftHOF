@@ -6,28 +6,32 @@
 
 		<h3>Combat Log</h3>
 			{% if user.is_active %}
-				<form action="{% url guild_log_upload %}" class="form form-inline" method="post" enctype="multipart/form-data">
-					{% csrf_token %}
-					<div class="control-group">
-						<label for="id_log_file" class="label">Combat Log File : </label>
-						{{ log_form.log_file }}
-					</div>
+				{% if user.get_profile.has_guild %}
+					<form action="{% url guild_log_upload %}" class="form form-inline" method="post" enctype="multipart/form-data">
+						{% csrf_token %}
+						<div class="control-group">
+							<label for="id_log_file" class="label">Combat Log File : </label>
+							{{ log_form.log_file }}
+						</div>
 
-					<div class="control-group">
-						<label for="id_private" class="label">Is private ? : </label>
-						{{ log_form.private }}
-					</div>
-					<div class="control-group">
-						<input type="submit" value="upload" class="btn btn-info" />
-					</div>
-				</form>
-				<table class="table">
-					{% for log in guild.logs|dictsortreversed:"upload_date" %}
-						<tr>
-							<td><a href="{% url guild_log_show log.id %}">{% url guild_log_show log.id %}</a> {{ log.upload_date|naturaltime }}</td>
-						</tr>
-					{% endfor %}
-				</table>
+						<div class="control-group">
+							<label for="id_private" class="label">Is private ? : </label>
+							{{ log_form.private }}
+						</div>
+						<div class="control-group">
+							<input type="submit" value="upload" class="btn btn-info" />
+						</div>
+					</form>
+					<table class="table">
+						{% for log in guild.logs|dictsortreversed:"upload_date" %}
+							<tr>
+								<td><a href="{% url guild_log_show log.id %}">{% url guild_log_show log.id %}</a> {{ log.upload_date|naturaltime }}</td>
+							</tr>
+						{% endfor %}
+					</table>
+				{% else %}
+
+				{% endif %}
 			{% else %}
 				<div class="alert alert-error">
 					Only validated by admin users can upload logs.

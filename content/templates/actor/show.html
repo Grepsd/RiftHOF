@@ -227,15 +227,16 @@
         <th style="width: 10%;">{% trans "Crits" %}</th>
       </tr>
     </thead>
+    {% with stats2=detailed_total_stats_received|dictsortreversed:"hits" %}
     <tbody>
-      {% for stat in detailed_total_stats_received %}
+      {% for stat in stats2 %}
         {% if stat.skill_name == 'Total' %}
         <tr class="bold">
-          <td>{% trans stat.skill_name %}</td>
+          <td>{{ stat.skill_name }}</td>
           <td>{{ stat.hits }}</td>
           <td>{% widthratio stat.hits encounter_stats.duration 1 %}</td>
           <td>100%</td>
-          <td>{% widthratio stat.critical_hits_count stat.hits_count 100 %}% ({{ stat.critical_hits_count }}/{{ stat.hits_count }})</td>
+          <td>{% widthratio stat.critical_hits_count stat.hits_count 100 %}%</td>
           <td>{{ stat.heals }}</td>
           <td>{% widthratio stat.heals encounter_stats.duration 1 %}</td>
           <td>100%</td>
@@ -246,15 +247,16 @@
           <td>{{ stat.skill_name }}</td>
           <td>{{ stat.hits }}</td>
           <td>{% widthratio stat.hits encounter_stats.duration 1 %}</td>
-          <td>{% widthratio stat.hits stats.done.hits 100 %}%</td>
-          <td>{% widthratio stat.critical_hits_count stat.hits_count 100 %}% ({{ stat.critical_hits_count }}/{{ stat.hits_count }})</td>
+          <td>{% widthratio stat.hits stats2.0.hits 100 %}%</td>
+          <td>{% widthratio stat.critical_hits_count stats2.0.hits_count 100 %}%</td>
           <td>{{ stat.heals }}</td>
           <td>{% widthratio stat.heals encounter_stats.duration 1 %}</td>
-          <td>{% widthratio stat.heals stats.done.heals 100 %}%</td>
+          <td>{% widthratio stat.heals stats2.0.heals 100 %}%</td>
           <td>{% widthratio stat.critical_heals_count stat.heals_count 100 %}% ({{ stat.critical_heals_count }}/{{ stat.heals_count }})</td>
         </tr>
       {% endif %}
       {% endfor %}
+    {% endwith %}
     </tbody>
   </table>
 

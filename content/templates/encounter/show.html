@@ -513,7 +513,7 @@
             {% else %}
               {% cycle '\'</tr><tr>\'+' '' %}
             {% endif %}
-              '<td>{{ skill.id|prepend:"skill_" }}</td>' +
+              '<td>{{ skill.name }}</td>' +
               '<td>{{ skill.value|intcomma }}</td>' +
               '<td>{{ skill.ratio|floatformat }}%</td>' +
             {% if forloop.last %}
