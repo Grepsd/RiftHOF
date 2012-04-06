@@ -35,7 +35,7 @@
 			<div class="control-group">
 				<input type="submit" value="upload" class="btn btn-info" />
 			</div>
-		</form>
+		</form><p>{% blocktrans %}The file format to upload is : a zip file containing a single file, CombatLog.txt which should never be over 800MB.{% endblocktrans %}</p>
 		<table class="table">
 			{% for log in guild.logs|dictsortreversed:"upload_date" %}
 				<tr>
