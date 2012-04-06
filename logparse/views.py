@@ -124,14 +124,13 @@ def guild_log_upload(request):
 
 @login_required
 @user_passes_test(lambda u: u.is_active, login_url='/unauthorized')
-#@cache_page(60 * 60 * 24)
 def guild_log_show(request, id):
 	data	= {
 		'log':	 Log.objects.get(id=id),
 	}
 	return render(request, 'log/show.html', data)
 
-#@login_required
+@login_required
 @user_passes_test(lambda u: u.is_active, login_url='/unauthorized')
 def api_log_check_status(request, id):
 	return HttpResponse(int(Log.objects.get(id=int(id)).processed), mimetype="application/json") 
@@ -169,7 +168,7 @@ def guild_log_encounter_show(request, id_encounter):
 
 	data = cache.get("encounter_%d" % id_encounter)
 	# to remove
-	#data = None
+	data = None
 
 	if data is None:
 		data 	= {
@@ -189,7 +188,7 @@ def guild_log_encounter_show(request, id_encounter):
 
 	return render(request, 'encounter/show.html', data)
 
-#@login_required
+@login_required
 def ranking_boss(request, id):
 	data = {}
 	return render(request, 'ranking/boss/show.html', data)

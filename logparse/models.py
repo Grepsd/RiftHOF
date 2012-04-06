@@ -143,7 +143,11 @@ class Encounter(models.Model):
 			parser 		= Parser(settings.BASEPATH + '/content' + self.log.log_file.url, self.start_offset, self.end_offset, log_id=self.log.id)
 			parser.parse(full=True)
 			encounters= parser.get_encounters()
-			encounter = encounters[0]
+			try:
+				encounter = encounters[0]
+			except IndexError:
+				self.delete()
+				return False
 			encounter.parse()
 			self.cache 	= pickle.dumps(encounter.serialize())
 			try:
@@ -236,7 +240,7 @@ class EncounterStats(models.Model):
 			self.encounter.save()
 
 		if self.duration == 0:
-			self.duration = (self.rdata['end_time'] - self.rdata['start_time']).total_seconds()
+			self.duration = (self.rdata['end_time'] - self.rdata['start_time']).total_seconds() - 15
 			self.save()
 
 	def top(self, stat='hits', view='done', type_actor='players'):

@@ -627,6 +627,11 @@ class Parser:
 	"""
 	def parse(self, full=False):
 
+		if not full:
+			x = logparse.models.Encounter.objects.filter(log__id=self.log_id)
+			for y in x:
+				y.delete()
+
 
 		if not self.handle_file():
 			return False
@@ -847,7 +852,8 @@ class Parser:
 	def save_encounter(self, full):
 		self.encounter_count 	+= 1
 		enc 					= Encounter(self.lines_buffer, self.start_offset, self.curr_offset, self.boss, self.boss_killed is not None)
-
+		if not full:
+			print "\t Saving encounter against %s" % enc.bosses
 		data 					= enc.serialize()
 	
 		if full:
