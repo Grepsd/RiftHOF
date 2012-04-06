@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-04-05 16:12+0200\n"
+"POT-Creation-Date: 2012-04-06 16:54+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -74,6 +74,12 @@ msgstr "Fichier de log de combat"
 #: content/templates/home.html:32
 msgid "Is private ?"
 msgstr "Log privé ?"
+
+#: content/templates/home.html:38 content/templates/guild/home.html:32
+msgid ""
+"The file format to upload is : a zip file containing a single file, "
+"CombatLog.txt which should never be over 800MB."
+msgstr ""
 
 #: content/templates/home.html:48
 msgid "Create or join a guild if you want to upload your logs."
@@ -161,8 +167,8 @@ msgid "Hits"
 msgstr "Coups"
 
 #: content/templates/actor/show.html:157 content/templates/actor/show.html:188
-#: content/templates/actor/show.html:224 content/templates/actor/show.html:282
-#: content/templates/actor/show.html:321
+#: content/templates/actor/show.html:224 content/templates/actor/show.html:284
+#: content/templates/actor/show.html:323
 #: content/templates/encounter/show.html:582
 #: content/templates/encounter/show.html:620
 msgid "Heals"
@@ -176,18 +182,18 @@ msgstr "Coups subit"
 msgid "Detail by skill"
 msgstr "Détail par skill"
 
-#: content/templates/actor/show.html:177 content/templates/actor/show.html:350
+#: content/templates/actor/show.html:177 content/templates/actor/show.html:352
 msgid "Done"
 msgstr "Fait"
 
 #: content/templates/actor/show.html:182 content/templates/actor/show.html:219
-#: content/templates/actor/show.html:277 content/templates/actor/show.html:316
-#: content/templates/actor/show.html:362
+#: content/templates/actor/show.html:279 content/templates/actor/show.html:318
+#: content/templates/actor/show.html:364
 msgid "Skill Name"
 msgstr "Nom de skill"
 
 #: content/templates/actor/show.html:183 content/templates/actor/show.html:220
-#: content/templates/actor/show.html:278 content/templates/actor/show.html:317
+#: content/templates/actor/show.html:280 content/templates/actor/show.html:319
 #: content/templates/encounter/show.html:508
 #: content/templates/encounter/show.html:579
 #: content/templates/encounter/show.html:617
@@ -199,7 +205,7 @@ msgid "Max Dmg"
 msgstr ""
 
 #: content/templates/actor/show.html:185 content/templates/actor/show.html:221
-#: content/templates/actor/show.html:279 content/templates/actor/show.html:318
+#: content/templates/actor/show.html:281 content/templates/actor/show.html:320
 #: content/templates/encounter/show.html:548
 #: content/templates/encounter/show.html:580
 #: content/templates/encounter/show.html:618
@@ -207,15 +213,15 @@ msgid "DPS"
 msgstr ""
 
 #: content/templates/actor/show.html:186 content/templates/actor/show.html:222
-#: content/templates/actor/show.html:280 content/templates/actor/show.html:319
+#: content/templates/actor/show.html:282 content/templates/actor/show.html:321
 #, python-format
 msgid "%% DPS"
 msgstr ""
 
 #: content/templates/actor/show.html:187 content/templates/actor/show.html:192
 #: content/templates/actor/show.html:223 content/templates/actor/show.html:227
-#: content/templates/actor/show.html:281 content/templates/actor/show.html:285
-#: content/templates/actor/show.html:320 content/templates/actor/show.html:324
+#: content/templates/actor/show.html:283 content/templates/actor/show.html:287
+#: content/templates/actor/show.html:322 content/templates/actor/show.html:326
 msgid "Crits"
 msgstr ""
 
@@ -224,7 +230,7 @@ msgid "Max Heals"
 msgstr "Soin Max"
 
 #: content/templates/actor/show.html:190 content/templates/actor/show.html:225
-#: content/templates/actor/show.html:283 content/templates/actor/show.html:322
+#: content/templates/actor/show.html:285 content/templates/actor/show.html:324
 #: content/templates/encounter/show.html:549
 #: content/templates/encounter/show.html:583
 #: content/templates/encounter/show.html:621
@@ -232,42 +238,42 @@ msgid "HPS"
 msgstr ""
 
 #: content/templates/actor/show.html:191 content/templates/actor/show.html:226
-#: content/templates/actor/show.html:284 content/templates/actor/show.html:323
+#: content/templates/actor/show.html:286 content/templates/actor/show.html:325
 #, python-format
 msgid "%% HPS"
 msgstr ""
 
-#: content/templates/actor/show.html:214 content/templates/actor/show.html:351
+#: content/templates/actor/show.html:214 content/templates/actor/show.html:353
 msgid "Received"
 msgstr "Reçus"
 
-#: content/templates/actor/show.html:261
+#: content/templates/actor/show.html:263
 msgid "Detail by actor, skill"
 msgstr "Detail par actor & skills"
 
-#: content/templates/actor/show.html:264
+#: content/templates/actor/show.html:266
 #: content/templates/encounter/show.html:569
 msgid "NPCs"
 msgstr "Mobs"
 
-#: content/templates/actor/show.html:265
+#: content/templates/actor/show.html:267
 #: content/templates/encounter/show.html:568
 msgid "Players"
 msgstr "Joueurs"
 
-#: content/templates/actor/show.html:363
+#: content/templates/actor/show.html:365
 msgid "Type Buff"
 msgstr "Buff/Débuff"
 
-#: content/templates/actor/show.html:364
+#: content/templates/actor/show.html:366
 msgid "Target/Source"
 msgstr "Cible/Source"
 
-#: content/templates/actor/show.html:365
+#: content/templates/actor/show.html:367
 msgid "Total Duration"
 msgstr "Temps total"
 
-#: content/templates/actor/show.html:366
+#: content/templates/actor/show.html:368
 #, python-format
 msgid "%% uptime"
 msgstr ""
@@ -358,33 +364,33 @@ msgid "This page will refresh automatically until the log is processed."
 msgstr ""
 "Cette page s'actualisera d'elle même jusqu'à ce que le log soit analysé."
 
-#: content/templates/log/show.html:38
+#: content/templates/log/show.html:62
 msgid "This log hasn't been processed yet."
 msgstr "Ce log n'a pas encore été analysé."
 
-#: content/templates/log/show.html:39
+#: content/templates/log/show.html:63
 msgid "The log will be processed as soon as possible."
 msgstr "Ce log sera analysé dès que possible."
 
-#: content/templates/log/show.html:68
+#: content/templates/log/show.html:92
 #, python-format
 msgid "Processing data : From %(start_time)s to %(end_time)s."
 msgstr ""
 
-#~ msgid "rofl EN"
-#~ msgstr "rofl FR"
+msgid "rofl EN"
+msgstr "rofl FR"
 
-#~ msgid "hammerknell"
-#~ msgstr "Glasmarteau"
+msgid "hammerknell"
+msgstr "Glasmarteau"
 
-#~ msgid "drowned_hall"
-#~ msgstr "Salles Englouties"
+msgid "drowned_hall"
+msgstr "Salles Englouties"
 
-#~ msgid "rise_of_the_phenix"
-#~ msgstr "Envol du phenix"
+msgid "rise_of_the_phenix"
+msgstr "Envol du phenix"
 
-#~ msgid "river_of_souls"
-#~ msgstr "Fleuve des âmes"
+msgid "river_of_souls"
+msgstr "Fleuve des âmes"
 
-#~ msgid "molinar"
-#~ msgstr "Roi runique Molinar"
+msgid "molinar"
+msgstr "Roi runique Molinar"
