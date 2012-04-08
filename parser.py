@@ -3,7 +3,6 @@ from datetime import datetime, timedelta
 import sys, os
 import pickle, bz2
 import re
-#import time
 import logparse.models
 from zipfile import ZipFile
 from django.conf import settings
@@ -608,15 +607,15 @@ class Parser:
 		self.actors 			= []
 
 	def handle_file(self):
+		tmp_path	= settings.MEDIA_ROOT + '/combat_logs/%d/' % self.log_id
 		try:
-			f = open(settings.MEDIA_ROOT + '/combat_logs/%d/CombatLog.txt' % self.log_id, 'r')
+			f = open(tmp_path + 'CombatLog.txt', 'r')
 			f.close()
 		except Exception as e:
 			z = ZipFile(self.filename, 'r')
-			try:
-				e = z.extract('CombatLog.txt', settings.MEDIA_ROOT + '/combat_logs/%d' % self.log_id)
-			except KeyError:
-				return False
+			fname = z.namelist()[0]
+			e = z.extract(fname, tmp_path)
+			os.rename(tmp_path + fname, tmp_path + 'CombatLog.txt')
 		return True
 
 
@@ -632,10 +631,10 @@ class Parser:
 			for y in x:
 				y.delete()
 
-
 		if not self.handle_file():
 			return False
 		self.file 		= file(settings.MEDIA_ROOT + '/combat_logs/%d/CombatLog.txt' % self.log_id, 'r', 1024)
+		
 		#self.file 		= file(self.filename, 'r')
 
 		# seek to the fight we want

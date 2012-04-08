@@ -112,6 +112,7 @@ class Log(models.Model):
 
 	def parse(self):
 		if not self.processed and not self.processing:
+			print "processing !!! %d" % self.id
 			self.processing = True
 			self.save()
 			parser = Parser(settings.BASEPATH + '/content' + self.log_file.url, log_id=self.id)

@@ -137,7 +137,7 @@ def api_log_check_status(request, id):
 
 @login_required
 @user_passes_test(lambda u: u.is_active, login_url='/unauthorized')
-#@cache_page(60 * 60 * 24)
+@cache_page(60 * 60 * 24)
 def guild_log_encounter_show(request, id_encounter):
 
 	id_encounter = int(id_encounter)
@@ -195,7 +195,7 @@ def ranking_boss(request, id):
 
 @login_required
 @user_passes_test(lambda u: u.is_active, login_url='/unauthorized')
-#@cache_page(60 * 60 * 24)
+@cache_page(60 * 60 * 24)
 def actor_show_detail(request, id_encounter, id_obj):
 	id_encounter	= int(id_encounter)
 	id_obj			= int(id_obj)
@@ -219,18 +219,18 @@ def actor_show_detail(request, id_encounter, id_obj):
 			actor 		= Actor.objects.get(encounter__id=id_encounter, obj_id=id_obj)
 
 		data 		= {
-			'actor': 		actor,
-			'deathes':		stats.get_deathlog(),
-			'rez':			stats.get_rez(),
-			'buffes':		stats.get_important_buffes(),
-			'timeline':		stats.get_timeline(id_obj),
-			'stats':		stats.get_detailed_stats(id_obj),
-			'encounter_stats': stats,
-			'detailed_total_stats': stats.get_detailed_total_stats(id_obj),
-			'detailed_total_stats_received': stats.get_detailed_total_stats(id_obj, 'received'),
-			'detailed_by_actor_stats': stats.get_detailed_by_actor_stats(id_obj),
-			'important_buffes': 		stats.get_actor_important_buffes(id_obj),
-			'actor_buffes':				stats.get_actor_buffes("%d" % id_obj),
+			'actor': 						actor,
+			'deathes':						stats.get_deathlog(),
+			'rez':							stats.get_rez(),
+			'buffes':						stats.get_important_buffes(),
+			'timeline':						stats.get_timeline(id_obj),
+			'stats':						stats.get_detailed_stats(id_obj),
+			'encounter_stats': 				stats,
+			'detailed_total_stats': 		stats.get_detailed_total_stats(id_obj),
+			'detailed_total_stats_received':stats.get_detailed_total_stats(id_obj, 'received'),
+			'detailed_by_actor_stats': 		stats.get_detailed_by_actor_stats(id_obj),
+			'important_buffes': 			stats.get_actor_important_buffes(id_obj),
+			'actor_buffes':					stats.get_actor_buffes("%d" % id_obj),
 			}
 		cache.set("encounter_%d_actor_%d" % (id_encounter, id_obj), data, 6 * 15)
 	return render(request, 'actor/show.html', data)
