@@ -810,7 +810,8 @@ class Parser:
 				self.boss_killed 	= None
 				self.kia 			= []
 				self.death_time 	= otime
-				print "death of %s at %d" % (line_data['target_name'], (otime - self.start_time).total_seconds())
+				if full:
+					print "death of %s at %d" % (line_data['target_name'], (otime - self.start_time).total_seconds())
 			# if the actor who's dead is a player, add him to the KIA list.
 			if line_data['target_name'] not in self.kia and line_data['target_primary_type'] == 'P':
 				self.kia.append(line_data['target_name'])

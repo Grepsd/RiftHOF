@@ -264,7 +264,7 @@ class EncounterStats(models.Model):
 			self.encounter.save()
 
 		if self.duration == 0:
-			self.duration = (self.rdata['end_time'] - self.rdata['start_time']).total_seconds() - 15
+			self.duration = (self.rdata['end_time'] - self.rdata['start_time']).total_seconds()
 			self.save()
 
 	def top(self, stat='hits', view='done', type_actor='players'):

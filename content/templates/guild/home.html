@@ -32,24 +32,24 @@
 				<p>{% blocktrans %}The file format to upload is : a zip file containing a single file, CombatLog.txt which should never be over 800MB.{% endblocktrans %}</p>
 			{% else %}
 				<div class="alert alert-error">
-					Only validated by admin users can upload logs.
+					{% blocktrans %}Only validated by admin users can upload logs.{% endblocktrans %}
 				</div>
 			{% endif %}
-		<h3>Members</h3>
+		<h3>{% trans 'Members' %}</h3>
 
-		<h4>Quit</h4>
-		<a href="{% url guild_quit %}"><span class="btn btn-danger">Quit</span></a>
+		<h4>{% trans 'Quit' %}</h4>
+		<a href="{% url guild_quit %}"><span class="btn btn-danger">{% trans 'Quit' %}</span></a>
 	{% else %}
 		<div class="alert alert-error">
-			You're not part of a guild.
+			{% blocktrans %}You're not part of a guild.{% endblocktrans %}
 		</div>
 
 		<p class="center">
-			Do you want to create your own guild or to join an existing guild ?
+			{% blocktrans %}Do you want to create your own guild or to join an existing guild ?{% endblocktrans %}
 		</p>
 		<p class="center">
-			<a href="{% url guild_create %}"><span class="btn btn-success">Create</span></a>
-			<a href="{% url guild_join %}"><span class="btn btn-success" style="margin-left: 30px;">Join</span></a>
+			<a href="{% url guild_create %}"><span class="btn btn-success">{% trans 'Create' %}</span></a>
+			<a href="{% url guild_join %}"><span class="btn btn-success" style="margin-left: 30px;">{% trans 'Join' %}</span></a>
 		</p>
 
 	{% endif %}
