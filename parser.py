@@ -15,6 +15,7 @@ bosses_list 	= {
 	'Soulrender Zilas': 		'zilas',
 	'Grugonim':					'grugonim', 
 	'Roi runique Molinar': 		'molinar', 
+	'Rune King Molinar':		'molinar',
 	'Estrode':					'estrode',
 	'Matrone Zamira':			'zamira', 
 	'Matron Zamira':			'zamira',
