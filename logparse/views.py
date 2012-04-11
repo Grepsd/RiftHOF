@@ -150,6 +150,7 @@ def guild_log_encounter_show(request, id_encounter):
 
 	data 			= cache.get("encounter_%d" % int(id_encounter))
 	if data is None:
+		print "not using cache"
 		data 		= get_object_or_404(Encounter, id=int(id_encounter))
 		data.process_for_display()
 		cache.set("encounter_%d" % int(id_encounter), data, 86400)
