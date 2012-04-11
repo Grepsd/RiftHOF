@@ -479,6 +479,7 @@ class Encounter:
 				
 		
 		self.parsed = True
+		del self.log
 
 	# used to give the full structure of an actor (stored in self.actors)
 	# with this, we are able to know everything of an actor for the current fight.
