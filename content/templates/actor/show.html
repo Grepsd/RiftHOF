@@ -2,386 +2,389 @@
 {% load humanize %}
 {% load i18n %}
 {% load logparse_tpl_filters %}
+{% load cache %}
 {% block "content" %}
-  {% regroup detailed_by_actor_stats by actor_id as actor_stats %}
-	<script type="text/javascript">
-      {% with timeline_array=timeline|dictsort:"time" %}
+  {% cache 86400 encounter_actor actor.id actor.encounter.id %}
+    {% regroup detailed_by_actor_stats by actor_id as actor_stats %}
+  	<script type="text/javascript">
+        {% with timeline_array=timeline|dictsort:"time" %}
 
-    $(function () {
-      $(document).ready(function() {
-        {% for actor in actor_stats %}
-          $('#detailed_stats_by_actor_{{ actor.grouper }}').tablesorter();
-        {% endfor %}
-        $('#detailed_stats_by_skill').tablesorter();
-        $('#detailed_stats_by_skill_received').tablesorter();
-      	chart = new Highcharts.Chart({
-          chart: {
-                renderTo: 'timeline',
-                type: 'spline'
-            },
+      $(function () {
+        $(document).ready(function() {
+          {% for actor in actor_stats %}
+            $('#detailed_stats_by_actor_{{ actor.grouper }}').tablesorter();
+          {% endfor %}
+          $('#detailed_stats_by_skill').tablesorter();
+          $('#detailed_stats_by_skill_received').tablesorter();
+        	chart = new Highcharts.Chart({
+            chart: {
+                  renderTo: 'timeline',
+                  type: 'spline'
+              },
 
-            title: {
-                text: 'Timeline'
-            },
-            xAxis: {
-                categories: [{% for time in timeline_array %}'{{ time.time|secs }}',{% endfor %}],
-                tickInterval: 6,
-                plotLines: [
-                  {% for death in deathes %}
-                    {
-                        value : {{ death.time }} / 5,
-                        color: '#A00',
-                        width: 1,
-                        label: {text: '{{ death.player }}',},
-                    },
-                  {% endfor %}
-                  {% for r in rez %}
-                    {
-                        value : {{ r.time }} / 5,
-                        color: '#0A0',
-                        width: 1,
-                        label: {text: '{{ r.player }}',},
-                    },
-                  {% endfor %}
-                  ],
-                plotBands: [
-                  {% for buff in buffes %}
-                    {
-                      from: {{ buff.from }} / 5,
-                      to:   {{ buff.to }} / 5,
-                      rotation: 90,
-                      color: '{% if buff.skill == "Couplet de joie" %}#CEF{% else %}#FEC{% endif %}',
-                    },
-                  {% endfor %}
-                  {% for buff in important_buffes %}
-                    {% for time in buff.timeline %}
+              title: {
+                  text: 'Timeline'
+              },
+              xAxis: {
+                  categories: [{% for time in timeline_array %}'{{ time.time|secs }}',{% endfor %}],
+                  tickInterval: 6,
+                  plotLines: [
+                    {% for death in deathes %}
                       {
-                        from: {{ time.from }} / 5,
-                        to:   {{ time.to }} / 5,
-                        color: '#A20',
-                        label: {
-                          text: '{{ buff.skill_name|escapejs }}',
-                          rotation: 90,
-                        }
+                          value : {{ death.time }} / 5,
+                          color: '#A00',
+                          width: 1,
+                          label: {text: '{{ death.player }}',},
                       },
                     {% endfor %}
-                  {% endfor %}
-                ]
-            },
+                    {% for r in rez %}
+                      {
+                          value : {{ r.time }} / 5,
+                          color: '#0A0',
+                          width: 1,
+                          label: {text: '{{ r.player }}',},
+                      },
+                    {% endfor %}
+                    ],
+                  plotBands: [
+                    {% for buff in buffes %}
+                      {
+                        from: {{ buff.from }} / 5,
+                        to:   {{ buff.to }} / 5,
+                        rotation: 90,
+                        color: '{% if buff.skill == "Couplet de joie" %}#CEF{% else %}#FEC{% endif %}',
+                      },
+                    {% endfor %}
+                    {% for buff in important_buffes %}
+                      {% for time in buff.timeline %}
+                        {
+                          from: {{ time.from }} / 5,
+                          to:   {{ time.to }} / 5,
+                          color: '#A20',
+                          label: {
+                            text: '{{ buff.skill_name|escapejs }}',
+                            rotation: 90,
+                          }
+                        },
+                      {% endfor %}
+                    {% endfor %}
+                  ]
+              },
 
- 
-            yAxis: {
-                title: {
-                    text: 'DPS/HPS'
-                },
-                labels: {
-                    formatter: function() {
-                        return this.value
-                    }
-                },
-                min: 0,
-            },
+   
+              yAxis: {
+                  title: {
+                      text: 'DPS/HPS'
+                  },
+                  labels: {
+                      formatter: function() {
+                          return this.value
+                      }
+                  },
+                  min: 0,
+              },
 
-            tooltip: {
-                crosshairs: true,
-                shared: true
-            },
-            plotOptions: {
-              series: {
-                marker: {
-                  enabled: false,
+              tooltip: {
+                  crosshairs: true,
+                  shared: true
+              },
+              plotOptions: {
+                series: {
+                  marker: {
+                    enabled: false,
+                  }
                 }
-              }
-            },
+              },
 
-            series: [{
-                name: 'DPS',
-                data: [{% for stats in timeline_array %}{{ stats.done.hits }} / 5,{% endfor %}]
-            },{
-                name: 'HPS',
-                data: [{% for stats in timeline_array %}{{ stats.done.heals }} / 5,{% endfor %}]
-            },{
-                name: 'DPS Taken',
-                data: [{% for stats in timeline_array %}{{ stats.received.hits }} / 5,{% endfor %}]
-            }]
-       	});
+              series: [{
+                  name: 'DPS',
+                  data: [{% for stats in timeline_array %}{{ stats.done.hits }} / 5,{% endfor %}]
+              },{
+                  name: 'HPS',
+                  data: [{% for stats in timeline_array %}{{ stats.done.heals }} / 5,{% endfor %}]
+              },{
+                  name: 'DPS Taken',
+                  data: [{% for stats in timeline_array %}{{ stats.received.hits }} / 5,{% endfor %}]
+              }]
+         	});
+      });
     });
-  });
-    {% endwith %}
-	</script>
-  {% url guild_log_encounter_show actor.encounter.id as url_fight %}
-	<h2>{% blocktrans with actor_name=actor.name url_fight=url_fight boss_name=actor.encounter.boss.name %}Details for {{ actor_name }} on <a href="{{ url_fight }}">{{ boss_name }}</a>'s fight{% endblocktrans %}</h2>
+      {% endwith %}
+  	</script>
+    {% url guild_log_encounter_show actor.encounter.id as url_fight %}
+  	<h2>{% blocktrans with actor_name=actor.name url_fight=url_fight boss_name=actor.encounter.boss.name %}Details for {{ actor_name }} on <a href="{{ url_fight }}">{{ boss_name }}</a>'s fight{% endblocktrans %}</h2>
 
-	<table class="table center">
-		<thead>
-			<tr>
-				<th>{% trans "Global DPS" %}</th>
-				<th>{% trans "Global HPS" %}</th>
-				<th>{% trans "Global DPS Taken" %}</th>
-		</thead>
-		<tbody>
-			<tr>
-				<td>{{ actor.get_dps|intcomma }}</td>
-				<td>{{ actor.get_hps|intcomma }}</td>
-				<td>{{ actor.get_taken|intcomma }}</td>
-		</tbody>
-	</table>
+  	<table class="table center">
+  		<thead>
+  			<tr>
+  				<th>{% trans "Global DPS" %}</th>
+  				<th>{% trans "Global HPS" %}</th>
+  				<th>{% trans "Global DPS Taken" %}</th>
+  		</thead>
+  		<tbody>
+  			<tr>
+  				<td>{{ actor.get_dps|intcomma }}</td>
+  				<td>{{ actor.get_hps|intcomma }}</td>
+  				<td>{{ actor.get_taken|intcomma }}</td>
+  		</tbody>
+  	</table>
 
-	<br />
+  	<br />
 
-	<div id="timeline"></div>
-	<br />
+  	<div id="timeline"></div>
+  	<br />
 
-  <h2>{% trans "Total Stats" %}</h2>
+    <h2>{% trans "Total Stats" %}</h2>
 
-	<table class="table table-condensed table-bordered center">
-		<thead>
-			<tr>
-				<th>{% trans "Type" %}</th>
-				<th>{% trans "Total" %}</th>
-				<th>{% trans "Count" %}</th>
-				<th>{% trans "Avg" %}</th>
-				<th>{% trans "Crit rate" %}</th>
-				<th>{% trans "Per Second" %}</th>
-		</thead>
-		<tbody>
-			<tr>
-				<th>{% trans "Hits" %}</th>
-				<td>{{ stats.done.hits|intcomma }}</td>
-				<td>{{ stats.done.hits_count|intcomma }}</td>
-				<td>{% widthratio stats.done.hits stats.done.hits_count 1 %}</td>
-				<td>{% widthratio stats.done.critical_hits_count stats.done.hits_count 100 %}%</td>
-				<td>{% widthratio stats.done.hits encounter_stats.duration 1 %}</td>
-			</tr>
-			<tr>
-				<th>{% trans "Heals" %}</th>
-				<td>{{ stats.done.heals|intcomma }}</td>
-				<td>{{ stats.done.heals_count|intcomma }}</td>
-				<td>{% widthratio stats.done.heals stats.done.heals_count 1 %}</td>
-				<td>{% widthratio stats.done.critical_heals_count stats.done.heals_count 100 %}%</td>
-				<td>{% widthratio stats.done.heals encounter_stats.duration 1 %}</td>
-			</tr>
-			<tr>
-				<th>{% trans "Hits Taken" %}</th>
-				<td>{{ stats.received.hits|intcomma }}</td>
-				<td>{{ stats.received.hits_count|intcomma }}</td>
-				<td>{% widthratio stats.received.hits stats.received.hits_count 1 %}</td>
-				<td>{% widthratio stats.received.critical_hits_count stats.received.hits_count 100 %}%</td>
-				<td>{% widthratio stats.received.hits encounter_stats.duration 1 %}</td>
-			</tr>
-		</tbody>
-	</table>
+  	<table class="table table-condensed table-bordered center">
+  		<thead>
+  			<tr>
+  				<th>{% trans "Type" %}</th>
+  				<th>{% trans "Total" %}</th>
+  				<th>{% trans "Count" %}</th>
+  				<th>{% trans "Avg" %}</th>
+  				<th>{% trans "Crit rate" %}</th>
+  				<th>{% trans "Per Second" %}</th>
+  		</thead>
+  		<tbody>
+  			<tr>
+  				<th>{% trans "Hits" %}</th>
+  				<td>{{ stats.done.hits|intcomma }}</td>
+  				<td>{{ stats.done.hits_count|intcomma }}</td>
+  				<td>{% widthratio stats.done.hits stats.done.hits_count 1 %}</td>
+  				<td>{% widthratio stats.done.critical_hits_count stats.done.hits_count 100 %}%</td>
+  				<td>{% widthratio stats.done.hits encounter_stats.duration 1 %}</td>
+  			</tr>
+  			<tr>
+  				<th>{% trans "Heals" %}</th>
+  				<td>{{ stats.done.heals|intcomma }}</td>
+  				<td>{{ stats.done.heals_count|intcomma }}</td>
+  				<td>{% widthratio stats.done.heals stats.done.heals_count 1 %}</td>
+  				<td>{% widthratio stats.done.critical_heals_count stats.done.heals_count 100 %}%</td>
+  				<td>{% widthratio stats.done.heals encounter_stats.duration 1 %}</td>
+  			</tr>
+  			<tr>
+  				<th>{% trans "Hits Taken" %}</th>
+  				<td>{{ stats.received.hits|intcomma }}</td>
+  				<td>{{ stats.received.hits_count|intcomma }}</td>
+  				<td>{% widthratio stats.received.hits stats.received.hits_count 1 %}</td>
+  				<td>{% widthratio stats.received.critical_hits_count stats.received.hits_count 100 %}%</td>
+  				<td>{% widthratio stats.received.hits encounter_stats.duration 1 %}</td>
+  			</tr>
+  		</tbody>
+  	</table>
 
-  <h2>{% trans "Detail by skill" %}</h2>
+    <h2>{% trans "Detail by skill" %}</h2>
 
-  <h3>{% trans "Done" %}</h3>
+    <h3>{% trans "Done" %}</h3>
 
-  <table class="table table-condensed table-bordered tablesorter" id="detailed_stats_by_skill">
-    <thead>
-      <tr>
-        <th style="width: 20%;">{% trans "Skill Name" %}</th>
-        <th style="width: 8%;">{% trans "Damages" %}</th>
-        <th style="width: 10%;">{% trans "Avg/Max" %}</th>
-        <th style="width: 8%;">{% trans "DPS" %}</th>
-        <th style="width: 5%;">{% trans "% DPS" %}</th>
-        <th style="width: 8%;">{% trans "Crits" %}</th>
-        <th style="width: 8%;">{% trans "Heals" %}</th>
-        <th style="width: 8%;">{% trans "Max Heals" %}</th>
-        <th style="width: 8%;">{% trans "HPS" %}</th>
-        <th style="width: 5%;">{% trans "% HPS" %}</th>
-        <th style="width: 8%;">{% trans "Crits" %}</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for stat in detailed_total_stats %}
-        <tr{% if stat.skill_name == 'Total' %} class="bold"{% endif %}>
-          <td>{{ stat.skill_name }}</td>
-          <td>{{ stat.hits }}</td>
-          <td>{% widthratio stat.hits stat.hits_count 1 %} / {{ stat.max_hits }}</td>
-          <td>{% widthratio stat.hits encounter_stats.duration 1 %}</td>
-          <td>{% if stat.skill_name == 'Total' %}100{% else %}{% widthratio stat.hits stats.done.hits 100 %}{% endif %}%</td>
-          <td>{% widthratio stat.critical_hits_count stat.hits_count 100 %}% ({{ stat.critical_hits_count }}/{{ stat.hits_count }})</td>
-          <td>{{ stat.heals }}</td>
-          <td>{% widthratio stat.heals stat.heals_count 1 %} / {{ stat.max_heals }} ({{ stat.heals_count }})</td>
-          <td>{% widthratio stat.heals encounter_stats.duration 1 %}</td>
-          <td>{% widthratio stat.heals stats.done.heals 100 %}%</td>
-          <td>{% widthratio stat.critical_heals_count stat.heals_count 100 %}% ({{ stat.critical_heals_count }}/{{ stat.heals_count }})</td>
-        </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-
-  <h3>{% trans "Received" %}</h3>
-
-  <table class="table table-condensed table-bordered tablesorter" id="detailed_stats_by_skill_received">
-    <thead>
-      <tr>
-        <th style="width: 20%;">{% trans "Skill Name" %}</th>
-        <th style="width: 10%;">{% trans "Damages" %}</th>
-        <th style="width: 10%;">{% trans "DPS" %}</th>
-        <th style="width: 10%;">{% trans "% DPS" %}</th>
-        <th style="width: 10%;">{% trans "Crits" %}</th>
-        <th style="width: 10%;">{% trans "Heals" %}</th>
-        <th style="width: 10%;">{% trans "HPS" %}</th>
-        <th style="width: 10%;">{% trans "% HPS" %}</th>
-        <th style="width: 10%;">{% trans "Crits" %}</th>
-      </tr>
-    </thead>
-    {% with stats2=detailed_total_stats_received|dictsortreversed:"hits" %}
-    <tbody>
-      {% for stat in stats2 %}
-        {% if stat.skill_name == 'Total' %}
-        <tr class="bold">
-          <td>{{ stat.skill_name }}</td>
-          <td>{{ stat.hits }}</td>
-          <td>{% widthratio stat.hits encounter_stats.duration 1 %}</td>
-          <td>100%</td>
-          <td>{% widthratio stat.critical_hits_count stat.hits_count 100 %}%</td>
-          <td>{{ stat.heals }}</td>
-          <td>{% widthratio stat.heals encounter_stats.duration 1 %}</td>
-          <td>100%</td>
-          <td>{% widthratio stat.critical_heals_count stat.heals_count 100 %}% ({{ stat.critical_heals_count }}/{{ stat.heals_count }})</td>
-        </tr>
-      {% else %}
+    <table class="table table-condensed table-bordered tablesorter" id="detailed_stats_by_skill">
+      <thead>
         <tr>
-          <td>{{ stat.skill_name }}</td>
-          <td>{{ stat.hits }}</td>
-          <td>{% widthratio stat.hits encounter_stats.duration 1 %}</td>
-          <td>{% widthratio stat.hits stats2.0.hits 100 %}%</td>
-          <td>{% widthratio stat.critical_hits_count stats2.0.hits_count 100 %}%</td>
-          <td>{{ stat.heals }}</td>
-          <td>{% widthratio stat.heals encounter_stats.duration 1 %}</td>
-          <td>{% widthratio stat.heals stats2.0.heals 100 %}%</td>
-          <td>{% widthratio stat.critical_heals_count stat.heals_count 100 %}% ({{ stat.critical_heals_count }}/{{ stat.heals_count }})</td>
+          <th style="width: 20%;">{% trans "Skill Name" %}</th>
+          <th style="width: 8%;">{% trans "Damages" %}</th>
+          <th style="width: 10%;">{% trans "Avg/Max" %}</th>
+          <th style="width: 8%;">{% trans "DPS" %}</th>
+          <th style="width: 5%;">{% trans "% DPS" %}</th>
+          <th style="width: 8%;">{% trans "Crits" %}</th>
+          <th style="width: 8%;">{% trans "Heals" %}</th>
+          <th style="width: 8%;">{% trans "Max Heals" %}</th>
+          <th style="width: 8%;">{% trans "HPS" %}</th>
+          <th style="width: 5%;">{% trans "% HPS" %}</th>
+          <th style="width: 8%;">{% trans "Crits" %}</th>
         </tr>
-      {% endif %}
-      {% endfor %}
-    {% endwith %}
-    </tbody>
-  </table>
+      </thead>
+      <tbody>
+        {% for stat in detailed_total_stats %}
+          <tr{% if stat.skill_name == 'Total' %} class="bold"{% endif %}>
+            <td>{{ stat.skill_name }}</td>
+            <td>{{ stat.hits }}</td>
+            <td>{% widthratio stat.hits stat.hits_count 1 %} / {{ stat.max_hits }}</td>
+            <td>{% widthratio stat.hits encounter_stats.duration 1 %}</td>
+            <td>{% if stat.skill_name == 'Total' %}100{% else %}{% widthratio stat.hits stats.done.hits 100 %}{% endif %}%</td>
+            <td>{% widthratio stat.critical_hits_count stat.hits_count 100 %}% ({{ stat.critical_hits_count }}/{{ stat.hits_count }})</td>
+            <td>{{ stat.heals }}</td>
+            <td>{% widthratio stat.heals stat.heals_count 1 %} / {{ stat.max_heals }} ({{ stat.heals_count }})</td>
+            <td>{% widthratio stat.heals encounter_stats.duration 1 %}</td>
+            <td>{% widthratio stat.heals stats.done.heals 100 %}%</td>
+            <td>{% widthratio stat.critical_heals_count stat.heals_count 100 %}% ({{ stat.critical_heals_count }}/{{ stat.heals_count }})</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
 
-  <h2>{% trans "Detail by actor, skill" %}</h2>
+    <h3>{% trans "Received" %}</h3>
 
-  <ul class="nav nav-tabs">
-    <li class="active"><a href="#npcs" data-toggle="tab">{% trans "NPCs" %}</a></li>
-    <li><a href="#players" data-toggle="tab">{% trans "Players" %}</a></li>
-  </ul>
-
-  <div class="tab-content">
-    <div class="tab-pane active" id="npcs" style="min-width: 1100px;">
-      {% for actor in actor_stats %}
-        {% if not actor.list.0.is_player %}
-          {% if actor.list|length > 0 %}
-              <h3>{{ actor.list.0.actor_name }}</h3>
-            <table class="table table-condensed table-bordered tablesorter" id="detailed_stats_by_actor_{{ actor.grouper }}">
-              <thead>
-                <tr>
-                <th style="width: 20%;">{% trans "Skill Name" %}</th>
-                <th style="width: 10%;">{% trans "Damages" %}</th>
-                <th style="width: 10%;">{% trans "DPS" %}</th>
-                <th style="width: 10%;">{% trans "% DPS" %}</th>
-                <th style="width: 10%;">{% trans "Crits" %}</th>
-                <th style="width: 10%;">{% trans "Heals" %}</th>
-                <th style="width: 10%;">{% trans "HPS" %}</th>
-                <th style="width: 10%;">{% trans "% HPS" %}</th>
-                <th style="width: 10%;">{% trans "Crits" %}</th>
-                </tr>
-              </thead>
-              <tbody>
-                  {% for stat in actor.list %}
-                    <tr{% if stat.skill_name == 'Total' %} class="bold"{% endif %}>
-                      <td>{{ stat.skill_name }}</td>
-                      <td>{{ stat.hits }}</td>
-                      <td>{% widthratio stat.hits encounter_stats.duration 1 %}</td>
-                      <td>{% widthratio stat.hits stats.done.hits 100 %}%</td>
-                      <td>{% widthratio stat.critical_hits_count stat.hits_count 100 %}% ({{ stat.critical_hits_count }}/{{ stat.hits_count }})</td>
-                      <td>{{ stat.heals }}</td>
-                      <td>{% widthratio stat.heals encounter_stats.duration 1 %}</td>
-                      <td>{% widthratio stat.heals stats.done.heals 100 %}%</td>
-                      <td>{% widthratio stat.critical_heals_count stat.heals_count 100 %}% ({{ stat.critical_heals_count }}/{{ stat.heals_count }})</td>
-                    </tr>
-                  {% endfor %}
-            </tbody>
-          </table>
-          {% endif %}
+    <table class="table table-condensed table-bordered tablesorter" id="detailed_stats_by_skill_received">
+      <thead>
+        <tr>
+          <th style="width: 20%;">{% trans "Skill Name" %}</th>
+          <th style="width: 10%;">{% trans "Damages" %}</th>
+          <th style="width: 10%;">{% trans "DPS" %}</th>
+          <th style="width: 10%;">{% trans "% DPS" %}</th>
+          <th style="width: 10%;">{% trans "Crits" %}</th>
+          <th style="width: 10%;">{% trans "Heals" %}</th>
+          <th style="width: 10%;">{% trans "HPS" %}</th>
+          <th style="width: 10%;">{% trans "% HPS" %}</th>
+          <th style="width: 10%;">{% trans "Crits" %}</th>
+        </tr>
+      </thead>
+      {% with stats2=detailed_total_stats_received|dictsortreversed:"hits" %}
+      <tbody>
+        {% for stat in stats2 %}
+          {% if stat.skill_name == 'Total' %}
+          <tr class="bold">
+            <td>{{ stat.skill_name }}</td>
+            <td>{{ stat.hits }}</td>
+            <td>{% widthratio stat.hits encounter_stats.duration 1 %}</td>
+            <td>100%</td>
+            <td>{% widthratio stat.critical_hits_count stat.hits_count 100 %}%</td>
+            <td>{{ stat.heals }}</td>
+            <td>{% widthratio stat.heals encounter_stats.duration 1 %}</td>
+            <td>100%</td>
+            <td>{% widthratio stat.critical_heals_count stat.heals_count 100 %}% ({{ stat.critical_heals_count }}/{{ stat.heals_count }})</td>
+          </tr>
+        {% else %}
+          <tr>
+            <td>{{ stat.skill_name }}</td>
+            <td>{{ stat.hits }}</td>
+            <td>{% widthratio stat.hits encounter_stats.duration 1 %}</td>
+            <td>{% widthratio stat.hits stats2.0.hits 100 %}%</td>
+            <td>{% widthratio stat.critical_hits_count stats2.0.hits_count 100 %}%</td>
+            <td>{{ stat.heals }}</td>
+            <td>{% widthratio stat.heals encounter_stats.duration 1 %}</td>
+            <td>{% widthratio stat.heals stats2.0.heals 100 %}%</td>
+            <td>{% widthratio stat.critical_heals_count stat.heals_count 100 %}% ({{ stat.critical_heals_count }}/{{ stat.heals_count }})</td>
+          </tr>
         {% endif %}
-      {% endfor %}
-    </div>
-    <div class="tab-pane" id="players" style="min-width: 1100px;">
-      {% for actor in actor_stats %}
-        {% if actor.list.0.is_player %}
-          {% if actor.list|length > 0 %}
-              <h3>{{ actor.list.0.actor_name }}</h3>
-            <table class="table table-condensed table-bordered tablesorter" id="detailed_stats_by_actor_{{ actor.grouper }}">
-              <thead>
-                <tr>
-                <th style="width: 20%;">{% trans "Skill Name" %}</th>
-                <th style="width: 10%;">{% trans "Damages" %}</th>
-                <th style="width: 10%;">{% trans "DPS" %}</th>
-                <th style="width: 10%;">{% trans "% DPS" %}</th>
-                <th style="width: 10%;">{% trans "Crits" %}</th>
-                <th style="width: 10%;">{% trans "Heals" %}</th>
-                <th style="width: 10%;">{% trans "HPS" %}</th>
-                <th style="width: 10%;">{% trans "% HPS" %}</th>
-                <th style="width: 10%;">{% trans "Crits" %}</th>
-                </tr>
-              </thead>
-              <tbody>
-                  {% for stat in actor.list %}
-                    <tr{% if stat.skill_name == 'Total' %} class="bold"{% endif %}>
-                      <td>{{ stat.skill_name }}</td>
-                      <td>{{ stat.hits }}</td>
-                      <td>{% widthratio stat.hits encounter_stats.duration 1 %}</td>
-                      <td>{% widthratio stat.hits stats.done.hits 100 %}%</td>
-                      <td>{% widthratio stat.critical_hits_count stat.hits_count 100 %}% ({{ stat.critical_hits_count }}/{{ stat.hits_count }})</td>
-                      <td>{{ stat.heals }}</td>
-                      <td>{% widthratio stat.heals encounter_stats.duration 1 %}</td>
-                      <td>{% widthratio stat.heals stats.done.heals 100 %}%</td>
-                      <td>{% widthratio stat.critical_heals_count stat.heals_count 100 %}% ({{ stat.critical_heals_count }}/{{ stat.heals_count }})</td>
-                    </tr>
-                  {% endfor %}
-            </tbody>
-          </table>
+        {% endfor %}
+      {% endwith %}
+      </tbody>
+    </table>
+
+    <h2>{% trans "Detail by actor, skill" %}</h2>
+
+    <ul class="nav nav-tabs">
+      <li class="active"><a href="#npcs" data-toggle="tab">{% trans "NPCs" %}</a></li>
+      <li><a href="#players" data-toggle="tab">{% trans "Players" %}</a></li>
+    </ul>
+
+    <div class="tab-content">
+      <div class="tab-pane active" id="npcs" style="min-width: 1100px;">
+        {% for actor in actor_stats %}
+          {% if not actor.list.0.is_player %}
+            {% if actor.list|length > 0 %}
+                <h3>{{ actor.list.0.actor_name }}</h3>
+              <table class="table table-condensed table-bordered tablesorter" id="detailed_stats_by_actor_{{ actor.grouper }}">
+                <thead>
+                  <tr>
+                  <th style="width: 20%;">{% trans "Skill Name" %}</th>
+                  <th style="width: 10%;">{% trans "Damages" %}</th>
+                  <th style="width: 10%;">{% trans "DPS" %}</th>
+                  <th style="width: 10%;">{% trans "% DPS" %}</th>
+                  <th style="width: 10%;">{% trans "Crits" %}</th>
+                  <th style="width: 10%;">{% trans "Heals" %}</th>
+                  <th style="width: 10%;">{% trans "HPS" %}</th>
+                  <th style="width: 10%;">{% trans "% HPS" %}</th>
+                  <th style="width: 10%;">{% trans "Crits" %}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                    {% for stat in actor.list %}
+                      <tr{% if stat.skill_name == 'Total' %} class="bold"{% endif %}>
+                        <td>{{ stat.skill_name }}</td>
+                        <td>{{ stat.hits }}</td>
+                        <td>{% widthratio stat.hits encounter_stats.duration 1 %}</td>
+                        <td>{% widthratio stat.hits stats.done.hits 100 %}%</td>
+                        <td>{% widthratio stat.critical_hits_count stat.hits_count 100 %}% ({{ stat.critical_hits_count }}/{{ stat.hits_count }})</td>
+                        <td>{{ stat.heals }}</td>
+                        <td>{% widthratio stat.heals encounter_stats.duration 1 %}</td>
+                        <td>{% widthratio stat.heals stats.done.heals 100 %}%</td>
+                        <td>{% widthratio stat.critical_heals_count stat.heals_count 100 %}% ({{ stat.critical_heals_count }}/{{ stat.heals_count }})</td>
+                      </tr>
+                    {% endfor %}
+              </tbody>
+            </table>
+            {% endif %}
           {% endif %}
-        {% endif %}
-      {% endfor %}
-    </div>
-  </div>
-
-  <ul class="nav nav-tabs">
-    <li class="active"><a href="#done" data-toggle="tab">{% trans "Done" %}</a></li>
-    <li><a href="#received" data-toggle="tab">{% trans "Received" %}</a></li>
-  </ul>
-
-  {% regroup actor_buffes by view as buff_by_pov %}
-  <div class="tab-content">
-    {% for pov in buff_by_pov %}
-      <div class="tab-pane{% if pov.grouper|lower == 'done' %} active{% endif %}" id="{{ pov.grouper }}" style="min-width: 1100px;">
-        <h2>{% trans pov.grouper %}</h2>
-        <table class="table table-condensed">
-          <thead>
-            <tr>
-              <th>{% trans "Skill Name" %}</th>
-              <th>{% trans "Type Buff" %}</th>
-              <th>{% trans "Target/Source" %}</th>
-              <th>{% trans "Total Duration" %}</th>
-              <th>{% trans "% uptime" %}</th>
-          </thead>
-          <tbody>
-          {% for skill in pov.list|dictsortreversed:"total_duration" %}
-            <tr>
-              <td>{{ skill.name }}</td>
-              <td>{% trans skill.type_buff %}</td>
-              <td>{{ skill.actor2_name }}</td>
-              <td>{{ skill.total_duration|secs }}</td>
-              <td>{{ skill.uptime }}%</td>
-            </tr>
-          {% endfor %}
-          </tbody>
-        </table>
+        {% endfor %}
       </div>
-    {% endfor %}
-  </div>
+      <div class="tab-pane" id="players" style="min-width: 1100px;">
+        {% for actor in actor_stats %}
+          {% if actor.list.0.is_player %}
+            {% if actor.list|length > 0 %}
+                <h3>{{ actor.list.0.actor_name }}</h3>
+              <table class="table table-condensed table-bordered tablesorter" id="detailed_stats_by_actor_{{ actor.grouper }}">
+                <thead>
+                  <tr>
+                  <th style="width: 20%;">{% trans "Skill Name" %}</th>
+                  <th style="width: 10%;">{% trans "Damages" %}</th>
+                  <th style="width: 10%;">{% trans "DPS" %}</th>
+                  <th style="width: 10%;">{% trans "% DPS" %}</th>
+                  <th style="width: 10%;">{% trans "Crits" %}</th>
+                  <th style="width: 10%;">{% trans "Heals" %}</th>
+                  <th style="width: 10%;">{% trans "HPS" %}</th>
+                  <th style="width: 10%;">{% trans "% HPS" %}</th>
+                  <th style="width: 10%;">{% trans "Crits" %}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                    {% for stat in actor.list %}
+                      <tr{% if stat.skill_name == 'Total' %} class="bold"{% endif %}>
+                        <td>{{ stat.skill_name }}</td>
+                        <td>{{ stat.hits }}</td>
+                        <td>{% widthratio stat.hits encounter_stats.duration 1 %}</td>
+                        <td>{% widthratio stat.hits stats.done.hits 100 %}%</td>
+                        <td>{% widthratio stat.critical_hits_count stat.hits_count 100 %}% ({{ stat.critical_hits_count }}/{{ stat.hits_count }})</td>
+                        <td>{{ stat.heals }}</td>
+                        <td>{% widthratio stat.heals encounter_stats.duration 1 %}</td>
+                        <td>{% widthratio stat.heals stats.done.heals 100 %}%</td>
+                        <td>{% widthratio stat.critical_heals_count stat.heals_count 100 %}% ({{ stat.critical_heals_count }}/{{ stat.heals_count }})</td>
+                      </tr>
+                    {% endfor %}
+              </tbody>
+            </table>
+            {% endif %}
+          {% endif %}
+        {% endfor %}
+      </div>
+    </div>
 
-    <h2>{% trans pov.grouper %}</h2>
+    <ul class="nav nav-tabs">
+      <li class="active"><a href="#done" data-toggle="tab">{% trans "Done" %}</a></li>
+      <li><a href="#received" data-toggle="tab">{% trans "Received" %}</a></li>
+    </ul>
+
+    {% regroup actor_buffes by view as buff_by_pov %}
+    <div class="tab-content">
+      {% for pov in buff_by_pov %}
+        <div class="tab-pane{% if pov.grouper|lower == 'done' %} active{% endif %}" id="{{ pov.grouper }}" style="min-width: 1100px;">
+          <h2>{% trans pov.grouper %}</h2>
+          <table class="table table-condensed">
+            <thead>
+              <tr>
+                <th>{% trans "Skill Name" %}</th>
+                <th>{% trans "Type Buff" %}</th>
+                <th>{% trans "Target/Source" %}</th>
+                <th>{% trans "Total Duration" %}</th>
+                <th>{% trans "% uptime" %}</th>
+            </thead>
+            <tbody>
+            {% for skill in pov.list|dictsortreversed:"total_duration" %}
+              <tr>
+                <td>{{ skill.name }}</td>
+                <td>{% trans skill.type_buff %}</td>
+                <td>{{ skill.actor2_name }}</td>
+                <td>{{ skill.total_duration|secs }}</td>
+                <td>{{ skill.uptime }}%</td>
+              </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% endfor %}
+    </div>
+
+      <h2>{% trans pov.grouper %}</h2>
+  {% endcache %}
 {% endblock %}

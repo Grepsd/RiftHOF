@@ -1,653 +1,655 @@
 {% extends 'base.html' %}
 {% load humanize %}
-{% load i18n %}
+{% load i18n cache %}
 {% load logparse_tpl_filters %}
 {% block "content" %}
-  <script type="text/javascript">
-    $(function () {
-      var chart;
-      $(document).ready(function() {
-          $('.nav-tabs a:last').tab()
-          $("#damages").tablesorter(); 
-          $("#npc_table").tablesorter(); 
-          dps_chart = new Highcharts.Chart({
-              chart: {
-                  renderTo: 'dps_chart',
-                  type: 'bar',
+  {% cache 86400 encounter encounter.id %}
+    <script type="text/javascript">
+      $(function () {
+        var chart;
+        $(document).ready(function() {
+            $('.nav-tabs a:last').tab()
+            $("#damages").tablesorter(); 
+            $("#npc_table").tablesorter(); 
+            dps_chart = new Highcharts.Chart({
+                chart: {
+                    renderTo: 'dps_chart',
+                    type: 'bar',
+                },
+                title: {
+                    text: 'DPS Charts'
+                },
+                xAxis: {
+                    categories: [{% for el in encounter.stats.all_tops|dictsortreversed:"damages_value" %}{% if el.name != 'total' %}'{{ el.name|escapejs }}',{% endif %}{% endfor %}],
+                    title: {
+                        text: 'Player Name'
+                    },
+                    minPadding: 0.05,
+                },
+
+                yAxis: {
+                    min: 0,
+                    title: {
+                        text: 'DPS',
+                        align: 'high'
+                    }
+                },
+
+                tooltip: {
+                    formatter: function() {
+                        return ''+
+                            this.series.name +': '+ this.y;
+                    }
+                },
+
+                plotOptions: {
+                    bar: {
+                        dataLabels: {
+                            enabled: true
+                        }
+                    }
+                },
+
+                legend: {
+                    layout: 'horizontal',
+                    align: 'right',
+                    verticalAlign: 'top',
+                    x: -100,
+                    y: 150,
+                    floating: true,
+                    borderWidth: 1,
+                    backgroundColor: '#FFFFFF',
+                    shadow: true
+                },
+                credits: {
+                    enabled: false
+                },
+                series: [{
+                    name: 'dps',
+                    data: [{% for el in encounter.stats.all_tops|dictsortreversed:"damages_value" %}{% if el.name != 'total' %}{{ el.damages_by_time }}{% if not forloop.last %},{% endif %}{% endif %}{% endfor %}],
+                }]
+            });
+            hps_chart = new Highcharts.Chart({
+                chart: {
+                    renderTo: 'hps_chart',
+                    type: 'bar',
+                },
+                title: {
+                    text: 'HPS Charts'
+                },
+                xAxis: {
+                    categories: [{% for el in encounter.stats.all_tops|dictsortreversed:"heals_value" %}{% if el.name != 'total' %}'{{ el.name|escapejs }}',{% endif %}{% endfor %}],
+                    title: {
+                        text: 'Player Name'
+                    }
+                },
+
+                yAxis: {
+                    min: 0,
+                    title: {
+                        text: 'HPS',
+                        align: 'high'
+                    }
+                },
+
+                tooltip: {
+                    formatter: function() {
+                        return ''+
+                            this.series.name +': '+ this.y;
+                    }
+                },
+
+                plotOptions: {
+                    bar: {
+                        dataLabels: {
+                            enabled: true
+                        }
+                    }
+                },
+
+                legend: {
+                    layout: 'horizontal',
+                    align: 'right',
+                    verticalAlign: 'top',
+                    x: -100,
+                    y: 150,
+                    floating: true,
+                    borderWidth: 1,
+                    backgroundColor: '#FFFFFF',
+                    shadow: true
+                },
+                credits: {
+                    enabled: false
+                },
+                series: [{
+                    name: 'hps',
+                    data: [{% for el in encounter.stats.all_tops|dictsortreversed:"heals_value" %}{% if el.name != 'total' %}{{ el.heals_by_time }},{% endif %}{% endfor %}],
+                }]
+            });
+            dmg_taken_chart = new Highcharts.Chart({
+                chart: {
+                    renderTo: 'taken_chart',
+                    type: 'bar',
+                },
+                title: {
+                    text: 'Damages Taken Charts'
+                },
+                xAxis: {
+                    categories: [{% for el in encounter.stats.all_tops|dictsortreversed:"taken_value" %}{% if el.name != 'total' %}'{{ el.name|escapejs }}',{% endif %}{% endfor %}],
+                    title: {
+                        text: 'Player Name'
+                    }
+                },
+
+                yAxis: {
+                    min: 0,
+                    title: {
+                        text: 'Damages Taken',
+                        align: 'high'
+                    }
+                },
+
+                tooltip: {
+                    formatter: function() {
+                        return ''+
+                            this.series.name +': '+ this.y;
+                    }
+                },
+
+                plotOptions: {
+                    bar: {
+                        dataLabels: {
+                            enabled: true
+                        }
+                    }
+                },
+
+                legend: {
+                    layout: 'horizontal',
+                    align: 'right',
+                    verticalAlign: 'top',
+                    x: -100,
+                    y: 150,
+                    floating: true,
+                    borderWidth: 1,
+                    backgroundColor: '#FFFFFF',
+                    shadow: true
+                },
+                credits: {
+                    enabled: false
+                },
+                series: [{
+                    name: 'taken',
+                    data: [{% for el in encounter.stats.all_tops|dictsortreversed:"taken_value" %}{% if el.name != 'total' %}{{ el.taken_by_time }},{% endif %}{% endfor %}],
+                }]
+            });     
+               
+            timeline_chart = new Highcharts.Chart({
+
+            {% with timeline_list=encounter.stats.get_timeline.total|dictsort:"time" %}
+            
+            chart: {
+                  renderTo: 'timeline',
+                  type: 'spline'
               },
+
               title: {
-                  text: 'DPS Charts'
+                  text: 'Timeline'
               },
               xAxis: {
-                  categories: [{% for el in encounter.stats.all_tops|dictsortreversed:"damages_value" %}{% if el.name != 'total' %}'{{ el.name|escapejs }}',{% endif %}{% endfor %}],
+                  categories: [{% for time in timeline_list %}'{{ time.time|secs }}',{% endfor %}],
+                  tickInterval: 6,
+                  plotBands: [
+                    {% for buff in encounter.stats.get_important_buffes %}
+                      {% if buff.render == 'band' %}
+                        {
+                          from: {{ buff.from }} / 5,
+                          to:   {{ buff.to }} / 5,
+                          {% if buff.color %}
+                            color: '{{ buff.color }}',
+                          {% else %}
+                            color: '{% if buff.skill == "Couplet de joie" %}#CEF{% else %}#FEC{% endif %}',
+                          {% endif %}
+                          {% if buff.display or buff.display_player %}
+                            label: {
+                                text: '{% if buff.display %}{{ buff.skill }}{% endif %} {% if buff.display_player %}{{ buff.player }}{% endif %}',
+                                rotation: 90,
+                            },
+                          {% endif %}
+                        },
+                      {% endif %}
+                    {% endfor %}
+                  ],
+                  plotLines: [
+                    {% for death in encounter.stats.get_deathlog %}
+                      {
+                          value : {{ death.time }} / 5,
+                          color: '#A00',
+                          width: 1,
+                          label: {text: '{{ death.player }}',
+                          rotation: 90,},
+                           zindex: 10,
+                      },
+                    {% endfor %}
+                    {% for r in encounter.stats.get_rez %}
+                      {
+                          value : {{ r.time }} / 5,
+                          color: '#0A0',
+                          width: 1,
+                          label: {text: '{{ r.player }}',
+                          rotation: 90,},
+                           zindex: 10,
+                      },
+                    {% endfor %}
+                    ],
+              },
+
+              yAxis: {
                   title: {
-                      text: 'Player Name'
+                      text: 'DPS/HPS'
                   },
-                  minPadding: 0.05,
-              },
-
-              yAxis: {
+                  labels: {
+                      formatter: function() {
+                          return this.value
+                      }
+                  },
                   min: 0,
-                  title: {
-                      text: 'DPS',
-                      align: 'high'
-                  }
+                  plotLines: [
+                  ],
               },
 
               tooltip: {
-                  formatter: function() {
-                      return ''+
-                          this.series.name +': '+ this.y;
-                  }
+                  crosshairs: true,
+                  shared: true
               },
 
               plotOptions: {
-                  bar: {
-                      dataLabels: {
-                          enabled: true
-                      }
+                spline: {
+                  marker: {
+                    enabled: false,
                   }
+                }
               },
 
-              legend: {
-                  layout: 'horizontal',
-                  align: 'right',
-                  verticalAlign: 'top',
-                  x: -100,
-                  y: 150,
-                  floating: true,
-                  borderWidth: 1,
-                  backgroundColor: '#FFFFFF',
-                  shadow: true
-              },
-              credits: {
-                  enabled: false
-              },
-              series: [{
-                  name: 'dps',
-                  data: [{% for el in encounter.stats.all_tops|dictsortreversed:"damages_value" %}{% if el.name != 'total' %}{{ el.damages_by_time }}{% if not forloop.last %},{% endif %}{% endif %}{% endfor %}],
-              }]
+
+
+              series: [ {
+                  name: 'Taken',
+                  data: [{% for stats in timeline_list %}{{ stats.players.received.hits }} / 5,{% endfor %}]
+              },{
+                  name: 'DPS',
+                  data: [{% for stats in timeline_list %}{{ stats.players.done.hits }} / 5,{% endfor %}]
+              }, {
+                  name: 'HPS',
+                  data: [{% for stats in timeline_list %}{{ stats.players.done.heals }} / 5,{% endfor %}]
+              },]
           });
-          hps_chart = new Highcharts.Chart({
-              chart: {
-                  renderTo: 'hps_chart',
-                  type: 'bar',
+          {% endwith %}
+
+          timeline_by_actor_chart = new Highcharts.Chart({
+
+            chart: {
+                  renderTo: 'timeline_by_actor',
+                  type: 'spline'
               },
+
               title: {
-                  text: 'HPS Charts'
+                  text: 'Timeline'
               },
               xAxis: {
-                  categories: [{% for el in encounter.stats.all_tops|dictsortreversed:"heals_value" %}{% if el.name != 'total' %}'{{ el.name|escapejs }}',{% endif %}{% endfor %}],
-                  title: {
-                      text: 'Player Name'
-                  }
+                  categories: [{% for time in encounter.stats.get_timeline.total|dictsort:"time" %}'{{ time.time|secs }}',{% endfor %}],
+                  tickInterval: 6,
+                  plotBands: [
+                    {% for buff in encounter.stats.get_important_buffes %}
+                      {% if buff.render == 'band' %}
+                        {
+                          from: {{ buff.from }} / 5,
+                          to:   {{ buff.to }} / 5,
+                          {% if buff.color %}
+                            color: '{{ buff.color }}',
+                          {% else %}
+                            color: '{% if buff.skill == "Couplet de joie" %}#CEF{% else %}#FEC{% endif %}',
+                          {% endif %}
+                          {% if buff.display or buff.display_player %}
+                            label: {
+                                text: '{% if buff.display %}{{ buff.skill }}{% endif %} {% if buff.display_player %}{{ buff.player }}{% endif %}',
+                                rotation: 90,
+                            },
+                          {% endif %}
+                        },
+                      {% endif %}
+                    {% endfor %}
+                  ],
+                  plotLines: [
+                    {% for death in encounter.stats.get_deathlog %}
+                      {
+                          value : {{ death.time }} / 5,
+                          color: '#A00',
+                          width: 1,
+                          label: {text: '{{ death.player }}',
+                          rotation: 90,},
+                           zindex: 10,
+                      },
+                    {% endfor %}
+                    {% for r in encounter.stats.get_rez %}
+                      {
+                          value : {{ r.time }} / 5,
+                          color: '#0A0',
+                          width: 1,
+                          label: {text: '{{ r.player }}',
+                          rotation: 90,},
+                           zindex: 10,
+                      },
+                    {% endfor %}
+                    ],
               },
 
               yAxis: {
-                  min: 0,
                   title: {
-                      text: 'HPS',
-                      align: 'high'
-                  }
+                      text: 'DPS/HPS'
+                  },
+                  labels: {
+                      formatter: function() {
+                          return this.value
+                      }
+                  },
+                  min: 0,
+                  plotLines: [
+                  ],
               },
 
               tooltip: {
-                  formatter: function() {
-                      return ''+
-                          this.series.name +': '+ this.y;
-                  }
+                  crosshairs: true,
+                  shared: true
               },
 
               plotOptions: {
-                  bar: {
-                      dataLabels: {
-                          enabled: true
-                      }
+                spline: {
+                  marker: {
+                    enabled: false,
                   }
+                }
               },
 
-              legend: {
-                  layout: 'horizontal',
-                  align: 'right',
-                  verticalAlign: 'top',
-                  x: -100,
-                  y: 150,
-                  floating: true,
-                  borderWidth: 1,
-                  backgroundColor: '#FFFFFF',
-                  shadow: true
-              },
-              credits: {
-                  enabled: false
-              },
-              series: [{
-                  name: 'hps',
-                  data: [{% for el in encounter.stats.all_tops|dictsortreversed:"heals_value" %}{% if el.name != 'total' %}{{ el.heals_by_time }},{% endif %}{% endfor %}],
-              }]
+
+
+              series: [
+              {% for actor, timeline_actor in encounter.stats.get_timeline.items %}
+                {% if actor != "total" %}
+                {
+                    name: '{{ actor|escapejs }}',
+                    data: [{% for stats in timeline_actor|dictsort:"time" %}{{ stats.done.hits }} / 5,{% endfor %}],
+                    visible: {% if forloop.counter0 > 2 %}false{% else %}true{% endif %},
+                },
+                {% endif %}
+              {% endfor %}]
           });
-          dmg_taken_chart = new Highcharts.Chart({
-              chart: {
-                  renderTo: 'taken_chart',
-                  type: 'bar',
+
+
+          timeline_by_actor_chart_heals = new Highcharts.Chart({
+
+            chart: {
+                  renderTo: 'timeline_by_actor_heals',
+                  type: 'spline'
               },
+
               title: {
-                  text: 'Damages Taken Charts'
+                  text: 'Timeline'
               },
               xAxis: {
-                  categories: [{% for el in encounter.stats.all_tops|dictsortreversed:"taken_value" %}{% if el.name != 'total' %}'{{ el.name|escapejs }}',{% endif %}{% endfor %}],
-                  title: {
-                      text: 'Player Name'
-                  }
+                  categories: [{% for time in encounter.stats.get_timeline.total|dictsort:"time" %}'{{ time.time|secs }}',{% endfor %}],
+                  tickInterval: 6,
+                  plotBands: [
+                    {% for buff in encounter.stats.get_important_buffes %}
+                      {% if buff.render == 'band' %}
+                        {
+                          from: {{ buff.from }} / 5,
+                          to:   {{ buff.to }} / 5,
+                          {% if buff.color %}
+                            color: '{{ buff.color }}',
+                          {% else %}
+                            color: '{% if buff.skill == "Couplet de joie" %}#CEF{% else %}#FEC{% endif %}',
+                          {% endif %}
+                          {% if buff.display or buff.display_player %}
+                            label: {
+                                text: '{% if buff.display %}{{ buff.skill }}{% endif %} {% if buff.display_player %}{{ buff.player }}{% endif %}',
+                                rotation: 90,
+                            },
+                          {% endif %}
+                        },
+                      {% endif %}
+                    {% endfor %}
+                  ],
+                  plotLines: [
+                    {% for death in encounter.stats.get_deathlog %}
+                      {
+                          value : {{ death.time }} / 5,
+                          color: '#A00',
+                          width: 1,
+                          label: {
+                            text: '{{ death.player }}',
+                            rotation: 90,
+                          },
+                           zindex: 10,
+                      },
+                    {% endfor %}
+                    {% for r in encounter.stats.get_rez %}
+                      {
+                          value : {{ r.time }} / 5,
+                          color: '#0A0',
+                          width: 1,
+                          label: {
+                            text: '{{ r.player }}',
+                            rotation: 90,
+                          },
+                           zindex: 10,
+                      },
+                    {% endfor %}
+                    ],
               },
 
               yAxis: {
-                  min: 0,
                   title: {
-                      text: 'Damages Taken',
-                      align: 'high'
-                  }
+                      text: 'DPS/HPS'
+                  },
+                  labels: {
+                      formatter: function() {
+                          return this.value
+                      }
+                  },
+                  min: 0,
+                  plotLines: [
+                  ],
               },
 
               tooltip: {
-                  formatter: function() {
-                      return ''+
-                          this.series.name +': '+ this.y;
-                  }
+                  crosshairs: true,
+                  shared: true
               },
 
               plotOptions: {
-                  bar: {
-                      dataLabels: {
-                          enabled: true
-                      }
+                spline: {
+                  marker: {
+                    enabled: false,
                   }
-              },
-
-              legend: {
-                  layout: 'horizontal',
-                  align: 'right',
-                  verticalAlign: 'top',
-                  x: -100,
-                  y: 150,
-                  floating: true,
-                  borderWidth: 1,
-                  backgroundColor: '#FFFFFF',
-                  shadow: true
-              },
-              credits: {
-                  enabled: false
-              },
-              series: [{
-                  name: 'taken',
-                  data: [{% for el in encounter.stats.all_tops|dictsortreversed:"taken_value" %}{% if el.name != 'total' %}{{ el.taken_by_time }},{% endif %}{% endfor %}],
-              }]
-          });     
-             
-          timeline_chart = new Highcharts.Chart({
-
-          {% with timeline_list=encounter.stats.get_timeline.total|dictsort:"time" %}
-          
-          chart: {
-                renderTo: 'timeline',
-                type: 'spline'
-            },
-
-            title: {
-                text: 'Timeline'
-            },
-            xAxis: {
-                categories: [{% for time in timeline_list %}'{{ time.time|secs }}',{% endfor %}],
-                tickInterval: 6,
-                plotBands: [
-                  {% for buff in encounter.stats.get_important_buffes %}
-                    {% if buff.render == 'band' %}
-                      {
-                        from: {{ buff.from }} / 5,
-                        to:   {{ buff.to }} / 5,
-                        {% if buff.color %}
-                          color: '{{ buff.color }}',
-                        {% else %}
-                          color: '{% if buff.skill == "Couplet de joie" %}#CEF{% else %}#FEC{% endif %}',
-                        {% endif %}
-                        {% if buff.display or buff.display_player %}
-                          label: {
-                              text: '{% if buff.display %}{{ buff.skill }}{% endif %} {% if buff.display_player %}{{ buff.player }}{% endif %}',
-                              rotation: 90,
-                          },
-                        {% endif %}
-                      },
-                    {% endif %}
-                  {% endfor %}
-                ],
-                plotLines: [
-                  {% for death in encounter.stats.get_deathlog %}
-                    {
-                        value : {{ death.time }} / 5,
-                        color: '#A00',
-                        width: 1,
-                        label: {text: '{{ death.player }}',
-                        rotation: 90,},
-                         zindex: 10,
-                    },
-                  {% endfor %}
-                  {% for r in encounter.stats.get_rez %}
-                    {
-                        value : {{ r.time }} / 5,
-                        color: '#0A0',
-                        width: 1,
-                        label: {text: '{{ r.player }}',
-                        rotation: 90,},
-                         zindex: 10,
-                    },
-                  {% endfor %}
-                  ],
-            },
-
-            yAxis: {
-                title: {
-                    text: 'DPS/HPS'
-                },
-                labels: {
-                    formatter: function() {
-                        return this.value
-                    }
-                },
-                min: 0,
-                plotLines: [
-                ],
-            },
-
-            tooltip: {
-                crosshairs: true,
-                shared: true
-            },
-
-            plotOptions: {
-              spline: {
-                marker: {
-                  enabled: false,
                 }
-              }
-            },
+              },
 
 
 
-            series: [ {
-                name: 'Taken',
-                data: [{% for stats in timeline_list %}{{ stats.players.received.hits }} / 5,{% endfor %}]
-            },{
-                name: 'DPS',
-                data: [{% for stats in timeline_list %}{{ stats.players.done.hits }} / 5,{% endfor %}]
-            }, {
-                name: 'HPS',
-                data: [{% for stats in timeline_list %}{{ stats.players.done.heals }} / 5,{% endfor %}]
-            },]
+              series: [
+              {% for actor, timeline_actor in encounter.stats.get_timeline.items %}
+                {% if actor != "total" %}
+                {
+                    name: '{{ actor|escapejs }}',
+                    data: [{% for stats in timeline_actor|dictsort:"time" %}{{ stats.done.heals }} / 5,{% endfor %}],
+                    visible: {% if forloop.counter0 > 2 %}false{% else %}true{% endif %},
+                },
+                {% endif %}
+              {% endfor %}]
+          });
         });
-        {% endwith %}
-
-        timeline_by_actor_chart = new Highcharts.Chart({
-
-          chart: {
-                renderTo: 'timeline_by_actor',
-                type: 'spline'
-            },
-
-            title: {
-                text: 'Timeline'
-            },
-            xAxis: {
-                categories: [{% for time in encounter.stats.get_timeline.total|dictsort:"time" %}'{{ time.time|secs }}',{% endfor %}],
-                tickInterval: 6,
-                plotBands: [
-                  {% for buff in encounter.stats.get_important_buffes %}
-                    {% if buff.render == 'band' %}
-                      {
-                        from: {{ buff.from }} / 5,
-                        to:   {{ buff.to }} / 5,
-                        {% if buff.color %}
-                          color: '{{ buff.color }}',
-                        {% else %}
-                          color: '{% if buff.skill == "Couplet de joie" %}#CEF{% else %}#FEC{% endif %}',
-                        {% endif %}
-                        {% if buff.display or buff.display_player %}
-                          label: {
-                              text: '{% if buff.display %}{{ buff.skill }}{% endif %} {% if buff.display_player %}{{ buff.player }}{% endif %}',
-                              rotation: 90,
-                          },
-                        {% endif %}
-                      },
-                    {% endif %}
-                  {% endfor %}
-                ],
-                plotLines: [
-                  {% for death in encounter.stats.get_deathlog %}
-                    {
-                        value : {{ death.time }} / 5,
-                        color: '#A00',
-                        width: 1,
-                        label: {text: '{{ death.player }}',
-                        rotation: 90,},
-                         zindex: 10,
-                    },
-                  {% endfor %}
-                  {% for r in encounter.stats.get_rez %}
-                    {
-                        value : {{ r.time }} / 5,
-                        color: '#0A0',
-                        width: 1,
-                        label: {text: '{{ r.player }}',
-                        rotation: 90,},
-                         zindex: 10,
-                    },
-                  {% endfor %}
-                  ],
-            },
-
-            yAxis: {
-                title: {
-                    text: 'DPS/HPS'
-                },
-                labels: {
-                    formatter: function() {
-                        return this.value
-                    }
-                },
-                min: 0,
-                plotLines: [
-                ],
-            },
-
-            tooltip: {
-                crosshairs: true,
-                shared: true
-            },
-
-            plotOptions: {
-              spline: {
-                marker: {
-                  enabled: false,
-                }
-              }
-            },
-
-
-
-            series: [
-            {% for actor, timeline_actor in encounter.stats.get_timeline.items %}
-              {% if actor != "total" %}
-              {
-                  name: '{{ actor|escapejs }}',
-                  data: [{% for stats in timeline_actor|dictsort:"time" %}{{ stats.done.hits }} / 5,{% endfor %}],
-                  visible: {% if forloop.counter0 > 2 %}false{% else %}true{% endif %},
-              },
+        {% for stats in all_tops|dictsortreversed:"damages_original" %}
+          $('#tooltip_{{ stats.name }}').popover({placement: 'bottom'{% if stats.name != 'total' %}, content: 'Name : {{ stats.name|escapejs }}<br /><table style="width: 100%;" class="table table-condensed table-bordered">' +
+              '<thead>' +
+                '<tr>' +
+                  '<th>{% trans "Spell" %}</th>' +
+                  '<th>{% trans "Value" %}</th>' +
+                  '<th>{% trans "Ratio" %}</th>' +
+                  '<th>{% trans "Spell" %}</th>' +
+                  '<th>{% trans "Value" %}</th>' +
+                  '<th>{% trans "Ratio" %}</th>' +
+                '</tr>' +
+              '</thead>' +
+              '<tbody>' +
+               '<th colspan=\"6\">{% trans "Damages" %}</th></tr>' +
+            {% for skill in stats.damages_skills.done.hits|dictsortreversed:"value" %}
+              {% if forloop.first %}
+                {% cycle '' '\'</tr>\'+' %}
+                '<tr>' +
+              {% else %}
+                {% cycle '\'</tr><tr>\'+' '' %}
               {% endif %}
-            {% endfor %}]
-        });
-
-
-        timeline_by_actor_chart_heals = new Highcharts.Chart({
-
-          chart: {
-                renderTo: 'timeline_by_actor_heals',
-                type: 'spline'
-            },
-
-            title: {
-                text: 'Timeline'
-            },
-            xAxis: {
-                categories: [{% for time in encounter.stats.get_timeline.total|dictsort:"time" %}'{{ time.time|secs }}',{% endfor %}],
-                tickInterval: 6,
-                plotBands: [
-                  {% for buff in encounter.stats.get_important_buffes %}
-                    {% if buff.render == 'band' %}
-                      {
-                        from: {{ buff.from }} / 5,
-                        to:   {{ buff.to }} / 5,
-                        {% if buff.color %}
-                          color: '{{ buff.color }}',
-                        {% else %}
-                          color: '{% if buff.skill == "Couplet de joie" %}#CEF{% else %}#FEC{% endif %}',
-                        {% endif %}
-                        {% if buff.display or buff.display_player %}
-                          label: {
-                              text: '{% if buff.display %}{{ buff.skill }}{% endif %} {% if buff.display_player %}{{ buff.player }}{% endif %}',
-                              rotation: 90,
-                          },
-                        {% endif %}
-                      },
-                    {% endif %}
-                  {% endfor %}
-                ],
-                plotLines: [
-                  {% for death in encounter.stats.get_deathlog %}
-                    {
-                        value : {{ death.time }} / 5,
-                        color: '#A00',
-                        width: 1,
-                        label: {
-                          text: '{{ death.player }}',
-                          rotation: 90,
-                        },
-                         zindex: 10,
-                    },
-                  {% endfor %}
-                  {% for r in encounter.stats.get_rez %}
-                    {
-                        value : {{ r.time }} / 5,
-                        color: '#0A0',
-                        width: 1,
-                        label: {
-                          text: '{{ r.player }}',
-                          rotation: 90,
-                        },
-                         zindex: 10,
-                    },
-                  {% endfor %}
-                  ],
-            },
-
-            yAxis: {
-                title: {
-                    text: 'DPS/HPS'
-                },
-                labels: {
-                    formatter: function() {
-                        return this.value
-                    }
-                },
-                min: 0,
-                plotLines: [
-                ],
-            },
-
-            tooltip: {
-                crosshairs: true,
-                shared: true
-            },
-
-            plotOptions: {
-              spline: {
-                marker: {
-                  enabled: false,
-                }
-              }
-            },
-
-
-
-            series: [
-            {% for actor, timeline_actor in encounter.stats.get_timeline.items %}
-              {% if actor != "total" %}
-              {
-                  name: '{{ actor|escapejs }}',
-                  data: [{% for stats in timeline_actor|dictsort:"time" %}{{ stats.done.heals }} / 5,{% endfor %}],
-                  visible: {% if forloop.counter0 > 2 %}false{% else %}true{% endif %},
-              },
+                '<td>{{ skill.name }}</td>' +
+                '<td>{{ skill.value|intcomma }}</td>' +
+                '<td>{{ skill.ratio|floatformat }}%</td>' +
+              {% if forloop.last %}
+                '</tr>' +
               {% endif %}
-            {% endfor %}]
-        });
+            {% endfor %}'<tr><th colspan=\"6\">Heals</th></tr>' +
+            {% for skill in stats.heals_skills.done.heals|dictsortreversed:"value" %}
+              {% if forloop.first %}
+                {% cycle '' '\'</tr>\'+' %}
+                '<tr>' +
+              {% else %}
+                {% cycle '\'</tr><tr>\'+' '' %}
+              {% endif %}
+                '<td>{{ skill.name|escapejs }}</td>' +
+                '<td>{{ skill.value|intcomma }}</td>' +
+                '<td>{{ skill.ratio|floatformat }}%</td>' +
+              {% if forloop.last %}
+                '</tr>' +
+              {% endif %}
+            {% endfor %}
+               '</tbody>' +
+              '</table>'{% endif %}});
+        {% endfor %}
       });
-      {% for stats in all_tops|dictsortreversed:"damages_original" %}
-        $('#tooltip_{{ stats.name }}').popover({placement: 'bottom'{% if stats.name != 'total' %}, content: 'Name : {{ stats.name|escapejs }}<br /><table style="width: 100%;" class="table table-condensed table-bordered">' +
-            '<thead>' +
-              '<tr>' +
-                '<th>{% trans "Spell" %}</th>' +
-                '<th>{% trans "Value" %}</th>' +
-                '<th>{% trans "Ratio" %}</th>' +
-                '<th>{% trans "Spell" %}</th>' +
-                '<th>{% trans "Value" %}</th>' +
-                '<th>{% trans "Ratio" %}</th>' +
-              '</tr>' +
-            '</thead>' +
-            '<tbody>' +
-             '<th colspan=\"6\">{% trans "Damages" %}</th></tr>' +
-          {% for skill in stats.damages_skills.done.hits|dictsortreversed:"value" %}
-            {% if forloop.first %}
-              {% cycle '' '\'</tr>\'+' %}
-              '<tr>' +
-            {% else %}
-              {% cycle '\'</tr><tr>\'+' '' %}
-            {% endif %}
-              '<td>{{ skill.name }}</td>' +
-              '<td>{{ skill.value|intcomma }}</td>' +
-              '<td>{{ skill.ratio|floatformat }}%</td>' +
-            {% if forloop.last %}
-              '</tr>' +
-            {% endif %}
-          {% endfor %}'<tr><th colspan=\"6\">Heals</th></tr>' +
-          {% for skill in stats.heals_skills.done.heals|dictsortreversed:"value" %}
-            {% if forloop.first %}
-              {% cycle '' '\'</tr>\'+' %}
-              '<tr>' +
-            {% else %}
-              {% cycle '\'</tr><tr>\'+' '' %}
-            {% endif %}
-              '<td>{{ skill.name|escapejs }}</td>' +
-              '<td>{{ skill.value|intcomma }}</td>' +
-              '<td>{{ skill.ratio|floatformat }}%</td>' +
-            {% if forloop.last %}
-              '</tr>' +
-            {% endif %}
-          {% endfor %}
-             '</tbody>' +
-            '</table>'{% endif %}});
-      {% endfor %}
-    });
-    </script>
-  <h2 class="center"><span class="{{ encounter.wipe|yesno:"icon-remove,icon-ok" }}"></span> <a href="{% url ranking_boss encounter.boss.id %}">{% trans encounter.boss.name %}</a> [{{ encounter.stats.duration|secs }}]</h2>
+      </script>
+    <h2 class="center"><span class="{{ encounter.wipe|yesno:"icon-remove,icon-ok" }}"></span> <a href="{% url ranking_boss encounter.boss.id %}">{% trans encounter.boss.name %}</a> [{{ encounter.stats.duration|secs }}]</h2>
 
-  <a href="{% url guild_log_show encounter.log.id %}"><span class="btn btn-success">< < {% trans "Back" %}</span></a><br /><br />
+    <a href="{% url guild_log_show encounter.log.id %}"><span class="btn btn-success">< < {% trans "Back" %}</span></a><br /><br />
 
-  <ul class="nav nav-tabs">
-    <li class="active"><a href="#timeline" data-toggle="tab">{% trans "Timeline" %}</a></li>
-    <li><a href="#dps_chart" data-toggle="tab">{% trans "DPS" %}</a></li>
-    <li><a href="#hps_chart" data-toggle="tab">{% trans "HPS" %}</a></li>
-    <li><a href="#taken_chart" data-toggle="tab">{% trans "Taken" %}</a></li>
-    <li><a href="#timeline_by_actor" data-toggle="tab">{% trans "DPS By Actor" %}</a></li>
-    <li><a href="#timeline_by_actor_heals" data-toggle="tab">{% trans "HPS By Actor" %}</a></li>
-  </ul>
+    <ul class="nav nav-tabs">
+      <li class="active"><a href="#timeline" data-toggle="tab">{% trans "Timeline" %}</a></li>
+      <li><a href="#dps_chart" data-toggle="tab">{% trans "DPS" %}</a></li>
+      <li><a href="#hps_chart" data-toggle="tab">{% trans "HPS" %}</a></li>
+      <li><a href="#taken_chart" data-toggle="tab">{% trans "Taken" %}</a></li>
+      <li><a href="#timeline_by_actor" data-toggle="tab">{% trans "DPS By Actor" %}</a></li>
+      <li><a href="#timeline_by_actor_heals" data-toggle="tab">{% trans "HPS By Actor" %}</a></li>
+    </ul>
 
-  <div class="tab-content">
-    <div class="tab-pane active" id="timeline" style="min-width: 1100px;"></div>
-    <div class="tab-pane" id="dps_chart" style="min-width: 1100px;"></div>
-    <div class="tab-pane" id="hps_chart" style="min-width: 1100px;"></div>
-    <div class="tab-pane" id="taken_chart" style="min-width: 1100px;"></div>
-    <div class="tab-pane" id="timeline_by_actor" style="min-width: 1100px;"></div>
-    <div class="tab-pane" id="timeline_by_actor_heals" style="min-width: 1100px;"></div>
-  </div>
-
-  <br />
-  <br />
-
-  <ul class="nav nav-tabs">
-    <li class="active"><a href="#players" data-toggle="tab">{% trans "Players" %}</a></li>
-    <li><a href="#npcs" data-toggle="tab">{% trans "NPCs" %}</a></li>
-    <li><a href="#life_and_death" data-toggle="tab">{% trans "Life&Death" %}</a></li>
-  </ul>
-
-  <div class="tab-content">
-    <div class="tab-pane active" id="players" style="min-width: 1100px;">
-      <table class="table table-condensed table-bordered tablesorter" id="damages">
-        <thead>
-          <tr>
-            <th style="width: 10%;">{% trans "Name" %}</th>
-            <th style="width: 10%;">{% trans "Damages" %}</th>
-            <th style="width: 10%;">{% trans "DPS" %}</th>
-            <th style="width: 10%;">{% trans "% Dmg" %}</th>
-            <th style="width: 10%;">{% trans "Heals" %}</th>
-            <th style="width: 10%;">{% trans "HPS" %}</th>
-            <th style="width: 10%;">{% trans "% heals" %}</th>
-            <th style="width: 10%;">{% trans "Dmg taken" %}</th>
-            <th style="width: 10%;">{% trans "DPS taken" %}</th>
-            <th style="width: 10%;">{% trans "% taken" %}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for stats in encounter.stats.all_tops|dictsortreversed:"damages_original" %}
-            <tr id="tooltip_{{ stats.name }}">
-              {% if stats.damages_id > 0 %}
-                <td><a href="{% url actor_show_detail encounter.id stats.damages_id %}">{{ stats.name }}</a></td>
-              {% else %}
-                <td>{% trans stats.name %}</td>
-              {% endif %}
-              <td>{{ stats.damages_original }}</td>
-              <td>{{ stats.damages_by_time }}</td>
-              <td>{{ stats.damages_ratio }}%</td>
-              <td>{{ stats.heals_original }}</td>
-              <td>{{ stats.heals_by_time }}</td>
-              <td>{{ stats.heals_ratio }}%</td>
-              <td>{{ stats.taken_original }}</td>
-              <td>{{ stats.taken_by_time }}</td>
-              <td>{{ stats.taken_ratio }}%</td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+    <div class="tab-content">
+      <div class="tab-pane active" id="timeline" style="min-width: 1100px;"></div>
+      <div class="tab-pane" id="dps_chart" style="min-width: 1100px;"></div>
+      <div class="tab-pane" id="hps_chart" style="min-width: 1100px;"></div>
+      <div class="tab-pane" id="taken_chart" style="min-width: 1100px;"></div>
+      <div class="tab-pane" id="timeline_by_actor" style="min-width: 1100px;"></div>
+      <div class="tab-pane" id="timeline_by_actor_heals" style="min-width: 1100px;"></div>
     </div>
-    <div class="tab-pane" id="npcs" style="min-width: 1100px;">
-      <table class="table table-condensed table-bordered tablesorter" id="npc_table">
-        <thead>
-          <tr>
-           <th style="width: 10%;">{% trans "Name" %}</th>
-            <th style="width: 10%;">{% trans "Damages" %}</th>
-            <th style="width: 10%;">{% trans "DPS" %}</th>
-            <th style="width: 10%;">{% trans "% Dmg" %}</th>
-            <th style="width: 10%;">{% trans "Heals" %}</th>
-            <th style="width: 10%;">{% trans "HPS" %}</th>
-            <th style="width: 10%;">{% trans "% heals" %}</th>
-            <th style="width: 10%;">{% trans "Dmg taken" %}</th>
-            <th style="width: 10%;">{% trans "DPS taken" %}</th>
-            <th style="width: 10%;">{% trans "% taken" %}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for stats in encounter.stats.npc_all_tops|dictsortreversed:"damages_original" %}
+
+    <br />
+    <br />
+
+    <ul class="nav nav-tabs">
+      <li class="active"><a href="#players" data-toggle="tab">{% trans "Players" %}</a></li>
+      <li><a href="#npcs" data-toggle="tab">{% trans "NPCs" %}</a></li>
+      <li><a href="#life_and_death" data-toggle="tab">{% trans "Life&Death" %}</a></li>
+    </ul>
+
+    <div class="tab-content">
+      <div class="tab-pane active" id="players" style="min-width: 1100px;">
+        <table class="table table-condensed table-bordered tablesorter" id="damages">
+          <thead>
             <tr>
-              {% if stats.damages_id > 0 %}
-                <td>{{ stats.name }} ({{ stats.damages_count }})</td>
-              {% else %}
-                <td>{% trans stats.name %}</td>
-              {% endif %}
-              <td>{{ stats.damages_original|intcomma }}</td>
-              <td>{{ stats.damages_by_time|intcomma }}</td>
-              <td>{{ stats.damages_ratio|intcomma }}%</td>
-              <td>{{ stats.heals_original|intcomma }}</td>
-              <td>{{ stats.heals_by_time|intcomma }}</td>
-              <td>{{ stats.heals_ratio|intcomma }}%</td>
-              <td>{{ stats.taken_original|intcomma }}</td>
-              <td>{{ stats.taken_by_time|intcomma }}</td>
-              <td>{{ stats.taken_ratio|intcomma }}%</td>
+              <th style="width: 10%;">{% trans "Name" %}</th>
+              <th style="width: 10%;">{% trans "Damages" %}</th>
+              <th style="width: 10%;">{% trans "DPS" %}</th>
+              <th style="width: 10%;">{% trans "% Dmg" %}</th>
+              <th style="width: 10%;">{% trans "Heals" %}</th>
+              <th style="width: 10%;">{% trans "HPS" %}</th>
+              <th style="width: 10%;">{% trans "% heals" %}</th>
+              <th style="width: 10%;">{% trans "Dmg taken" %}</th>
+              <th style="width: 10%;">{% trans "DPS taken" %}</th>
+              <th style="width: 10%;">{% trans "% taken" %}</th>
             </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {% for stats in encounter.stats.all_tops|dictsortreversed:"damages_original" %}
+              <tr id="tooltip_{{ stats.name }}">
+                {% if stats.damages_id > 0 %}
+                  <td><a href="{% url actor_show_detail encounter.id stats.damages_id %}">{{ stats.name }}</a></td>
+                {% else %}
+                  <td>{% trans stats.name %}</td>
+                {% endif %}
+                <td>{{ stats.damages_original }}</td>
+                <td>{{ stats.damages_by_time }}</td>
+                <td>{{ stats.damages_ratio }}%</td>
+                <td>{{ stats.heals_original }}</td>
+                <td>{{ stats.heals_by_time }}</td>
+                <td>{{ stats.heals_ratio }}%</td>
+                <td>{{ stats.taken_original }}</td>
+                <td>{{ stats.taken_by_time }}</td>
+                <td>{{ stats.taken_ratio }}%</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <div class="tab-pane" id="npcs" style="min-width: 1100px;">
+        <table class="table table-condensed table-bordered tablesorter" id="npc_table">
+          <thead>
+            <tr>
+             <th style="width: 10%;">{% trans "Name" %}</th>
+              <th style="width: 10%;">{% trans "Damages" %}</th>
+              <th style="width: 10%;">{% trans "DPS" %}</th>
+              <th style="width: 10%;">{% trans "% Dmg" %}</th>
+              <th style="width: 10%;">{% trans "Heals" %}</th>
+              <th style="width: 10%;">{% trans "HPS" %}</th>
+              <th style="width: 10%;">{% trans "% heals" %}</th>
+              <th style="width: 10%;">{% trans "Dmg taken" %}</th>
+              <th style="width: 10%;">{% trans "DPS taken" %}</th>
+              <th style="width: 10%;">{% trans "% taken" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for stats in encounter.stats.npc_all_tops|dictsortreversed:"damages_original" %}
+              <tr>
+                {% if stats.damages_id > 0 %}
+                  <td>{{ stats.name }} ({{ stats.damages_count }})</td>
+                {% else %}
+                  <td>{% trans stats.name %}</td>
+                {% endif %}
+                <td>{{ stats.damages_original|intcomma }}</td>
+                <td>{{ stats.damages_by_time|intcomma }}</td>
+                <td>{{ stats.damages_ratio|intcomma }}%</td>
+                <td>{{ stats.heals_original|intcomma }}</td>
+                <td>{{ stats.heals_by_time|intcomma }}</td>
+                <td>{{ stats.heals_ratio|intcomma }}%</td>
+                <td>{{ stats.taken_original|intcomma }}</td>
+                <td>{{ stats.taken_by_time|intcomma }}</td>
+                <td>{{ stats.taken_ratio|intcomma }}%</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <div class="tab-pane" id="life_and_death" style="min-width: 1100px;">
+        {% for event in encounter.stats.get_life_and_death|dictsort:"time" %}
+          <span class="{% if event.type == 'death' %}error{% else %}success{% endif %}">{% if event.type == 'death' %}[D]{% else %}[L]{% endif %} {{ event.time|secs }} {{ event.player }}</span><br />
+        {% endfor %}
+      </div>
     </div>
-    <div class="tab-pane" id="life_and_death" style="min-width: 1100px;">
-      {% for event in encounter.stats.get_life_and_death|dictsort:"time" %}
-        <span class="{% if event.type == 'death' %}error{% else %}success{% endif %}">{% if event.type == 'death' %}[D]{% else %}[L]{% endif %} {{ event.time|secs }} {{ event.player }}</span><br />
-      {% endfor %}
-    </div>
-  </div>
-  <a href="{% url guild_log_show encounter.log.id %}"><span class="btn btn-success">< < {% trans "Back" %}</span></a>
+    <a href="{% url guild_log_show encounter.log.id %}"><span class="btn btn-success">< < {% trans "Back" %}</span></a>
+  {% endcache %}
 {% endblock %}

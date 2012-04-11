@@ -13,13 +13,21 @@ from django.contrib.auth.forms import UserCreationForm
 from django.core.exceptions import MultipleObjectsReturned
 
 def home(request):
-	data 		= {
-		'logs': 			Log.objects.filter(private=False, processed=True, processing=False).order_by('-upload_date')[0:10],
-		'log_form': 		LogForm(),
-		'news':				News.objects.all().order_by('-id')[0:5],
-		}
+	data 		= cache.get("home")
+	if data is None:
+		data 		= {
+			'logs': 			Log.objects.filter(private=False, processed=True, processing=False).order_by('-upload_date')[0:10],
+			'log_form': 		LogForm(),
+			'news':				News.objects.all().order_by('-id')[0:5],
+			}
+		cache.set("home", data, 86400)
+
 	if request.user.is_authenticated():
-		data['guild_logs']	= Log.objects.filter(guild=request.user.get_profile().guild, processed=True, processing=False).order_by('-upload_date')[0:10]
+		guild 		= request.user.get_profile().guild
+		logs 		= cache.get("logs_%d" % guild.id)
+		if logs is None:
+			data['guild_logs']	= Log.objects.filter(guild=guild, processed=True, processing=False).order_by('-upload_date')[0:10]
+			cache.set("logs_%d" % guild.id, logs, 300)
 	return render(request, 'home.html', data)
 
 def register(request):
@@ -125,7 +133,10 @@ def guild_log_upload(request):
 @login_required
 @user_passes_test(lambda u: u.is_active, login_url='/unauthorized')
 def guild_log_show(request, id):
-	log = get_object_or_404(Log, id=id)
+	log 	= cache.get("log_%d" % int(id))
+	if log is None:
+		log = get_object_or_404(Log, id=id)
+		cache.set("log_%d" % int(id), log, 86400)
 	return render(request, 'log/show.html', {'log': log})
 
 @login_required
@@ -135,14 +146,16 @@ def api_log_check_status(request, id):
 
 @login_required
 @user_passes_test(lambda u: u.is_active, login_url='/unauthorized')
-#@cache_page(60 * 60 * 24)
 def guild_log_encounter_show(request, id_encounter):
 
-	encounter 		= get_object_or_404(Encounter, id=int(id_encounter))
+	data 			= cache.get("encounter_%d" % int(id_encounter))
+	if data is None:
+		data 		= get_object_or_404(Encounter, id=int(id_encounter))
+		data.process_for_display()
+		cache.set("encounter_%d" % int(id_encounter), data, 86400)
 
-	encounter.process_for_display()
 
-	return render(request, 'encounter/show.html', {'encounter': encounter})
+	return render(request, 'encounter/show.html', {'encounter': data})
 
 @login_required
 def ranking_boss(request, id):
@@ -151,28 +164,30 @@ def ranking_boss(request, id):
 
 @login_required
 @user_passes_test(lambda u: u.is_active, login_url='/unauthorized')
-#@cache_page(60 * 60 * 24)
 def actor_show_detail(request, id_encounter, id_obj):
 
 	#encounter 	= get_object_or_404(Encounter, id=int(id_encounter))
-	actor 		= get_object_or_404(Actor, encounter__id=int(id_encounter), obj_id=int(id_obj))
-	stats 		= actor.encounter.stats()
-	stats.parse()
+	data 		= cache.get("encounter_%d_actor_%d" % (int(id_encounter), int(id_obj)))
+	if data is None:
+		actor 		= get_object_or_404(Actor, encounter__id=int(id_encounter), obj_id=int(id_obj))
+		stats 		= actor.encounter.stats()
+		stats.parse()
 
-	data 		= {
-		'actor': 						actor,
-		'deathes':						stats.get_deathlog(),
-		'rez':							stats.get_rez(),
-		'buffes':						stats.get_important_buffes(),
-		'timeline':						stats.get_timeline(id_obj),
-		'stats':						stats.get_detailed_stats(id_obj),
-		'encounter_stats': 				stats,
-		'detailed_total_stats': 		stats.get_detailed_total_stats(id_obj),
-		'detailed_total_stats_received':stats.get_detailed_total_stats(id_obj, 'received'),
-		'detailed_by_actor_stats': 		stats.get_detailed_by_actor_stats(id_obj),
-		'important_buffes': 			stats.get_actor_important_buffes(id_obj),
-		'actor_buffes':					stats.get_actor_buffes(id_obj),
-	}
+		data 		= {
+			'actor': 						actor,
+			'deathes':						stats.get_deathlog(),
+			'rez':							stats.get_rez(),
+			'buffes':						stats.get_important_buffes(),
+			'timeline':						stats.get_timeline(id_obj),
+			'stats':						stats.get_detailed_stats(id_obj),
+			'encounter_stats': 				stats,
+			'detailed_total_stats': 		stats.get_detailed_total_stats(id_obj),
+			'detailed_total_stats_received':stats.get_detailed_total_stats(id_obj, 'received'),
+			'detailed_by_actor_stats': 		stats.get_detailed_by_actor_stats(id_obj),
+			'important_buffes': 			stats.get_actor_important_buffes(id_obj),
+			'actor_buffes':					stats.get_actor_buffes(id_obj),
+		}
+		cache.set("encounter_%d_actor_%d" % (int(id_encounter), int(id_obj)), data, 86400)
 
 	return render(request, 'actor/show.html', data)
 

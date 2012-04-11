@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% load logparse_tpl_filters %}
-{% load i18n %}
+{% load i18n cache %}
 {% block "content" %}
 	<script type="text/javascript">
           function checkLogProcessingStatus()
@@ -65,28 +65,30 @@
       </div>
     {% endif %}
 	{% else %}
-    <h2>Raid [{{ log.upload_date }}]</h2>
-    <table class="table">
-      {% regroup log.encounters by boss.raid as by_raid %}
-      {% for raid in by_raid %}
-        <tr>
-          <th>{% trans raid.grouper.name %}</th>
-        </tr>
-        {% regroup raid.list by boss as en %}
-          {% for e in en %}
-            <tr><td class="left">{% trans e.grouper.name %} ({{ e.list|length }}) :
-            {% for eee in e.list %}
-             <a href="{% url guild_log_encounter_show eee.id %}">
-               <span class="{{ eee.wipe|yesno:"icon-remove,icon-ok" }}"></span> 
-               <span class="{{ eee.wipe|yesno:"error,success" }} {{ eee.wipe|yesno:"bold" }}">
-                  {{ eee.stats.duration|secs }}
-                </span>
-              </a>{% if forloop.last %}.{% else %},{% endif %}
-            {% endfor %}
-            </td></tr>
+    {% cache 86400 log log.id %}
+      <h2>Raid [{{ log.upload_date }}]</h2>
+      <table class="table">
+        {% regroup log.encounters by boss.raid as by_raid %}
+        {% for raid in by_raid %}
+          <tr>
+            <th>{% trans raid.grouper.name %}</th>
+          </tr>
+          {% regroup raid.list by boss as en %}
+            {% for e in en %}
+              <tr><td class="left">{% trans e.grouper.name %} ({{ e.list|length }}) :
+              {% for eee in e.list %}
+               <a href="{% url guild_log_encounter_show eee.id %}">
+                 <span class="{{ eee.wipe|yesno:"icon-remove,icon-ok" }}"></span> 
+                 <span class="{{ eee.wipe|yesno:"error,success" }} {{ eee.wipe|yesno:"bold" }}">
+                    {{ eee.stats.duration|secs }}
+                  </span>
+                </a>{% if forloop.last %}.{% else %},{% endif %}
+              {% endfor %}
+              </td></tr>
+          {% endfor %}
         {% endfor %}
-      {% endfor %}
-    </table>
-    <p class="little">{% blocktrans with start_time=log.start_processing_time end_time=log.end_processing_time %}Processing data : From {{ start_time }} to {{ end_time }}.{% endblocktrans %}</p>
+      </table>
+      <p class="little">{% blocktrans with start_time=log.start_processing_time end_time=log.end_processing_time %}Processing data : From {{ start_time }} to {{ end_time }}.{% endblocktrans %}</p>
+    {% endcache %}
 	{% endif %}
 {% endblock %}
