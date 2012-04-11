@@ -180,16 +180,16 @@
     <thead>
       <tr>
         <th style="width: 20%;">{% trans "Skill Name" %}</th>
-        <th style="width: 10%;">{% trans "Damages" %}</th>
-        <th style="width: 10%;">{% trans "Max Dmg" %}</th>
-        <th style="width: 10%;">{% trans "DPS" %}</th>
-        <th style="width: 10%;">{% trans "% DPS" %}</th>
-        <th style="width: 10%;">{% trans "Crits" %}</th>
-        <th style="width: 10%;">{% trans "Heals" %}</th>
-        <th style="width: 10%;">{% trans "Max Heals" %}</th>
-        <th style="width: 10%;">{% trans "HPS" %}</th>
-        <th style="width: 10%;">{% trans "% HPS" %}</th>
-        <th style="width: 10%;">{% trans "Crits" %}</th>
+        <th style="width: 8%;">{% trans "Damages" %}</th>
+        <th style="width: 10%;">{% trans "Avg/Max" %}</th>
+        <th style="width: 8%;">{% trans "DPS" %}</th>
+        <th style="width: 5%;">{% trans "% DPS" %}</th>
+        <th style="width: 8%;">{% trans "Crits" %}</th>
+        <th style="width: 8%;">{% trans "Heals" %}</th>
+        <th style="width: 8%;">{% trans "Max Heals" %}</th>
+        <th style="width: 8%;">{% trans "HPS" %}</th>
+        <th style="width: 5%;">{% trans "% HPS" %}</th>
+        <th style="width: 8%;">{% trans "Crits" %}</th>
       </tr>
     </thead>
     <tbody>
@@ -197,7 +197,7 @@
         <tr{% if stat.skill_name == 'Total' %} class="bold"{% endif %}>
           <td>{{ stat.skill_name }}</td>
           <td>{{ stat.hits }}</td>
-          <td>{% widthratio stat.hits stat.hits_count 1 %} / {{ stat.max_hits }} ({{ stat.hits_count }})</td>
+          <td>{% widthratio stat.hits stat.hits_count 1 %} / {{ stat.max_hits }}</td>
           <td>{% widthratio stat.hits encounter_stats.duration 1 %}</td>
           <td>{% if stat.skill_name == 'Total' %}100{% else %}{% widthratio stat.hits stats.done.hits 100 %}{% endif %}%</td>
           <td>{% widthratio stat.critical_hits_count stat.hits_count 100 %}% ({{ stat.critical_hits_count }}/{{ stat.hits_count }})</td>
@@ -349,14 +349,14 @@
   </div>
 
   <ul class="nav nav-tabs">
-    <li><a href="#done" data-toggle="tab">{% trans "Done" %}</a></li>
+    <li class="active"><a href="#done" data-toggle="tab">{% trans "Done" %}</a></li>
     <li><a href="#received" data-toggle="tab">{% trans "Received" %}</a></li>
   </ul>
 
   {% regroup actor_buffes by view as buff_by_pov %}
   <div class="tab-content">
     {% for pov in buff_by_pov %}
-      <div class="tab-pane active" id="{{ pov.grouper }}" style="min-width: 1100px;">
+      <div class="tab-pane{% if pov.grouper|lower == 'done' %} active{% endif %}" id="{{ pov.grouper }}" style="min-width: 1100px;">
         <h2>{% trans pov.grouper %}</h2>
         <table class="table table-condensed">
           <thead>

@@ -42,7 +42,6 @@
           </tr>
           {% regroup raid.list by boss as en %}
             {% for e in en %}
-              {% if e.parsed %}
                 <tr><td class="left">{% trans e.grouper.name %} ({{ e.list|length }}) :
                 {% for eee in e.list %}
                  <a href="{% url guild_log_encounter_show eee.id %}">
@@ -53,7 +52,6 @@
                   </a>{% if forloop.last %}.{% else %},{% endif %}
                 {% endfor %}
                 </td></tr>
-              {% endif %}
           {% endfor %}
         {% endfor %}
       </table>

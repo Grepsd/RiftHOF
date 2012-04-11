@@ -1,5 +1,6 @@
 # Django settings for rifthof project.
 from os import getcwd
+from django.core.urlresolvers import reverse
 
 BASEPATH    = getcwd()
 
@@ -162,8 +163,9 @@ LOGGING = {
         },
     }
 }
-LOGIN_URL           = '/login'
-LOGIN_REDIRECT_URL  = '/'
+
+LOGIN_URL           = reverse('login')
+LOGIN_REDIRECT_URL  = reverse('home')
 
 AUTH_PROFILE_MODULE = 'logparse.UserProfile'
 

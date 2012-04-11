@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from models import *
 from django.core.context_processors import csrf
 from django.contrib.auth.decorators import login_required, user_passes_test
@@ -125,10 +125,8 @@ def guild_log_upload(request):
 @login_required
 @user_passes_test(lambda u: u.is_active, login_url='/unauthorized')
 def guild_log_show(request, id):
-	data	= {
-		'log':	 Log.objects.get(id=id),
-	}
-	return render(request, 'log/show.html', data)
+	log = get_object_or_404(Log, id=id)
+	return render(request, 'log/show.html', {'log': log})
 
 @login_required
 @user_passes_test(lambda u: u.is_active, login_url='/unauthorized')
@@ -137,56 +135,14 @@ def api_log_check_status(request, id):
 
 @login_required
 @user_passes_test(lambda u: u.is_active, login_url='/unauthorized')
-@cache_page(60 * 60 * 24)
+#@cache_page(60 * 60 * 24)
 def guild_log_encounter_show(request, id_encounter):
 
-	id_encounter = int(id_encounter)
+	encounter 		= get_object_or_404(Encounter, id=int(id_encounter))
 
-	enc 	= Encounter.objects.get(id=id_encounter)
-	c 		= False
-	if not enc.parsed:
-		enc.parse()
-		c = True
+	encounter.process_for_display()
 
-	stats = enc.stats()
-	try:
-		stats.parse()
-	except:
-		enc.parse()
-		stats = enc.stats()
-		stats.parse()
-
-	if c:
-		stats.create_actors()
-
-	if not enc.boss:
-		boss_id 	= 0
-		boss_name 	= 'Unknown'
-	else:
-		boss_id 	= enc.boss.id
-		boss_name 	= enc.boss.name
-
-	data = cache.get("encounter_%d" % id_encounter)
-	# to remove
-	data = None
-
-	if data is None:
-		data 	= {
-			'encounter':	enc,
-			'boss_id':		boss_id,
-			'boss_name':	boss_name,
-			'all_tops':		stats.all_tops(),
-			'npc_all_tops':	stats.npc_all_tops(),
-			'timeline':		stats.get_timeline(),
-			'deathes':		stats.get_deathlog(),
-			'rez':			stats.get_rez(),
-			'buffes':		stats.get_important_buffes(),
-			'life_and_death':stats.get_life_and_death(),
-			}
-
-		cache.set("encounter_%d" % id_encounter, data, 6 * 15)
-
-	return render(request, 'encounter/show.html', data)
+	return render(request, 'encounter/show.html', {'encounter': encounter})
 
 @login_required
 def ranking_boss(request, id):
@@ -195,44 +151,29 @@ def ranking_boss(request, id):
 
 @login_required
 @user_passes_test(lambda u: u.is_active, login_url='/unauthorized')
-@cache_page(60 * 60 * 24)
+#@cache_page(60 * 60 * 24)
 def actor_show_detail(request, id_encounter, id_obj):
-	id_encounter	= int(id_encounter)
-	id_obj			= int(id_obj)
 
-	data 			= cache.get("encounter_%d_actor_%d" % (id_encounter, id_obj))
+	#encounter 	= get_object_or_404(Encounter, id=int(id_encounter))
+	actor 		= get_object_or_404(Actor, encounter__id=int(id_encounter), obj_id=int(id_obj))
+	stats 		= actor.encounter.stats()
+	stats.parse()
 
-	# to remove
-	#data = None
+	data 		= {
+		'actor': 						actor,
+		'deathes':						stats.get_deathlog(),
+		'rez':							stats.get_rez(),
+		'buffes':						stats.get_important_buffes(),
+		'timeline':						stats.get_timeline(id_obj),
+		'stats':						stats.get_detailed_stats(id_obj),
+		'encounter_stats': 				stats,
+		'detailed_total_stats': 		stats.get_detailed_total_stats(id_obj),
+		'detailed_total_stats_received':stats.get_detailed_total_stats(id_obj, 'received'),
+		'detailed_by_actor_stats': 		stats.get_detailed_by_actor_stats(id_obj),
+		'important_buffes': 			stats.get_actor_important_buffes(id_obj),
+		'actor_buffes':					stats.get_actor_buffes(id_obj),
+	}
 
-	if data is None:
-		encounter 	= Encounter.objects.get(id=id_encounter)
-		stats 		= encounter.stats()
-		stats.parse()
-		try:
-			actor 		= Actor.objects.get(encounter__id=id_encounter, obj_id=id_obj)
-		except MultipleObjectsReturned:
-			Actor.objects.filter(encounter__id=id_encounter, obj_id=id_obj)[1].delete()
-			actor 		= Actor.objects.get(encounter__id=id_encounter, obj_id=id_obj)
-		except:
-			stats.create_actors()
-			actor 		= Actor.objects.get(encounter__id=id_encounter, obj_id=id_obj)
-
-		data 		= {
-			'actor': 						actor,
-			'deathes':						stats.get_deathlog(),
-			'rez':							stats.get_rez(),
-			'buffes':						stats.get_important_buffes(),
-			'timeline':						stats.get_timeline(id_obj),
-			'stats':						stats.get_detailed_stats(id_obj),
-			'encounter_stats': 				stats,
-			'detailed_total_stats': 		stats.get_detailed_total_stats(id_obj),
-			'detailed_total_stats_received':stats.get_detailed_total_stats(id_obj, 'received'),
-			'detailed_by_actor_stats': 		stats.get_detailed_by_actor_stats(id_obj),
-			'important_buffes': 			stats.get_actor_important_buffes(id_obj),
-			'actor_buffes':					stats.get_actor_buffes("%d" % id_obj),
-			}
-		cache.set("encounter_%d_actor_%d" % (id_encounter, id_obj), data, 6 * 15)
 	return render(request, 'actor/show.html', data)
 
 def unauthorized(request):

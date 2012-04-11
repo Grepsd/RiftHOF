@@ -230,7 +230,7 @@ class Encounter:
 
 		self.update_simple_struct(tmp, type_action, amount, is_crit)
 		
-		if skill_id != 0:
+		if skill_id != 0 and not inverse_view:
 			self.update_actor_detail_for_actor_skill(source, target, type_action, 0, amount, is_crit)
 
 	def get_actor_global_stats(self, actor, view):
@@ -606,6 +606,8 @@ class Parser:
 		self.log_id				= log_id
 		self.actors 			= []
 
+		self.death_time			= None
+
 	def handle_file(self):
 		tmp_path	= settings.MEDIA_ROOT + '/combat_logs/%d/' % self.log_id
 		try:
@@ -799,7 +801,16 @@ class Parser:
 		if line_data['action'] == 11:
 			# the actor who's dead was a boss ? It's important to detect wether or not the raid wiped on the boss.
 			if line_data['target_name'] in bosses_list:
-				self.boss_killed = bosses_list[line_data['target_name']]
+				self.boss_killed 	= bosses_list[line_data['target_name']]
+				self.in_combat		= False
+				self.combat_status 	= False
+				self.save_encounter(full)
+				self.lines_buffer 	= []
+				self.boss 			= None
+				self.boss_killed 	= None
+				self.kia 			= []
+				self.death_time 	= otime
+				print "death of %s at %d" % (line_data['target_name'], (otime - self.start_time).total_seconds())
 			# if the actor who's dead is a player, add him to the KIA list.
 			if line_data['target_name'] not in self.kia and line_data['target_primary_type'] == 'P':
 				self.kia.append(line_data['target_name'])
@@ -815,9 +826,10 @@ class Parser:
 
 		# first attack and we're not yet in combat ? Well, now we are.
 		if not self.in_combat and is_attack:
-			self.in_combat			= True
-			self.start_offset 		= self.curr_offset
-			self.start_time			= otime
+			if self.death_time is None or self.death_time is not None and (otime - self.death_time).total_seconds() > 30:
+				self.in_combat			= True
+				self.start_offset 		= self.curr_offset
+				self.start_time			= otime
 
 		# detect the current encounter boss from target and source.
 		if self.boss is None and line_data['target_name'] in bosses_list:
@@ -850,7 +862,7 @@ class Parser:
 
 	def save_encounter(self, full):
 		self.encounter_count 	+= 1
-		enc 					= Encounter(self.lines_buffer, self.start_offset, self.curr_offset, self.boss, self.boss_killed is not None)
+		enc 					= Encounter(self.lines_buffer, self.start_offset, self.file.tell(), self.boss, self.boss_killed is not None)
 		if not full:
 			print "\t Saving encounter against %s" % enc.bosses
 		data 					= enc.serialize()

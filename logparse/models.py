@@ -112,7 +112,7 @@ class Log(models.Model):
 
 	def parse(self):
 		if not self.processed and not self.processing:
-			print "processing !!! %d" % self.id
+			[x.delete() for x in self.encounters()]
 			self.processing = True
 			self.save()
 			parser = Parser(settings.BASEPATH + '/content' + self.log_file.url, log_id=self.id)
@@ -136,8 +136,29 @@ class Encounter(models.Model):
 
 	cache 				= None
 
+	stats_cache			= None
+
 	def __unicode__(self):
 		return "%d against %s" % (self.id, u'%s' % self.boss)
+
+	def process_for_display(self):
+		create_actors 	= False
+		if not self.parsed:
+			self.parse()
+			create_actors= True
+
+		stats = self.stats()
+		try:
+			stats.parse()
+		except:
+			self.parse()
+			stats = self.stats()
+			stats.parse()
+
+		if create_actors:
+			stats.create_actors()
+		
+		self.stats_cache = stats
 
 	def parse(self):
 		if not self.parsed:
@@ -163,6 +184,8 @@ class Encounter(models.Model):
 			self.save()
 
 	def stats(self):
+		if self.stats_cache is not None:
+			return self.stats_cache
 		try:
 			return EncounterStats.objects.get(encounter=self)
 		except:
@@ -471,7 +494,6 @@ class EncounterStats(models.Model):
 		return result
 	
 	def get_actor_timeline(self, id_obj):
-		id_obj 		= '%d' % id_obj
 		results 	= {}
 		aaaa= {}
 		for time,stats in self.rdata['stats']['actor'][id_obj]['timeline'].items():
@@ -495,7 +517,7 @@ class EncounterStats(models.Model):
 		return final
 
 	def get_detailed_stats(self, obj_id):
-		result 	= self.rdata['stats']['actor']['%d' % obj_id]['global']
+		result 	= self.rdata['stats']['actor'][obj_id]['global']
 		if result['done']['hits_count'] >  0:
 			result['done']['hit_crit_rate'] = float(result['done']['critical_hits_count']) / result['done']['hits_count'] * 100
 		else:
@@ -606,6 +628,7 @@ class EncounterStats(models.Model):
 			a = self.rdata['actors'][actor]['name']
 			for view, buffes in stats['buffes'].items():
 				if view != "done":
+					continue
 					for target, skills in buffes['buff'].items():
 						for skill_id, timeline in skills.items():
 							# sicaron's contract
@@ -657,7 +680,6 @@ class EncounterStats(models.Model):
 		return results
 	
 	def get_detailed_total_stats(self, actor_id, view='done'):
-		actor_id = '%d' % actor_id
 		results	= []
 		for skill_id, stats in self.rdata['stats']['actor'][actor_id][view]['skill'].items():
 			tmp = stats
@@ -668,7 +690,6 @@ class EncounterStats(models.Model):
 
 
 	def get_detailed_by_actor_stats(self, actor_id):
-		actor_id = '%d' % actor_id
 		results	= []
 		for actor, skills in self.rdata['stats']['actor'][actor_id]['done']['actor_skill'].items():
 			actor_name = self.get_actor(actor)['name']

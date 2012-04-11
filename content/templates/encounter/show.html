@@ -4,10 +4,6 @@
 {% load logparse_tpl_filters %}
 {% block "content" %}
   <script type="text/javascript">
-    if ({{ boss_id}} == 0)
-    {
-      setTimeout('document.location.reload()', 1000);
-    };
     $(function () {
       var chart;
       $(document).ready(function() {
@@ -23,7 +19,7 @@
                   text: 'DPS Charts'
               },
               xAxis: {
-                  categories: [{% for el in all_tops|dictsortreversed:"damages_value" %}{% if el.name != 'total' %}'{{ el.name|escapejs }}',{% endif %}{% endfor %}],
+                  categories: [{% for el in encounter.stats.all_tops|dictsortreversed:"damages_value" %}{% if el.name != 'total' %}'{{ el.name|escapejs }}',{% endif %}{% endfor %}],
                   title: {
                       text: 'Player Name'
                   },
@@ -69,7 +65,7 @@
               },
               series: [{
                   name: 'dps',
-                  data: [{% for el in all_tops|dictsortreversed:"damages_value" %}{% if el.name != 'total' %}{{ el.damages_by_time }}{% if not forloop.last %},{% endif %}{% endif %}{% endfor %}],
+                  data: [{% for el in encounter.stats.all_tops|dictsortreversed:"damages_value" %}{% if el.name != 'total' %}{{ el.damages_by_time }}{% if not forloop.last %},{% endif %}{% endif %}{% endfor %}],
               }]
           });
           hps_chart = new Highcharts.Chart({
@@ -81,7 +77,7 @@
                   text: 'HPS Charts'
               },
               xAxis: {
-                  categories: [{% for el in all_tops|dictsortreversed:"heals_value" %}{% if el.name != 'total' %}'{{ el.name|escapejs }}',{% endif %}{% endfor %}],
+                  categories: [{% for el in encounter.stats.all_tops|dictsortreversed:"heals_value" %}{% if el.name != 'total' %}'{{ el.name|escapejs }}',{% endif %}{% endfor %}],
                   title: {
                       text: 'Player Name'
                   }
@@ -126,7 +122,7 @@
               },
               series: [{
                   name: 'hps',
-                  data: [{% for el in all_tops|dictsortreversed:"heals_value" %}{% if el.name != 'total' %}{{ el.heals_by_time }},{% endif %}{% endfor %}],
+                  data: [{% for el in encounter.stats.all_tops|dictsortreversed:"heals_value" %}{% if el.name != 'total' %}{{ el.heals_by_time }},{% endif %}{% endfor %}],
               }]
           });
           dmg_taken_chart = new Highcharts.Chart({
@@ -138,7 +134,7 @@
                   text: 'Damages Taken Charts'
               },
               xAxis: {
-                  categories: [{% for el in all_tops|dictsortreversed:"taken_value" %}{% if el.name != 'total' %}'{{ el.name|escapejs }}',{% endif %}{% endfor %}],
+                  categories: [{% for el in encounter.stats.all_tops|dictsortreversed:"taken_value" %}{% if el.name != 'total' %}'{{ el.name|escapejs }}',{% endif %}{% endfor %}],
                   title: {
                       text: 'Player Name'
                   }
@@ -183,13 +179,13 @@
               },
               series: [{
                   name: 'taken',
-                  data: [{% for el in all_tops|dictsortreversed:"taken_value" %}{% if el.name != 'total' %}{{ el.taken_by_time }},{% endif %}{% endfor %}],
+                  data: [{% for el in encounter.stats.all_tops|dictsortreversed:"taken_value" %}{% if el.name != 'total' %}{{ el.taken_by_time }},{% endif %}{% endfor %}],
               }]
           });     
              
           timeline_chart = new Highcharts.Chart({
 
-          {% with timeline_list=timeline.total|dictsort:"time" %}
+          {% with timeline_list=encounter.stats.get_timeline.total|dictsort:"time" %}
           
           chart: {
                 renderTo: 'timeline',
@@ -203,7 +199,7 @@
                 categories: [{% for time in timeline_list %}'{{ time.time|secs }}',{% endfor %}],
                 tickInterval: 6,
                 plotBands: [
-                  {% for buff in buffes %}
+                  {% for buff in encounter.stats.get_important_buffes %}
                     {% if buff.render == 'band' %}
                       {
                         from: {{ buff.from }} / 5,
@@ -224,7 +220,7 @@
                   {% endfor %}
                 ],
                 plotLines: [
-                  {% for death in deathes %}
+                  {% for death in encounter.stats.get_deathlog %}
                     {
                         value : {{ death.time }} / 5,
                         color: '#A00',
@@ -234,7 +230,7 @@
                          zindex: 10,
                     },
                   {% endfor %}
-                  {% for r in rez %}
+                  {% for r in encounter.stats.get_rez %}
                     {
                         value : {{ r.time }} / 5,
                         color: '#0A0',
@@ -300,10 +296,10 @@
                 text: 'Timeline'
             },
             xAxis: {
-                categories: [{% for time in timeline.total|dictsort:"time" %}'{{ time.time|secs }}',{% endfor %}],
+                categories: [{% for time in encounter.stats.get_timeline.total|dictsort:"time" %}'{{ time.time|secs }}',{% endfor %}],
                 tickInterval: 6,
                 plotBands: [
-                  {% for buff in buffes %}
+                  {% for buff in encounter.stats.get_important_buffes %}
                     {% if buff.render == 'band' %}
                       {
                         from: {{ buff.from }} / 5,
@@ -324,7 +320,7 @@
                   {% endfor %}
                 ],
                 plotLines: [
-                  {% for death in deathes %}
+                  {% for death in encounter.stats.get_deathlog %}
                     {
                         value : {{ death.time }} / 5,
                         color: '#A00',
@@ -334,7 +330,7 @@
                          zindex: 10,
                     },
                   {% endfor %}
-                  {% for r in rez %}
+                  {% for r in encounter.stats.get_rez %}
                     {
                         value : {{ r.time }} / 5,
                         color: '#0A0',
@@ -377,12 +373,12 @@
 
 
             series: [
-            {% for actor, timeline_actor in timeline.items %}
+            {% for actor, timeline_actor in encounter.stats.get_timeline.items %}
               {% if actor != "total" %}
               {
                   name: '{{ actor|escapejs }}',
                   data: [{% for stats in timeline_actor|dictsort:"time" %}{{ stats.done.hits }} / 5,{% endfor %}],
-                  visible: false,
+                  visible: {% if forloop.counter0 > 2 %}false{% else %}true{% endif %},
               },
               {% endif %}
             {% endfor %}]
@@ -400,10 +396,10 @@
                 text: 'Timeline'
             },
             xAxis: {
-                categories: [{% for time in timeline.total|dictsort:"time" %}'{{ time.time|secs }}',{% endfor %}],
+                categories: [{% for time in encounter.stats.get_timeline.total|dictsort:"time" %}'{{ time.time|secs }}',{% endfor %}],
                 tickInterval: 6,
                 plotBands: [
-                  {% for buff in buffes %}
+                  {% for buff in encounter.stats.get_important_buffes %}
                     {% if buff.render == 'band' %}
                       {
                         from: {{ buff.from }} / 5,
@@ -424,7 +420,7 @@
                   {% endfor %}
                 ],
                 plotLines: [
-                  {% for death in deathes %}
+                  {% for death in encounter.stats.get_deathlog %}
                     {
                         value : {{ death.time }} / 5,
                         color: '#A00',
@@ -436,7 +432,7 @@
                          zindex: 10,
                     },
                   {% endfor %}
-                  {% for r in rez %}
+                  {% for r in encounter.stats.get_rez %}
                     {
                         value : {{ r.time }} / 5,
                         color: '#0A0',
@@ -481,12 +477,12 @@
 
 
             series: [
-            {% for actor, timeline_actor in timeline.items %}
+            {% for actor, timeline_actor in encounter.stats.get_timeline.items %}
               {% if actor != "total" %}
               {
                   name: '{{ actor|escapejs }}',
                   data: [{% for stats in timeline_actor|dictsort:"time" %}{{ stats.done.heals }} / 5,{% endfor %}],
-                  visible: false,
+                  visible: {% if forloop.counter0 > 2 %}false{% else %}true{% endif %},
               },
               {% endif %}
             {% endfor %}]
@@ -539,7 +535,7 @@
       {% endfor %}
     });
     </script>
-  <h2 class="center"><span class="{{ encounter.wipe|yesno:"icon-remove,icon-ok" }}"></span> <a href="{% url ranking_boss boss_id %}">{% trans boss_name %}</a> [{{ encounter.stats.duration|secs }}]</h2>
+  <h2 class="center"><span class="{{ encounter.wipe|yesno:"icon-remove,icon-ok" }}"></span> <a href="{% url ranking_boss encounter.boss.id %}">{% trans encounter.boss.name %}</a> [{{ encounter.stats.duration|secs }}]</h2>
 
   <a href="{% url guild_log_show encounter.log.id %}"><span class="btn btn-success">< < {% trans "Back" %}</span></a><br /><br />
 
@@ -588,7 +584,7 @@
           </tr>
         </thead>
         <tbody>
-          {% for stats in all_tops|dictsortreversed:"damages_original" %}
+          {% for stats in encounter.stats.all_tops|dictsortreversed:"damages_original" %}
             <tr id="tooltip_{{ stats.name }}">
               {% if stats.damages_id > 0 %}
                 <td><a href="{% url actor_show_detail encounter.id stats.damages_id %}">{{ stats.name }}</a></td>
@@ -626,7 +622,7 @@
           </tr>
         </thead>
         <tbody>
-          {% for stats in npc_all_tops|dictsortreversed:"damages_original" %}
+          {% for stats in encounter.stats.npc_all_tops|dictsortreversed:"damages_original" %}
             <tr>
               {% if stats.damages_id > 0 %}
                 <td>{{ stats.name }} ({{ stats.damages_count }})</td>
@@ -648,7 +644,7 @@
       </table>
     </div>
     <div class="tab-pane" id="life_and_death" style="min-width: 1100px;">
-      {% for event in life_and_death|dictsort:"time" %}
+      {% for event in encounter.stats.get_life_and_death|dictsort:"time" %}
         <span class="{% if event.type == 'death' %}error{% else %}success{% endif %}">{% if event.type == 'death' %}[D]{% else %}[L]{% endif %} {{ event.time|secs }} {{ event.player }}</span><br />
       {% endfor %}
     </div>
