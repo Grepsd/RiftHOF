@@ -136,7 +136,8 @@ def guild_log_show(request, id):
 	log 	= cache.get("log_%d" % int(id))
 	if log is None:
 		log = get_object_or_404(Log, id=id)
-		cache.set("log_%d" % int(id), log, 86400)
+		if log.processed:
+			cache.set("log_%d" % int(id), log, 86400)
 	return render(request, 'log/show.html', {'log': log})
 
 @login_required
@@ -149,6 +150,7 @@ def api_log_check_status(request, id):
 def guild_log_encounter_show(request, id_encounter):
 
 	data 			= cache.get("encounter_%d" % int(id_encounter))
+	data = None
 	if data is None:
 		print "not using cache"
 		data 		= get_object_or_404(Encounter, id=int(id_encounter))

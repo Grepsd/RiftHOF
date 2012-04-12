@@ -588,7 +588,7 @@
             {% for stats in encounter.stats.all_tops|dictsortreversed:"damages_original" %}
               <tr id="tooltip_{{ stats.name }}">
                 {% if stats.damages_id > 0 %}
-                  <td><a href="{% url actor_show_detail encounter.id stats.damages_id %}">{{ stats.name }}</a></td>
+                  <td><a href="{% url actor_show_detail encounter.id stats.damages_id %}" class="calling_{{ stats.damages_actor.calling }}">{{ stats.name }}</a></td>
                 {% else %}
                   <td>{% trans stats.name %}</td>
                 {% endif %}
@@ -651,5 +651,5 @@
       </div>
     </div>
     <a href="{% url guild_log_show encounter.log.id %}"><span class="btn btn-success">< < {% trans "Back" %}</span></a>
-  {% endcache %}
+    {% endcache %}
 {% endblock %}

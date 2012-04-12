@@ -52,3 +52,19 @@ table.valid_top td {
 p.little {
 	font-size:				0.8em;
 }
+
+.calling_cleric {
+	color:					#0A0;
+}
+
+.calling_rogue {
+	color:					#A70;
+}
+
+.calling_mage {
+	color:					#A0A;
+}
+
+.calling_warrior {
+	color:					#A00;
+}
