@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-04-06 16:54+0200\n"
+"POT-Creation-Date: 2012-04-13 15:20+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -54,11 +54,11 @@ msgstr "Se connecter"
 msgid "Register"
 msgstr "S'enregistrer"
 
-#: content/templates/home.html:5
+#: content/templates/home.html:6
 msgid "News"
 msgstr "Nouvelles"
 
-#: content/templates/home.html:18
+#: content/templates/home.html:19
 #, python-format
 msgid "Posted by %(author)s %(publication_date)s"
 msgstr "Postée par %(author)s %(publication_date)s"
@@ -113,7 +113,7 @@ msgstr "Voir"
 msgid "You're not part of any guild."
 msgstr "Vous ne faites partie d'aucune guilde."
 
-#: content/templates/actor/show.html:113
+#: content/templates/actor/show.html:115
 #, python-format
 msgid ""
 "Details for %(actor_name)s on <a href=\"%(url_fight)s\">%(boss_name)s</a>'s "
@@ -122,158 +122,158 @@ msgstr ""
 "Détails de %(actor_name)s sur le combat contre <a href=\"%(url_fight)s\">"
 "%(boss_name)s</a>'s "
 
-#: content/templates/actor/show.html:118
+#: content/templates/actor/show.html:120
 msgid "Global DPS"
 msgstr "DPS global"
 
-#: content/templates/actor/show.html:119
+#: content/templates/actor/show.html:121
 msgid "Global HPS"
 msgstr "HPS global"
 
-#: content/templates/actor/show.html:120
+#: content/templates/actor/show.html:122
 msgid "Global DPS Taken"
 msgstr "DPS subit global"
 
-#: content/templates/actor/show.html:135
+#: content/templates/actor/show.html:137
 msgid "Total Stats"
 msgstr "Stats totals"
 
-#: content/templates/actor/show.html:140
+#: content/templates/actor/show.html:142
 msgid "Type"
 msgstr ""
 
-#: content/templates/actor/show.html:141
+#: content/templates/actor/show.html:143
 msgid "Total"
 msgstr ""
 
-#: content/templates/actor/show.html:142
+#: content/templates/actor/show.html:144
 msgid "Count"
 msgstr "Nombre"
 
-#: content/templates/actor/show.html:143
+#: content/templates/actor/show.html:145
 msgid "Avg"
 msgstr "Moy."
 
-#: content/templates/actor/show.html:144
+#: content/templates/actor/show.html:146
 msgid "Crit rate"
 msgstr "Taux de Crit."
 
-#: content/templates/actor/show.html:145
+#: content/templates/actor/show.html:147
 msgid "Per Second"
 msgstr "Par seconde"
 
-#: content/templates/actor/show.html:149
+#: content/templates/actor/show.html:151
 msgid "Hits"
 msgstr "Coups"
 
-#: content/templates/actor/show.html:157 content/templates/actor/show.html:188
-#: content/templates/actor/show.html:224 content/templates/actor/show.html:284
-#: content/templates/actor/show.html:323
-#: content/templates/encounter/show.html:582
-#: content/templates/encounter/show.html:620
+#: content/templates/actor/show.html:159 content/templates/actor/show.html:190
+#: content/templates/actor/show.html:226 content/templates/actor/show.html:286
+#: content/templates/actor/show.html:325
+#: content/templates/encounter/show.html:534
+#: content/templates/encounter/show.html:572
 msgid "Heals"
 msgstr "Soins"
 
-#: content/templates/actor/show.html:165
+#: content/templates/actor/show.html:167
 msgid "Hits Taken"
 msgstr "Coups subit"
 
-#: content/templates/actor/show.html:175
+#: content/templates/actor/show.html:177
 msgid "Detail by skill"
 msgstr "Détail par skill"
 
-#: content/templates/actor/show.html:177 content/templates/actor/show.html:352
+#: content/templates/actor/show.html:179 content/templates/actor/show.html:354
 msgid "Done"
 msgstr "Fait"
 
-#: content/templates/actor/show.html:182 content/templates/actor/show.html:219
-#: content/templates/actor/show.html:279 content/templates/actor/show.html:318
-#: content/templates/actor/show.html:364
+#: content/templates/actor/show.html:184 content/templates/actor/show.html:221
+#: content/templates/actor/show.html:281 content/templates/actor/show.html:320
+#: content/templates/actor/show.html:366
 msgid "Skill Name"
 msgstr "Nom de skill"
 
-#: content/templates/actor/show.html:183 content/templates/actor/show.html:220
-#: content/templates/actor/show.html:280 content/templates/actor/show.html:319
-#: content/templates/encounter/show.html:508
-#: content/templates/encounter/show.html:579
-#: content/templates/encounter/show.html:617
-msgid "Damages"
+#: content/templates/actor/show.html:185 content/templates/actor/show.html:222
+#: content/templates/actor/show.html:282 content/templates/actor/show.html:321
+#: content/templates/encounter/show.html:531
+#: content/templates/encounter/show.html:569
+#, fuzzy
+msgid "Damage"
 msgstr "Domages"
 
-#: content/templates/actor/show.html:184
-msgid "Max Dmg"
+#: content/templates/actor/show.html:186
+msgid "Avg/Max"
 msgstr ""
 
-#: content/templates/actor/show.html:185 content/templates/actor/show.html:221
-#: content/templates/actor/show.html:281 content/templates/actor/show.html:320
-#: content/templates/encounter/show.html:548
-#: content/templates/encounter/show.html:580
-#: content/templates/encounter/show.html:618
+#: content/templates/actor/show.html:187 content/templates/actor/show.html:223
+#: content/templates/actor/show.html:283 content/templates/actor/show.html:322
+#: content/templates/encounter/show.html:500
+#: content/templates/encounter/show.html:532
+#: content/templates/encounter/show.html:570
 msgid "DPS"
 msgstr ""
 
-#: content/templates/actor/show.html:186 content/templates/actor/show.html:222
-#: content/templates/actor/show.html:282 content/templates/actor/show.html:321
+#: content/templates/actor/show.html:188 content/templates/actor/show.html:224
+#: content/templates/actor/show.html:284 content/templates/actor/show.html:323
 #, python-format
 msgid "%% DPS"
 msgstr ""
 
-#: content/templates/actor/show.html:187 content/templates/actor/show.html:192
-#: content/templates/actor/show.html:223 content/templates/actor/show.html:227
-#: content/templates/actor/show.html:283 content/templates/actor/show.html:287
-#: content/templates/actor/show.html:322 content/templates/actor/show.html:326
+#: content/templates/actor/show.html:189 content/templates/actor/show.html:194
+#: content/templates/actor/show.html:225 content/templates/actor/show.html:229
+#: content/templates/actor/show.html:285 content/templates/actor/show.html:289
+#: content/templates/actor/show.html:324 content/templates/actor/show.html:328
 msgid "Crits"
 msgstr ""
 
-#: content/templates/actor/show.html:189
+#: content/templates/actor/show.html:191
 msgid "Max Heals"
 msgstr "Soin Max"
 
-#: content/templates/actor/show.html:190 content/templates/actor/show.html:225
-#: content/templates/actor/show.html:285 content/templates/actor/show.html:324
-#: content/templates/encounter/show.html:549
-#: content/templates/encounter/show.html:583
-#: content/templates/encounter/show.html:621
+#: content/templates/actor/show.html:192 content/templates/actor/show.html:227
+#: content/templates/actor/show.html:287 content/templates/actor/show.html:326
+#: content/templates/encounter/show.html:501
+#: content/templates/encounter/show.html:535
+#: content/templates/encounter/show.html:573
 msgid "HPS"
 msgstr ""
 
-#: content/templates/actor/show.html:191 content/templates/actor/show.html:226
-#: content/templates/actor/show.html:286 content/templates/actor/show.html:325
+#: content/templates/actor/show.html:193 content/templates/actor/show.html:228
+#: content/templates/actor/show.html:288 content/templates/actor/show.html:327
 #, python-format
 msgid "%% HPS"
 msgstr ""
 
-#: content/templates/actor/show.html:214 content/templates/actor/show.html:353
+#: content/templates/actor/show.html:216 content/templates/actor/show.html:355
 msgid "Received"
 msgstr "Reçus"
 
-#: content/templates/actor/show.html:263
+#: content/templates/actor/show.html:265
 msgid "Detail by actor, skill"
 msgstr "Detail par actor & skills"
 
-#: content/templates/actor/show.html:266
-#: content/templates/encounter/show.html:569
+#: content/templates/actor/show.html:268
+#: content/templates/encounter/show.html:521
 msgid "NPCs"
 msgstr "Mobs"
 
-#: content/templates/actor/show.html:267
-#: content/templates/encounter/show.html:568
+#: content/templates/actor/show.html:269
+#: content/templates/encounter/show.html:520
 msgid "Players"
 msgstr "Joueurs"
 
-#: content/templates/actor/show.html:365
+#: content/templates/actor/show.html:367
 msgid "Type Buff"
 msgstr "Buff/Débuff"
 
-#: content/templates/actor/show.html:366
+#: content/templates/actor/show.html:368
 msgid "Target/Source"
 msgstr "Cible/Source"
 
-#: content/templates/actor/show.html:367
+#: content/templates/actor/show.html:369
 msgid "Total Duration"
 msgstr "Temps total"
 
-#: content/templates/actor/show.html:368
+#: content/templates/actor/show.html:370
 #, python-format
 msgid "%% uptime"
 msgstr ""
@@ -282,77 +282,105 @@ msgstr ""
 msgid "Boss list"
 msgstr "Liste des bosses"
 
-#: content/templates/encounter/show.html:499
-#: content/templates/encounter/show.html:502
-msgid "Spell"
-msgstr "Sort"
-
-#: content/templates/encounter/show.html:500
-#: content/templates/encounter/show.html:503
-msgid "Value"
-msgstr "Valeur"
-
-#: content/templates/encounter/show.html:501
-#: content/templates/encounter/show.html:504
-msgid "Ratio"
-msgstr ""
-
-#: content/templates/encounter/show.html:544
-#: content/templates/encounter/show.html:656
+#: content/templates/encounter/show.html:496
+#: content/templates/encounter/show.html:610
 msgid "Back"
 msgstr "Retour"
 
-#: content/templates/encounter/show.html:547
+#: content/templates/encounter/show.html:499
 msgid "Timeline"
 msgstr ""
 
-#: content/templates/encounter/show.html:550
+#: content/templates/encounter/show.html:502
 msgid "Taken"
 msgstr "Subit"
 
-#: content/templates/encounter/show.html:551
+#: content/templates/encounter/show.html:503
 msgid "DPS By Actor"
 msgstr "DPS par Acteur"
 
-#: content/templates/encounter/show.html:552
+#: content/templates/encounter/show.html:504
 msgid "HPS By Actor"
 msgstr "HPS par Acteur"
 
-#: content/templates/encounter/show.html:570
+#: content/templates/encounter/show.html:522
 msgid "Life&Death"
 msgstr ""
 
-#: content/templates/encounter/show.html:578
-#: content/templates/encounter/show.html:616
+#: content/templates/encounter/show.html:530
+#: content/templates/encounter/show.html:568
 msgid "Name"
 msgstr "Nom"
 
-#: content/templates/encounter/show.html:581
-#: content/templates/encounter/show.html:619
+#: content/templates/encounter/show.html:533
+#: content/templates/encounter/show.html:571
 #, python-format
 msgid "%% Dmg"
 msgstr ""
 
-#: content/templates/encounter/show.html:584
-#: content/templates/encounter/show.html:622
+#: content/templates/encounter/show.html:536
+#: content/templates/encounter/show.html:574
 #, python-format
 msgid "%% heals"
 msgstr "%% Soins"
 
-#: content/templates/encounter/show.html:585
-#: content/templates/encounter/show.html:623
+#: content/templates/encounter/show.html:537
+#: content/templates/encounter/show.html:575
 msgid "Dmg taken"
 msgstr ""
 
-#: content/templates/encounter/show.html:586
-#: content/templates/encounter/show.html:624
+#: content/templates/encounter/show.html:538
+#: content/templates/encounter/show.html:576
 msgid "DPS taken"
 msgstr ""
 
-#: content/templates/encounter/show.html:587
-#: content/templates/encounter/show.html:625
+#: content/templates/encounter/show.html:539
+#: content/templates/encounter/show.html:577
 #, python-format
 msgid "%% taken"
+msgstr ""
+
+#: content/templates/guild/home.html:35
+msgid "Only validated by admin users can upload logs."
+msgstr ""
+
+#: content/templates/guild/home.html:38
+msgid "Members"
+msgstr ""
+
+#: content/templates/guild/home.html:45 content/templates/guild/home.html:46
+msgid "Quit"
+msgstr ""
+
+#: content/templates/guild/home.html:50
+#, fuzzy
+msgid "You're not part of a guild."
+msgstr "Vous ne faites partie d'aucune guilde."
+
+#: content/templates/guild/home.html:54
+msgid "Do you want to create your own guild or to join an existing guild ?"
+msgstr ""
+
+#: content/templates/guild/home.html:57
+msgid "Create"
+msgstr ""
+
+#: content/templates/guild/home.html:58
+msgid "Join"
+msgstr ""
+
+#: content/templates/guild/list.html:7
+#, fuzzy, python-format
+msgid "You're already part of %(guild_name)s."
+msgstr "Vous ne faites partie d'aucune guilde."
+
+#: content/templates/guild/list.html:9
+#, fuzzy
+msgid "You're not part of any guild, join one !"
+msgstr "Vous ne faites partie d'aucune guilde."
+
+#: content/templates/guild/list.html:13
+msgid "Guild List"
 msgstr ""
 
 #: content/templates/log/show.html:30
@@ -364,33 +392,39 @@ msgid "This page will refresh automatically until the log is processed."
 msgstr ""
 "Cette page s'actualisera d'elle même jusqu'à ce que le log soit analysé."
 
-#: content/templates/log/show.html:62
+#: content/templates/log/show.html:60
 msgid "This log hasn't been processed yet."
 msgstr "Ce log n'a pas encore été analysé."
 
-#: content/templates/log/show.html:63
+#: content/templates/log/show.html:61
 msgid "The log will be processed as soon as possible."
 msgstr "Ce log sera analysé dès que possible."
 
-#: content/templates/log/show.html:92
+#: content/templates/log/show.html:91
 #, python-format
 msgid "Processing data : From %(start_time)s to %(end_time)s."
 msgstr ""
 
-msgid "rofl EN"
-msgstr "rofl FR"
+#~ msgid "Spell"
+#~ msgstr "Sort"
 
-msgid "hammerknell"
-msgstr "Glasmarteau"
+#~ msgid "Value"
+#~ msgstr "Valeur"
 
-msgid "drowned_hall"
-msgstr "Salles Englouties"
+#~ msgid "rofl EN"
+#~ msgstr "rofl FR"
 
-msgid "rise_of_the_phenix"
-msgstr "Envol du phenix"
+#~ msgid "hammerknell"
+#~ msgstr "Glasmarteau"
 
-msgid "river_of_souls"
-msgstr "Fleuve des âmes"
+#~ msgid "drowned_hall"
+#~ msgstr "Salles Englouties"
 
-msgid "molinar"
-msgstr "Roi runique Molinar"
+#~ msgid "rise_of_the_phenix"
+#~ msgstr "Envol du phenix"
+
+#~ msgid "river_of_souls"
+#~ msgstr "Fleuve des âmes"
+
+#~ msgid "molinar"
+#~ msgstr "Roi runique Molinar"
