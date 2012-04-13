@@ -18,7 +18,7 @@ def home(request):
 		data 		= {
 			'logs': 			Log.objects.filter(private=False, processed=True, processing=False).order_by('-upload_date')[0:10],
 			'log_form': 		LogForm(),
-			'news':				News.objects.all().order_by('-id')[0:5],
+			'news':				News.objects.all().order_by('-id')[0],
 			'active_users':		User.objects.filter(last_login__gte=datetime.now() - timedelta(hours=1))
 			}
 		cache.set("home", data, 86400)
