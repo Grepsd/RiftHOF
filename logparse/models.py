@@ -542,6 +542,10 @@ class EncounterStats(models.Model):
 					'time': (death['time'] - self.rdata['start_time']).total_seconds(),
 					'player': self.get_actor(death['target'])['name'],
 					'type':	'death',
+					#'all':	death,
+					'source':	self.get_actor(death['source'])['name'],
+					'skill':	self.rdata['skills'][death['skill_id']],
+					'amount':	death['amount'],
 				}
 				result.append(v)
 		return result
@@ -553,6 +557,9 @@ class EncounterStats(models.Model):
 			tmp['player'] 	= self.get_actor(rez['target'])['name']
 			tmp['time'] 	= self.get_sec(rez['time'])
 			tmp['type']		= 'life'
+			#tmp['all']		= rez
+			tmp['source']	= self.get_actor(rez['source'])['name']
+			tmp['skill']	= self.rdata['skills'][rez['skill']]
 			result.append(tmp)
 		return result
 

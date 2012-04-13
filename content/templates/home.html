@@ -2,6 +2,7 @@
 {% load i18n %}
 {% load humanize %}
 {% block "content" %}
+  	<center><img src="{{ STATIC_URL }}img/header2.png" /></center>
 	<h2>{% trans "News" %}</h2>
 	{% for new in news %}
 		<table class="table">

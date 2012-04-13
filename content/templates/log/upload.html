@@ -12,6 +12,12 @@
 					Take a look at <a href="{% url guild_log_show log.id %}">{% url guild_log_show log.id %}</a>
 				</p>
 			</div>
+		{% else %}
+			{% if error %}
+				<div class="alert alert-error">
+					{{ error }}
+				</div>
+			{% endif %}
 		{% endif %}
 	{% else %}
 		<div class="alert alert-error">

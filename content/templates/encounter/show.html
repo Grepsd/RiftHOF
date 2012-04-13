@@ -489,51 +489,6 @@
               {% endfor %}]
           });
         });
-        {% for stats in all_tops|dictsortreversed:"damages_original" %}
-          $('#tooltip_{{ stats.name }}').popover({placement: 'bottom'{% if stats.name != 'total' %}, content: 'Name : {{ stats.name|escapejs }}<br /><table style="width: 100%;" class="table table-condensed table-bordered">' +
-              '<thead>' +
-                '<tr>' +
-                  '<th>{% trans "Spell" %}</th>' +
-                  '<th>{% trans "Value" %}</th>' +
-                  '<th>{% trans "Ratio" %}</th>' +
-                  '<th>{% trans "Spell" %}</th>' +
-                  '<th>{% trans "Value" %}</th>' +
-                  '<th>{% trans "Ratio" %}</th>' +
-                '</tr>' +
-              '</thead>' +
-              '<tbody>' +
-               '<th colspan=\"6\">{% trans "Damages" %}</th></tr>' +
-            {% for skill in stats.damages_skills.done.hits|dictsortreversed:"value" %}
-              {% if forloop.first %}
-                {% cycle '' '\'</tr>\'+' %}
-                '<tr>' +
-              {% else %}
-                {% cycle '\'</tr><tr>\'+' '' %}
-              {% endif %}
-                '<td>{{ skill.name }}</td>' +
-                '<td>{{ skill.value|intcomma }}</td>' +
-                '<td>{{ skill.ratio|floatformat }}%</td>' +
-              {% if forloop.last %}
-                '</tr>' +
-              {% endif %}
-            {% endfor %}'<tr><th colspan=\"6\">Heals</th></tr>' +
-            {% for skill in stats.heals_skills.done.heals|dictsortreversed:"value" %}
-              {% if forloop.first %}
-                {% cycle '' '\'</tr>\'+' %}
-                '<tr>' +
-              {% else %}
-                {% cycle '\'</tr><tr>\'+' '' %}
-              {% endif %}
-                '<td>{{ skill.name|escapejs }}</td>' +
-                '<td>{{ skill.value|intcomma }}</td>' +
-                '<td>{{ skill.ratio|floatformat }}%</td>' +
-              {% if forloop.last %}
-                '</tr>' +
-              {% endif %}
-            {% endfor %}
-               '</tbody>' +
-              '</table>'{% endif %}});
-        {% endfor %}
       });
       </script>
     <h2 class="center"><span class="{{ encounter.wipe|yesno:"icon-remove,icon-ok" }}"></span> <a href="{% url ranking_boss encounter.boss.id %}">{% trans encounter.boss.name %}</a> [{{ encounter.stats.duration|secs }}]</h2>
@@ -646,8 +601,10 @@
       </div>
       <div class="tab-pane" id="life_and_death" style="min-width: 1100px;">
         {% for event in encounter.stats.get_life_and_death|dictsort:"time" %}
-          <span class="{% if event.type == 'death' %}error{% else %}success{% endif %}">{% if event.type == 'death' %}[D]{% else %}[L]{% endif %} {{ event.time|secs }} {{ event.player }}</span><br />
+          
+          <span class="{% if event.type == 'death' %}error{% else %}success{% endif %}">{% if event.type == 'death' %}[D]{% else %}[L]{% endif %} {{ event.time|secs }} <strong>{{ event.player }}</strong>. {{ event.skill }} from <strong>{{ event.source }}</strong>{% if event.type == 'death' %} ({{ event.amount }} damage){% endif %}</span><br />
         {% endfor %}
+        <br />
       </div>
     </div>
     <a href="{% url guild_log_show encounter.log.id %}"><span class="btn btn-success">< < {% trans "Back" %}</span></a>
