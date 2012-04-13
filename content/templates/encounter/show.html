@@ -132,7 +132,7 @@
                     type: 'bar',
                 },
                 title: {
-                    text: 'Damages Taken Charts'
+                    text: 'Damage Taken Charts'
                 },
                 xAxis: {
                     categories: [{% for el in encounter.stats.all_tops|dictsortreversed:"taken_value" %}{% if el.name != 'total' %}'{{ el.name|escapejs }}',{% endif %}{% endfor %}],
@@ -144,7 +144,7 @@
                 yAxis: {
                     min: 0,
                     title: {
-                        text: 'Damages Taken',
+                        text: 'Damage Taken',
                         align: 'high'
                     }
                 },
@@ -528,7 +528,7 @@
           <thead>
             <tr>
               <th style="width: 10%;">{% trans "Name" %}</th>
-              <th style="width: 10%;">{% trans "Damages" %}</th>
+              <th style="width: 10%;">{% trans "Damage" %}</th>
               <th style="width: 10%;">{% trans "DPS" %}</th>
               <th style="width: 10%;">{% trans "% Dmg" %}</th>
               <th style="width: 10%;">{% trans "Heals" %}</th>
@@ -566,7 +566,7 @@
           <thead>
             <tr>
              <th style="width: 10%;">{% trans "Name" %}</th>
-              <th style="width: 10%;">{% trans "Damages" %}</th>
+              <th style="width: 10%;">{% trans "Damage" %}</th>
               <th style="width: 10%;">{% trans "DPS" %}</th>
               <th style="width: 10%;">{% trans "% Dmg" %}</th>
               <th style="width: 10%;">{% trans "Heals" %}</th>
