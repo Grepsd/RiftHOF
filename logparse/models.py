@@ -666,7 +666,7 @@ class EncounterStats(models.Model):
 						t = self.rdata['actors'][target]['name']
 						for skill_id, buff_timeline in skills.items():
 							s = self.rdata['skills'][skill_id]
-							if s not in ("Puissance flamboyante", "Couplet de joie"):
+							if skill_id not in (1742325987, 766317719):
 								continue
 							if actor != target:
 								continue
@@ -680,6 +680,7 @@ class EncounterStats(models.Model):
 								results.append({
 									'player':	a,
 									'skill':	s,
+									'skill_id':	skill_id,
 									'display':	False,
 									'display_player': False,
 									'from':		self.get_sec(b[0]),
