@@ -4,7 +4,7 @@ from django.core.context_processors import csrf
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import HttpResponse
 from django.utils import simplejson
-from datetime import datetime
+from datetime import datetime, timedelta
 from parser import Parser
 from django.conf import settings
 from django.views.decorators.cache import cache_page
@@ -19,6 +19,7 @@ def home(request):
 			'logs': 			Log.objects.filter(private=False, processed=True, processing=False).order_by('-upload_date')[0:10],
 			'log_form': 		LogForm(),
 			'news':				News.objects.all().order_by('-id')[0:5],
+			'active_users':		User.objects.filter(last_login__gte=datetime.now() - timedelta(hours=1))
 			}
 		cache.set("home", data, 86400)
 

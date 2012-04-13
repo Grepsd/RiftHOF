@@ -19,8 +19,7 @@
 				<td>{% blocktrans with author=new.author.username publication_date=new.publication_date|naturaltime %}Posted by {{ author }} {{ publication_date }}{% endblocktrans %}</td>
 			</tr>
 		</table>
-	{% endfor %}
-	<h2>{% trans "Upload your logs !" %}</h2>
+	{% endfor %}{% trans "Upload your logs !" %}</h2>
 	{% if user.is_active %}
 		<form action="{% url guild_log_upload %}" class="form form-inline" method="post" enctype="multipart/form-data">
 			{% csrf_token %}
@@ -78,4 +77,13 @@
 			</td>
 		</tr>
 	</table>
+
+	<span><strong>User Active in the last 30m :</strong> 
+		{% for user in active_users %}
+			{{ user.username }}
+			{% if not forloop.last %},
+			{% else %}.
+			{% endif %}
+		{% endfor %}
+	</span>
 {% endblock %}
