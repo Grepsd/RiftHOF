@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load humanize %}
+{% block "content" %}
+	<div class="alert alert-info">
+		{% if user.get_profile.has_guild %}
+			{% blocktrans with guild_name=user.get_profile.guild.name %}You're already part of {{ guild_name }}.{% endblocktrans %}
+		{% else %}
+			{% blocktrans %}You're not part of any guild, join one !{% endblocktrans %}
+		{% endif %}
+	</div>
+
+	<h2>{% trans 'Guild List' %}</h2>
+	{% regroup guild_list by shard as shards %}
+
+	{% for shard in shards %}
+		<h3>{{ shard.grouper }}</h3>
+		<ul>
+			{% for guild in shard.list %}
+				<li>{{ guild.name }} <a href="{% url guild_join guild.id %}">join</a></li>
+			{% endfor %}
+		</ul>
+	{% endfor %}
+{% endblock %}

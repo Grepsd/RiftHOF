@@ -791,3 +791,8 @@ class LogForm(ModelForm):
 	class Meta:
 		model 	= Log
 		fields	= ('log_file', 'private')
+
+class GuildJoinRequest(models.Model):
+	guild 		= models.ForeignKey(Guild)
+	user 		= models.ForeignKey(User)
+	date 		= models.DateTimeField(auto_now_add=True)

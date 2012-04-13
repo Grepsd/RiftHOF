@@ -45,22 +45,45 @@ def register(request):
 
 @login_required
 def guild_home(request):
+	guild 		= request.user.get_profile().guild
 	data = {
 		'log_form': 	LogForm(),
-		'guild':		request.user.get_profile().guild,
+		'guild':		guild,
+		'request_list':	GuildJoinRequest.objects.filter(guild=guild)
 	}
 	return render(request, 'guild/home.html', data)
 
 @login_required
-def guild_join(request):
-	if request.method == 'GET':
-		data		= {
-			'zones':		Zone.objects.all(),
-		}
-		return render(request, 'guild/join.html', data)
-	else:
-		data	= {'errors': ['This functionality has been disabled.']}
-		return render(request, 'guild/join.html', data)
+def guild_list(request):
+	data = {
+		'guild_list': Guild.objects.all(),
+	}
+	return render(request, 'guild/list.html', data)
+
+@login_required
+def guild_join(request, guild_id):
+	guild 	= Guild.objects.get(id=guild_id)
+	g 		= GuildJoinRequest(user=request.user, guild=guild)
+	g.save()
+	data = {
+		'guild':	guild,
+	}
+	return render(request, 'guild/join.html', data)
+
+@login_required
+def guild_join_request_accept(request, req_id):
+	g = GuildJoinRequest.objects.get(id=req_id)
+	profile = g.user.get_profile()
+	profile.guild = g.guild
+	profile.save()
+	g.delete()
+	return redirect('guild_home')
+
+@login_required
+def guild_join_request_deny(request, req_id):
+	g = GuildJoinRequest.objects.get(id=req_id)
+	g.delete()
+	return redirect('guild_home')
 
 @login_required
 def guild_create(request):

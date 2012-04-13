@@ -19,7 +19,11 @@ urlpatterns += i18n_patterns('',
 
 
     url(r'^guild$', 				'logparse.views.guild_home', 			name='guild_home'),
-    url(r'^guild/join$', 			'logparse.views.guild_join', 			name='guild_join'),
+    url(r'^guild/list$',            'logparse.views.guild_list',            name='guild_list'),
+    url(r'^guild/join/(\d+)$',      'logparse.views.guild_join',            name='guild_join'),
+    url(r'^guild/request/deny/(\d+)$','logparse.views.guild_join_request_deny',name='guild_join_request_deny'),
+    url(r'^guild/request/accept/(\d+)$','logparse.views.guild_join_request_accept',name='guild_join_request_accept'),
+
     url(r'^guild/create$', 			'logparse.views.guild_create', 			name='guild_create'),
     url(r'^guild/quit$', 			'logparse.views.guild_quit', 			name='guild_quit'),
     url(r'^guild/quit/act$', 		'logparse.views.guild_quit_act', 		name='guild_quit_act'),

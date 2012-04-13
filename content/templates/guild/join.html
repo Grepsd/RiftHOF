@@ -1,63 +1,13 @@
 {% extends 'base.html' %}
-
+{% load i18n %}
 {% block "content" %}
-	<script type="text/javascript">
-		function populateGuildSelect(el)
-		{
-			console.log(el.value);
-			$.ajax({
-				url: '{% url api_guild_list %}',
-				data: {
-					shard_id: el.value
-				},
-				success: function(res) {
-					for (gid in res)
-					{
-						document.forms[0].elements['guild'].options.add(new Option(res[gid], gid));
-					}
-				}
-			});
-		}
-	</script>
-	{% if user.get_profile.has_guild %}
-		You already are part of guild.
-
-		<p class="center">Do you want to quit it ?</p>
-		<p class="center">
-			<a href="{% url guild_quit %}"><span class="btn btn-danger">Quit</span></a>
-		</p>
+	{% if not user.has_guild %}
+		<div class="alert alert-info">
+			You requested to join {{ guild.name }}.
+		</div>
 	{% else %}
-
-		{% if errors %}
-			<div class="alert alert-error">
-				{% for error in errors %}
-					{{ error }}
-				{% endfor %}
-			</div>
-		{% endif %}
-		<fieldset>
-			<legend>Join a guild</legend>
-			<form class="form form-vertical" action="{% url guild_join %}" method="post">
-				{% csrf_token %}
-				<label for="zone" class="label">Shard : </label>
-				<select name="zone" id="zone" onChange="populateGuildSelect(this)">
-					<option value=""></option>
-					{% for zone in zones %}
-						{% for shard in zone.shards %}
-							<option value="{{ shard.id }}"> {{ zone.name }}_{{ shard.name }}</option>
-						{% endfor %}
-					{% endfor %}
-				</select>
-
-				<label for="guild" class="label">Guild :</label>
-				<select name="guild" id="guild">
-
-				</select>
-
-				<p class="center">
-					<input type="submit" value="Join" class="btn btn-success" />
-				</p>
-			</form>
-		</fieldset>
+		<div class="alert alert-error">
+			You're already part of a guild, you can't join another one.
+		</div>
 	{% endif %}
 {% endblock %}
