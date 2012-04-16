@@ -22,20 +22,28 @@
 						<input type="submit" value="upload" class="btn btn-info" />
 					</div>
 				</form>
+				<p>{% blocktrans %}The file format to upload is : a zip file containing a single file, CombatLog.txt which should never be over 800MB.{% endblocktrans %}</p>
+				<h4>{% trans 'Guild logs' %}</h4>
 				<table class="table">
-					{% for log in guild.logs|dictsortreversed:"upload_date" %}
+					{% regroup guild.logs|dictsortreversed:"id" by day as ggg %}
+					{% for log in ggg %}
 						<tr>
-							<td><a href="{% url guild_log_show log.id %}">{% url guild_log_show log.id %}</a> {{ log.upload_date|naturaltime }}</td>
+							<td><strong>{{ log.grouper }}</strong> : 
+							{% for log in log.list %}
+								<a href="{% url guild_log_show log.id %}">{{ log.upload_date.time }}</a>{% if forloop.last %}.{% else %},{% endif %}
+							{% endfor %}</td>
 						</tr>
 					{% endfor %}
 				</table>
-				<p>{% blocktrans %}The file format to upload is : a zip file containing a single file, CombatLog.txt which should never be over 800MB.{% endblocktrans %}</p>
 			{% else %}
 				<div class="alert alert-error">
 					{% blocktrans %}Only validated by admin users can upload logs.{% endblocktrans %}
 				</div>
 			{% endif %}
 		<h3>{% trans 'Members' %}</h3>
+		{% for member in guild.members %}
+			{{ member.username }}{% if forloop.last %}.{% else %},{% endif %}
+		{% endfor %}
 		<ul>
 			{% for req in request_list %}
 				<li>{{ req.user.username }} <a href="{% url guild_join_request_accept req.id %}">accept</a> / <a href="{% url guild_join_request_deny req.id %}">deny</a></li>

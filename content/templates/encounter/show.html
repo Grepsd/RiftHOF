@@ -491,7 +491,7 @@
         });
       });
       </script>
-    <h2 class="center"><span class="{{ encounter.wipe|yesno:"icon-remove,icon-ok" }}"></span> <a href="{% url ranking_boss encounter.boss.id %}">{% trans encounter.boss.name %}</a> [{{ encounter.stats.duration|secs }}]</h2>
+    <h2 class="center"><span class="{{ encounter.wipe|yesno:"icon-remove,icon-ok" }}"></span> <a href="{% url ranking_boss encounter.boss.id %}">{% trans encounter.boss.name %}</a> [{{ encounter.stats.duration|secs }}] by {{ encounter.log.guild.name }}</h2>
 
     <a href="{% url guild_log_show encounter.log.id %}"><span class="btn btn-success">< < {% trans "Back" %}</span></a><br /><br />
 

@@ -47,6 +47,12 @@ class Guild(models.Model):
 	def logs(self):
 		return Log.objects.filter(guild=self)
 
+	def members(self):
+		final = []
+		for profile in UserProfile.objects.filter(guild=self):
+			final.append(profile.user)
+		return final
+
 class Character(models.Model):
 	name 				= models.CharField(max_length=200)
 	shard 				= models.ForeignKey(Shard)
@@ -103,6 +109,9 @@ class Log(models.Model):
 		self.processed = False
 		self.processing= False
 		self.save()
+
+	def day(self):
+		return self.upload_date.date()
 
 	def __unicode__(self):
 		return "%d parse %s" % (self.id, self.guild)
