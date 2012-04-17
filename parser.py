@@ -936,7 +936,7 @@ class Parser:
 		if not full:
 
 			l 						= logparse.models.Log.objects.get(id=self.log_id)
-			encounter 				= logparse.models.Encounter(log=l)
+			encounter 				= logparse.models.Encounter(log=l, private=l.private)
 
 			encounter.start_offset	= enc.start_offset
 			encounter.end_offset 	= enc.end_offset
