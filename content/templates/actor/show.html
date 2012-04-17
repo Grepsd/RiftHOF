@@ -4,7 +4,7 @@
 {% load logparse_tpl_filters %}
 {% load cache %}
 {% block "content" %}
-  {#% cache 86400 encounter_actor actor.id actor.encounter.id %#}
+  {% cache 86400 encounter_actor actor.id actor.encounter.id %}
     {% regroup detailed_by_actor_stats by actor_id as actor_stats %}
   	<script type="text/javascript">
         {% with timeline_array=timeline|dictsort:"time" %}
@@ -388,5 +388,5 @@
     </div>
 
       <h2>{% trans pov.grouper %}</h2>
-  {#% endcache %#}
+  {% endcache %}
 {% endblock %}
