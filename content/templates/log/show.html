@@ -66,7 +66,7 @@
     {% endif %}
 	{% else %}
     {% cache 86400 log log.id %}
-      <h2>Raid [{{ log.upload_date }}]</h2>
+      <h2>Raid [{{ log.upload_date }}] by {{ log.guild.name }}</h2>
       <table class="table">
         {% regroup log.encounters by boss.raid as by_raid %}
         {% for raid in by_raid %}

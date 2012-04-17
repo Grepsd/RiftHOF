@@ -4,7 +4,7 @@ from django.core.context_processors import csrf
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import HttpResponse
 from django.utils import simplejson
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from parser import Parser
 from django.conf import settings
 from django.views.decorators.cache import cache_page
@@ -230,3 +230,24 @@ def boss_list(request):
 		'boss_list':	Boss.objects.all().order_by('raid__id'),
 	}
 	return render(request, 'boss/list.html', data)
+
+def boss_show(request, boss_id):
+	boss = get_object_or_404(Boss, id=boss_id)
+	return render(request, 'boss/show.html', {'boss': boss})
+
+def show_guild_try_boss(request, guild_id, boss_id, day, month, year):
+	start_date 	= date(int(year), int(month), int(day))
+	end_date 	= start_date + timedelta(days=1)
+	data 	= {
+		'boss':		get_object_or_404(Boss, id=boss_id),
+		'guild':	get_object_or_404(Guild, id=guild_id),
+		'start_date':start_date,
+
+	}
+	data['encounters']	=	Encounter.objects.filter(
+			log__guild=data['guild'], 
+			boss=data['boss'], 
+			log__upload_date__gte=start_date, 
+			log__upload_date__lt=end_date)
+	print data
+	return render(request, 'boss/show_guild_try.html', data)

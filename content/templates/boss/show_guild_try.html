@@ -1,0 +1,8 @@
+{% extends 'base.html' %}
+{% load humanize i18n logparse_tpl_filters %}
+{% block "content" %}
+	<h2>{% trans boss.name %} by {{ guild.name }} on {{ start_date }}</h2>
+	{% for encounter in encounters %}
+		<a href="{% url guild_log_encounter_show encounter.id %}"><span class="{{ encounter.wipe|yesno:"icon-remove,icon-ok" }}"></span> {{ encounter.stats.duration|secs }}</a>{% if not forloop.last %}, {% endif %}
+	{% endfor %}
+{% endblock %}

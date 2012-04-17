@@ -16,6 +16,9 @@ urlpatterns += i18n_patterns('',
     url(r'^logout$',                'django.contrib.auth.views.logout', {'next_page': '/'}, name='logout'),
     url(r'^register$',              'logparse.views.register',              name='register'),
     url(r'^boss/list$',             'logparse.views.boss_list',             name='boss_list'),
+    url(r'^boss/(\d+)$',             'logparse.views.boss_show',             name='boss_show'),
+    url(r'^guild/(\d+)/boss/(\d+)/date/(\d+)/(\d+)/(\d+)$',             'logparse.views.show_guild_try_boss',             name='show_guild_try_boss'),
+
 
 
     url(r'^guild$', 				'logparse.views.guild_home', 			name='guild_home'),

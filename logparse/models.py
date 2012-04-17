@@ -93,6 +93,9 @@ class Boss(models.Model):
 	def __unicode__(self):
 		return "%s of %s" % (self.name, self.raid)
 
+	def public_encounters(self):
+		return Encounter.objects.filter(boss=self, private=False)
+
 class Log(models.Model):
 	guild 				= models.ForeignKey(Guild)
 	log_file 			= models.FileField(upload_to='combat_logs')
@@ -112,6 +115,9 @@ class Log(models.Model):
 
 	def day(self):
 		return self.upload_date.date()
+
+	def time(self):
+		return self.upload_date.time()
 
 	def __unicode__(self):
 		return "%d parse %s" % (self.id, self.guild)
@@ -146,6 +152,18 @@ class Encounter(models.Model):
 	cache 				= None
 
 	stats_cache			= None
+
+	def day(self):
+		return self.log.day()
+
+	def time(self):
+		return self.log.time()
+
+	def guild_name(self):
+		return self.guild().name
+
+	def guild(self):
+		return self.log.guild
 
 	def __unicode__(self):
 		return "%d against %s" % (self.id, u'%s' % self.boss)
