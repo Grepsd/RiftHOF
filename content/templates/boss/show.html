@@ -1,10 +1,10 @@
 {% extends 'base.html' %}
 {% load humanize i18n %}
 {% block "content" %}
-	<h2>{% trans boss.name %}</h2>
+	<h1>{% trans boss.name %}</h1>
 	{% regroup boss.public_encounters|dictsortreversed:"day" by day as encounters_by_date %}
 	{% for encounters in encounters_by_date %}
-		<h2>{{ encounters.grouper }}</h2>
+		<h3>{{ encounters.grouper }}</h3>
 		{% regroup encounters.list by guild as encounters_by_guild %}
 		{% for encounter in encounters_by_guild %}
 			<a href="{% url show_guild_try_boss encounter.grouper.id boss.id encounters.grouper.day encounters.grouper.month encounters.grouper.year %}">{{ encounter.grouper.name }}</a> {% if not forloop.last %}, 
