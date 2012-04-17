@@ -619,8 +619,11 @@ class EncounterStats(models.Model):
 							'actor2_name':		source_name,
 							'actor_name':		actor_name,
 							'skill_id':			skill_id,
+							'timeline':			[],
 						}
 						for time in timeline:
+							if len(time) is 0:
+								continue
 							a = {
 								'from': self.get_sec(time[0]),
 							}
@@ -630,6 +633,7 @@ class EncounterStats(models.Model):
 								a['to'] = self.get_sec(self.rdata['end_time'])
 							a['duration'] = a['to'] - a['from']
 							skill_data['total_duration'] += a['duration']
+							skill_data['timeline'].append(a)
 						skill_data['uptime'] = "%i" % (float(skill_data['total_duration']) / self.duration * 100)
 						final_return.append(skill_data)
 		return final_return
