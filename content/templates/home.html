@@ -30,7 +30,7 @@
 		{% else %}
 			<div class="alert alert-error">
 				{% blocktrans %}Create or join a guild if you want to upload your logs.{% endblocktrans %}
-				<a href="{% url guild_create %}">{% blocktrans %}Create your guild{% endblocktrans %}</a> / {% blocktrans %}Join a guild{% endblocktrans %}
+				<a href="{% url guild_create %}">{% blocktrans %}Create your guild{% endblocktrans %}</a> / <a href="{% url guild_list %}">{% blocktrans %}Join a guild{% endblocktrans %}</a>
 			</div>
 		{% endif %}
 	{% else %}
