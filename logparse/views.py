@@ -24,7 +24,7 @@ def home(request):
 		cache.set("home", data, 86400)
 
 	if request.user.is_authenticated():
-		if request.user.has_guild():
+		if request.user.get_profile().has_guild():
 			guild 		= request.user.get_profile().guild
 			logs 		= cache.get("logs_%d" % guild.id)
 			if logs is None:
