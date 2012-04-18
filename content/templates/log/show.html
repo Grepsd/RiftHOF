@@ -33,28 +33,6 @@
   				<img src="{{ STATIC_URL }}img/loading.gif" />
   			</p>
   		</div>
-      <h2>Raid [{{ log.upload_date }}]</h2>
-      <table class="table">
-        {% regroup log.encounters by boss.raid as by_raid %}
-        {% for raid in by_raid %}
-          <tr>
-            <th>{% trans raid.grouper.name %}</th>
-          </tr>
-          {% regroup raid.list by boss as en %}
-            {% for e in en %}
-                <tr><td class="left">{% trans e.grouper.name %} ({{ e.list|length }}) :
-                {% for eee in e.list %}
-                 <a href="{% url guild_log_encounter_show eee.id %}">
-                   <span class="{{ eee.wipe|yesno:"icon-remove,icon-ok" }}"></span> 
-                   <span class="{{ eee.wipe|yesno:"error,success" }} {{ eee.wipe|yesno:"bold" }}">
-                      {{ eee.stats.duration|secs }}
-                    </span>
-                  </a>{% if forloop.last %}.{% else %},{% endif %}
-                {% endfor %}
-                </td></tr>
-          {% endfor %}
-        {% endfor %}
-      </table>
     {% else %}
       <div class="alert alert-error">
         <p>{% blocktrans %}This log hasn't been processed yet.{% endblocktrans %}</p>
