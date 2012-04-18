@@ -24,11 +24,12 @@ def home(request):
 		cache.set("home", data, 86400)
 
 	if request.user.is_authenticated():
-		guild 		= request.user.get_profile().guild
-		logs 		= cache.get("logs_%d" % guild.id)
-		if logs is None:
-			data['guild_logs']	= Log.objects.filter(guild=guild, processed=True, processing=False).order_by('-upload_date')[0:10]
-			cache.set("logs_%d" % guild.id, logs, 300)
+		if request.user.has_guild():
+			guild 		= request.user.get_profile().guild
+			logs 		= cache.get("logs_%d" % guild.id)
+			if logs is None:
+				data['guild_logs']	= Log.objects.filter(guild=guild, processed=True, processing=False).order_by('-upload_date')[0:10]
+				cache.set("logs_%d" % guild.id, logs, 300)
 	return render(request, 'home.html', data)
 
 def register(request):
