@@ -6,7 +6,7 @@
 
 	{% if user.is_active %}
 		{% if user.get_profile.has_guild %}
-			<fieldset style="width: 100%">
+			<fieldset style="width: 100%" class="center">
 				<legend>{% trans "Upload your logs !" %}</legend>
 				<form action="{% url guild_log_upload %}" class="form form-inline" method="post" enctype="multipart/form-data">
 				{% csrf_token %}
