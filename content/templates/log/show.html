@@ -43,8 +43,8 @@
       </div>
     {% endif %}
 	{% else %}
-    {% cache 86400 log log.id %}
-      <h2>Raid [{{ log.upload_date }}] by {{ log.guild.name }}</h2>
+    {#% cache 86400 log log.id %#}
+      <h1>Raid [{{ log.upload_date }}] by {{ log.guild.name }}</h1>
       <table class="table">
         {% regroup log.encounters by boss.raid as by_raid %}
         {% for raid in by_raid %}
@@ -67,6 +67,6 @@
         {% endfor %}
       </table>
       <p class="little">{% blocktrans with start_time=log.start_processing_time end_time=log.end_processing_time %}Processing data : From {{ start_time }} to {{ end_time }}.{% endblocktrans %}</p>
-    {% endcache %}
+    {#% endcache %#}
 	{% endif %}
 {% endblock %}
