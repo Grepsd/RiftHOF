@@ -1,0 +1,110 @@
+msgid "rise_of_the_phenix"
+msgstr "Rise of the Phoenix"
+
+msgid "river_of_souls"
+msgstr "River of Souls"
+
+msgid "greenscale_blight"
+msgstr "Greenscale Blight"
+
+msgid "drowned_hall"
+msgstr "Drowned Halls"
+
+msgid "molinar"
+msgstr "Rune King Molinar and Prince Dollin"
+
+msgid "jorb"
+msgstr "Assault Commander Jorb"
+
+msgid "joloral"
+msgstr "Joloral Ragetide"
+
+msgid "isskal"
+msgstr "Isskal"
+
+msgid "hydriss"
+msgstr "Hydriss"
+
+msgid "silgen"
+msgstr "General Silgen"
+
+msgid "arkhurn"
+msgstr "High Priest Arakhurn"
+
+msgid "murdantix"
+msgstr "Murdantix"
+
+msgid "zamira"
+msgstr "Matron Zamira"
+
+msgid "zilas"
+msgstr "Soulrender Zilas"
+
+msgid "sicaron"
+msgstr "Sicaron"
+
+msgid "vladmal"
+msgstr "Vladmal Prime"
+
+msgid "plutonus"
+msgstr "Plutonus the Immortal"
+
+msgid "alsbeth"
+msgstr "Alsbeth the Discordant"
+
+msgid "grugonim"
+msgstr "Grugonim"
+
+msgid "estrode"
+msgstr "Estrode"
+
+msgid "inwar"
+msgstr "Inwar Darktide"
+
+msgid "garau"
+msgstr "Inquisitor Garau"
+
+msgid "akylios"
+msgstr "Lord Jornaru and Akylios"
+
+msgid "ereandorn"
+msgstr "Ereandorn"
+
+msgid "beruhast"
+msgstr "Beruhast"
+
+msgid "balise_teneb"
+msgstr ""
+
+msgid "galenir"
+msgstr "Warmaster Galenir"
+
+msgid "gaurath"
+msgstr "Herald Gaurath"
+
+msgid "letareus"
+msgstr "Duke Letareus"
+
+msgid "johlen"
+msgstr "Infiltrator Johlen"
+
+msgid "aleria"
+msgstr "Oracle Aleria"
+
+msgid "hylas"
+msgstr "Prince Hylas"
+
+msgid "vertecailles"
+msgstr "Lord Greenscale"
+
+msgid "uruluuk"
+msgstr "Uruluuk"
+
+msgid "guurloth"
+msgstr "Guurloth"
+
+msgid "thalguur"
+msgstr "ThalGuur"
+
+msgid "anrak"
+msgstr "Anrak The Foul"
