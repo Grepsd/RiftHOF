@@ -25,22 +25,32 @@
           {% endif %}
 	</script>
 	{% if not log.processed %}
-    {% if log.processing %}
-  		<div class="alert alert-error">
-  			<p>{% blocktrans %}The log is currently being processed, wait until it's finished.{% endblocktrans %}</p>
-  			<p>{% blocktrans %}This page will refresh automatically until the log is processed.{% endblocktrans %}</p>
-  			<p class="center">
-  				<img src="{{ STATIC_URL }}img/loading.gif" />
-  			</p>
-  		</div>
-    {% else %}
+    {% if log.error|length > 0 %}
       <div class="alert alert-error">
-        <p>{% blocktrans %}This log hasn't been processed yet.{% endblocktrans %}</p>
-        <p>{% blocktrans %}The log will be processed as soon as possible.{% endblocktrans %}</p>
-        <p class="center">
-          <img src="{{ STATIC_URL }}img/loading.gif" />
-        </p>
+        {% blocktrans %}
+          An error occured while parsing your log file.<br />
+          Be sure you uploaded a zip file containing a combatlog.txt file that isn't over 800MB.<br />
+          You MUST NOT ever modify the combatlog.txt by yourself.
+        {% endblocktrans %}
       </div>
+    {% else %}
+      {% if log.processing %}
+    		<div class="alert alert-error">
+    			<p>{% blocktrans %}The log is currently being processed, wait until it's finished.{% endblocktrans %}</p>
+    			<p>{% blocktrans %}This page will refresh automatically until the log is processed.{% endblocktrans %}</p>
+    			<p class="center">
+    				<img src="{{ STATIC_URL }}img/loading.gif" />
+    			</p>
+    		</div>
+      {% else %}
+        <div class="alert alert-error">
+          <p>{% blocktrans %}This log hasn't been processed yet.{% endblocktrans %}</p>
+          <p>{% blocktrans %}The log will be processed as soon as possible.{% endblocktrans %}</p>
+          <p class="center">
+            <img src="{{ STATIC_URL }}img/loading.gif" />
+          </p>
+        </div>
+      {% endif %}
     {% endif %}
 	{% else %}
     {#% cache 86400 log log.id %#}

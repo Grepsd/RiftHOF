@@ -23,7 +23,12 @@ class Command(BaseCommand):
             start_time                  = datetime.utcnow().replace(tzinfo=utc)
             log.start_processing_time   = start_time
             log.save()
-            log.parse()
+            try:
+                log.parse()
+            except Exception as e:
+                log.error = e
+                log.save()
+                raise e
             log.end_processing_time     = datetime.utcnow().replace(tzinfo=utc)
             log.save()
             duration                    = (datetime.utcnow().replace(tzinfo=utc) - start_time).total_seconds()

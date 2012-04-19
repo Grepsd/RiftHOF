@@ -787,43 +787,48 @@ class Parser:
 			d 		= [x.strip() for x in data.split(",")]
 			
 
-		action 		= int(d[0])
-		action_name = self.actions[action]
-		source_full = d[1]
-		target_full = d[2]
-		source_type = d[3]
-		target_type = d[4]
-		source_name = d[5]
 		try:
-			target_name = d[6]
-		except:
-			raise
-		# some actor's name contain some unescaped chars such as "," which is used to split elements on the log line.
-		try:
-			amount 		= int(d[7])
-			skill_id	= int(d[8])
-			skill_name 	= d[9]
-		except:
-			target_name = ','.join([d[6], d[7]])
-			amount 		= int(d[8])
-			skill_id	= int(d[9])
-			skill_name 	= d[10]
+			action 		= int(d[0])
+			action_name = self.actions[action]
+			source_full = d[1]
+			target_full = d[2]
+			source_type = d[3]
+			target_type = d[4]
+			source_name = d[5]
+			try:
+				target_name = d[6]
+			except:
+				raise
+			# some actor's name contain some unescaped chars such as "," which is used to split elements on the log line.
+			try:
+				amount 		= int(d[7])
+				skill_id	= int(d[8])
+				skill_name 	= d[9]
+			except:
+				target_name = ','.join([d[6], d[7]])
+				amount 		= int(d[8])
+				skill_id	= int(d[9])
+				skill_name 	= d[10]
 
-		source_type_= source_full.split('#')
-		# player, npc ou other ?
-		source_primary_type = source_type_[0][-1]
-		# groupe, raid, or something else ?
-		source_registration = source_type_[1][-1]
-		source_id 			= source_type_[2]
+			source_type_= source_full.split('#')
+			# player, npc ou other ?
+			source_primary_type = source_type_[0][-1]
+			# groupe, raid, or something else ?
+			source_registration = source_type_[1][-1]
+			source_id 			= source_type_[2]
 
-		target_type_= target_full.split('#')
-		target_primary_type = target_type_[0][-1]
-		target_registration = target_type_[1][-1]
-		target_id 			= target_type_[2]
+			target_type_= target_full.split('#')
+			target_primary_type = target_type_[0][-1]
+			target_registration = target_type_[1][-1]
+			target_id 			= target_type_[2]
 
-		is_attack 	= action in (3,23)
-		is_heal 	= action in (5,28)
-		is_death 	= action in (11,12)
+			is_attack 	= action in (3,23)
+			is_heal 	= action in (5,28)
+			is_death 	= action in (11,12)
+		except Exception as e:
+			print line, d
+			raise e
+
 
 		line_data 	= {
 			'action':		action,

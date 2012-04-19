@@ -107,6 +107,7 @@ class Log(models.Model):
 	processing 			= models.BooleanField(default=False)
 	start_processing_time= models.DateTimeField(null=True, blank=True)
 	end_processing_time =  models.DateTimeField(null=True, blank=True)
+	error 				= models.TextField(blank=True, null=True)
 
 	def reset(self):
 		self.processed = False
