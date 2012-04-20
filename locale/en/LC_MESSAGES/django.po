@@ -543,3 +543,12 @@ msgstr "Hammerknell Fortress"
 
 msgid "gilded_prophecy"
 msgstr "Gilded Prophecy"
+
+msgid "infernal_dawn"
+msgstr "Infernal Dawn"
+
+msgid "warboss_drak"
+msgstr "Warboss Drak"
+
+msgid "ituziel"
+msgstr "Ituziel"
