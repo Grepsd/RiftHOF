@@ -13,7 +13,7 @@ class Command(BaseCommand):
         self.trash_olds()
         l = Log.objects.filter(processing=True).count()
         if l < settings.MAX_PROCESSING:
-            todo_list = Log.objects.filter(processing=False, processed=False, error="")
+            todo_list = Log.objects.filter(processing=False, processed=False, error__isnull=True)
             try:
                 log = todo_list[0]
             except IndexError:
