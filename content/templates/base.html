@@ -53,8 +53,11 @@
               <ul class="nav">
                 <li><a href="/">Home</a></li>
                 <li><a href="{% url boss_list %}">{% trans "Browse" %}</a></li>
+                <!--
                 <li><a href="">{% trans "Ranking" %}</a></li>
                 <li><a href="">{% trans "Progression" %}</a></li>
+              -->
+                <li><a href="http://board.parser.rift.heliasae.net/">{% trans "Forum" %}</a></li>
               </ul>
 
                 {% if user.is_authenticated %}
