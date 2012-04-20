@@ -10,9 +10,9 @@
 				<legend>{% trans "Upload your logs !" %}</legend>
 				<form action="{% url guild_log_upload %}" class="form form-inline" method="post" enctype="multipart/form-data">
 				{% csrf_token %}
-					<label for="id_log_file">{% trans "Combat Log File" %} : </label> {{ log_form.log_file }}
+					<label for="id_log_file" class="label">{% trans "Combat Log File" %} : </label> {{ log_form.log_file }}
 
-					<label for="id_private">{% trans "Is private ?" %} : </label>
+					<label for="id_private" class="label">{% trans "Private" %} : </label>
 					{{ log_form.private }}
 
 					<input type="submit" value="upload" class="btn btn-primary" />
@@ -54,7 +54,7 @@
 			<ul>
 			{% for log in logs %}
 				<dl>
-					{{ log.guild }} [{{ log.upload_date|naturaltime }}] <a href="{% url guild_log_show log.id %}">View</a>
+					<a href="{% url guild_log_show log.id %}"><span class="icon-zoom-in"></span></a> {{ log.guild }} [{{ log.upload_date }}]
 				</dl>
 			{% endfor %}
 			</ul>
@@ -64,7 +64,7 @@
 					<ul>
 					{% for log in guild_logs %}
 						<dl>
-							{{ log.guild }} [{{ log.upload_date|naturaltime }}] <a href="{% url guild_log_show log.id %}">{% blocktrans %}View{% endblocktrans %}</a>
+							<a href="{% url guild_log_show log.id %}"><span class="icon-zoom-in"></span></a> {{ log.guild }} [{{ log.upload_date }}]
 						</dl>
 					{% endfor %}
 					</ul>
