@@ -54,7 +54,7 @@
 			<ul>
 			{% for log in logs %}
 				<dl>
-					<a href="{% url guild_log_show log.id %}"><span class="icon-zoom-in"></span></a> {{ log.guild }} [{{ log.upload_date }}]
+					<a href="{% url guild_log_show log.id %}"><span class="icon-zoom-in"></span></a> <stong>{{ log.guild }}</strong> [{{ log.upload_date }}]
 				</dl>
 			{% endfor %}
 			</ul>
@@ -64,7 +64,7 @@
 					<ul>
 					{% for log in guild_logs %}
 						<dl>
-							<a href="{% url guild_log_show log.id %}"><span class="icon-zoom-in"></span></a> {{ log.guild }} [{{ log.upload_date }}]
+							<a href="{% url guild_log_show log.id %}"><span class="icon-zoom-in"></span></a> <strong>{{ log.guild }}</strong> [{{ log.upload_date }}]
 						</dl>
 					{% endfor %}
 					</ul>
@@ -87,10 +87,7 @@
 
 	<span><strong>User Active in the last 30m :</strong> 
 		{% for user in active_users %}
-			{{ user.username }}
-			{% if not forloop.last %},
-			{% else %}.
-			{% endif %}
+			{{ user.username }}{% if not forloop.last %}, {% else %}.{% endif %}
 		{% endfor %}
 	</span>
 {% endblock %}
