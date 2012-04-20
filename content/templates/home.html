@@ -54,7 +54,7 @@
 			<ul>
 			{% for log in logs %}
 				<dl>
-					<a href="{% url guild_log_show log.id %}"><span class="icon-zoom-in"></span></a> <stong>{{ log.guild }}</strong> [{{ log.upload_date }}]
+					<a href="{% url guild_log_show log.id %}"><span class="icon-zoom-in"></span></a> <strong>{{ log.guild }}</strong> [{{ log.upload_date }}]
 				</dl>
 			{% endfor %}
 			</ul>
