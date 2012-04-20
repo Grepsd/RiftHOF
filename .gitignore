@@ -1,0 +1,6 @@
+# translation files
+*.mo
+*.pyc
+rifthof.sublime-project
+rifthof.sublime-workspace
+content/media/
