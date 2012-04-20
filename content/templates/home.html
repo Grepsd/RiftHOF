@@ -6,27 +6,29 @@
 
 	{% if user.is_active %}
 		{% if user.get_profile.has_guild %}
-			<fieldset style="width: 100%" class="center">
-				<legend>{% trans "Upload your logs !" %}</legend>
-				<form action="{% url guild_log_upload %}" class="form form-inline" method="post" enctype="multipart/form-data">
-				{% csrf_token %}
-					<label for="id_log_file" class="label">{% trans "Combat Log File" %} : </label> {{ log_form.log_file }}
+			<div class="hero-unit">
+				<fieldset style="width: 100%" class="center">
+					<legend>{% trans "Upload your logs !" %}</legend>
+					<form action="{% url guild_log_upload %}" class="form form-inline" method="post" enctype="multipart/form-data">
+					{% csrf_token %}
+						<label for="id_log_file" class="label">{% trans "Combat Log File" %} : </label> {{ log_form.log_file }}
 
-					<label for="id_private" class="label">{% trans "Private" %} : </label>
-					{{ log_form.private }}
+						<label for="id_private" class="label">{% trans "Private" %} : </label>
+						{{ log_form.private }}
 
-					<input type="submit" value="upload" class="btn btn-primary" />
+						<input type="submit" value="upload" class="btn btn-primary" />
 
-				</form>
-				<span class="alert alert-info">{% blocktrans %}The file format to upload is : a zip file containing a single file, CombatLog.txt which should never be over 800MB.{% endblocktrans %}</span>
-			</fieldset>
-			<table class="table">
-				{% for log in guild.logs|dictsortreversed:"upload_date" %}
-					<tr>
-						<td><a href="{% url guild_log_show log.id %}">{% url guild_log_show log.id %}</a> {{ log.upload_date|naturaltime }}</td>
-					</tr>
-				{% endfor %}
-			</table>
+					</form>
+					<span class="alert alert-info">{% blocktrans %}The file format to upload is : a zip file containing a single file, CombatLog.txt which should never be over 800MB.{% endblocktrans %}</span>
+				</fieldset>
+				<table class="table">
+					{% for log in guild.logs|dictsortreversed:"upload_date" %}
+						<tr>
+							<td><a href="{% url guild_log_show log.id %}">{% url guild_log_show log.id %}</a> {{ log.upload_date|naturaltime }}</td>
+						</tr>
+					{% endfor %}
+				</table>
+			</div>
 		{% else %}
 			<div class="alert alert-error">
 				{% blocktrans %}Create or join a guild if you want to upload your logs.{% endblocktrans %}
