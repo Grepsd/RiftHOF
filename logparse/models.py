@@ -53,6 +53,8 @@ class Guild(models.Model):
 			final.append(profile.user)
 		return final
 
+
+
 class Character(models.Model):
 	name 				= models.CharField(max_length=200)
 	shard 				= models.ForeignKey(Shard)
@@ -128,6 +130,8 @@ class Log(models.Model):
 
 	def parse(self):
 		if not self.processed and not self.processing:
+			self.processing = True
+			self.save()
 			[x.delete() for x in self.encounters()]
 			self.processing = True
 			self.save()
