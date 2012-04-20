@@ -13,7 +13,7 @@ class Command(BaseCommand):
         self.trash_olds()
         l = Log.objects.filter(processing=True).count()
         if l < settings.MAX_PROCESSING:
-            todo_list = Log.objects.filter(processing=False, processed=False)
+            todo_list = Log.objects.filter(processing=False, processed=False, error="")
             try:
                 log = todo_list[0]
             except IndexError:
@@ -27,6 +27,7 @@ class Command(BaseCommand):
                 log.parse()
             except Exception as e:
                 log.error = e
+                log.processing = False
                 log.save()
                 raise e
             log.end_processing_time     = datetime.utcnow().replace(tzinfo=utc)
