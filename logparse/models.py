@@ -133,8 +133,6 @@ class Log(models.Model):
 			self.processing = True
 			self.save()
 			[x.delete() for x in self.encounters()]
-			self.processing = True
-			self.save()
 			parser = Parser(settings.BASEPATH + '/content' + self.log_file.url, log_id=self.id)
 			if not parser.parse(False):
 				self.processed = False
