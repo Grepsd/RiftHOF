@@ -5,6 +5,7 @@ from parser import Parser
 from django.conf import settings
 from datetime import datetime, timedelta
 from django.utils.timezone import utc
+from django.db.models import Q
 
 class Command(BaseCommand):
     can_import_settings = True
@@ -13,7 +14,7 @@ class Command(BaseCommand):
         self.trash_olds()
         l = Log.objects.filter(processing=True).count()
         if l < settings.MAX_PROCESSING:
-            todo_list = Log.objects.filter(processing=False, processed=False, error__isnull=True)
+            todo_list = Log.objects.filter(Q(processing=False), Q(processed=False), Q(error__isnull=True) | Q(error=""))
             try:
                 log = todo_list[0]
             except IndexError:
