@@ -41,7 +41,7 @@
   		<div class="span8">
 			<h2>{% trans "News" %}</h2>
 			{% for new in news %}
-				<div class="alert alert-info">
+				<div class="alert alert-success">
 					<strong>{{ new.title|safe }}</strong><br />
 					{{ new.body|linebreaks|safe }}
 					<br /><hr>
