@@ -23,6 +23,7 @@ class Command(BaseCommand):
             print "Processing log %d" % log.id
             start_time                  = datetime.utcnow().replace(tzinfo=utc)
             log.start_processing_time   = start_time
+            log.processing              = True
             log.save()
             try:
                 log.parse()
