@@ -7,7 +7,7 @@
 	{% for logg in log_list %}
 		<h2>{{ logg.grouper }}</h2>
 		{% for log in logg.list %}
-			{{ log.guild }} {{ log.upload_date|naturaltime }} {% if log.error|length > 0 %}<strong>{{ log.error }}</strong>{% endif %}<br />
+			#{{ log.id }} {{ log.guild }} {{ log.upload_date|naturaltime }} {% if log.error|length > 0 %}<strong>{{ log.error }}</strong>{% endif %}<br />
 		{% endfor %}
 
 	{% endfor %}
