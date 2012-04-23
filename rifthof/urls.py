@@ -41,7 +41,9 @@ urlpatterns += i18n_patterns('',
 
     url(r'^api/guild/list$', 		'logparse.views.api_guild_list', 		name='api_guild_list'),
     url(r'^api/guild/checkname$',   'logparse.views.api_guild_checkname',	name='api_guild_checkname'),
-    url(r'^api/guild/log/check/(\d+)$','logparse.views.api_log_check_status',name='api_log_check_status'),
+
+
+    url(r'^dashboard/logs/$','logparse.views.dashboard_logs_show',          name='dashboard_logs_show'),
   
     # url(r'^rifthof/', include('rifthof.foo.urls')),
 

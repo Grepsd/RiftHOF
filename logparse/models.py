@@ -14,6 +14,17 @@ zones 	= (
 	('US', 'USA'),
 	('EU', 'Europe'),
 )
+
+class ROFUser(User):
+	class Meta:
+		proxy = True
+
+	def has_guild(self):
+		return self.get_profile().has_guild()
+
+	def guild(self):
+		return self.get_profile().guild
+
 class Zone(models.Model):
 	name 				= models.CharField(max_length=200, choices=zones)
 
@@ -115,6 +126,9 @@ class Log(models.Model):
 		self.processed = False
 		self.processing= False
 		self.save()
+
+	def is_processed(self):
+		return self.processed is True
 
 	def day(self):
 		return self.upload_date.date()

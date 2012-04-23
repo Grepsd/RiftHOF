@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% load i18n humanize %}
+
+{% block "content" %}
+	{% regroup logs by is_processed as log_list %}
+
+	{% for logg in log_list %}
+		<h2>{{ logg.grouper }}</h2>
+		{% for log in logg.list %}
+			{{ log.guild }} {{ log.upload_date|naturaltime }} {% if log.error|length > 0 %}<strong>{{ log.error }}</strong>{% endif %}<br />
+		{% endfor %}
+
+	{% endfor %}
+{% endblock %}

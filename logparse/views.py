@@ -252,3 +252,10 @@ def show_guild_try_boss(request, guild_id, boss_id, day, month, year):
 			log__upload_date__lt=end_date)
 	print data
 	return render(request, 'boss/show_guild_try.html', data)
+
+@login_required
+@user_passes_test(lambda u: u.is_active, login_url='/unauthorized')
+@user_passes_test(lambda u: u.is_staff, login_url='/unauthorized')
+def dashboard_logs_show(request):
+	data = {'logs': Log.objects.all()}
+	return render(request, 'dashboard/logs/list.html', data)

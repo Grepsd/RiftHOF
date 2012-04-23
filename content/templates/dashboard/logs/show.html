@@ -1,0 +1,9 @@
+{% regroup logs by processed as log_list %}
+
+{% for logh in log_list %}
+	<h2>{{ logh.grouper }}</h2>
+	{% for log in logg %}
+		{{ log.guild }} {{ log.upload_date|naturaltime }} {% if log.error|length > 0 %}<strong>{{ log.error }}</strong>{% endif %}<br />
+	{% endfor %}
+
+{% endfor %}
