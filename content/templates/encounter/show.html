@@ -3,7 +3,7 @@
 {% load i18n cache %}
 {% load logparse_tpl_filters %}
 {% block "content" %}
-  {#% cache 86400 encounter encounter.id %#}
+  {% cache 600 encounter encounter.id %}
     <script type="text/javascript">
       $(function () {
         var chart;
@@ -608,5 +608,5 @@
       </div>
     </div>
     <a href="{% url guild_log_show encounter.log.id %}"><span class="btn btn-success">< < {% trans "Back" %}</span></a>
-    {#% endcache %#}
+    {% endcache %}
 {% endblock %}
