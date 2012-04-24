@@ -18,7 +18,7 @@ def home(request):
 	data 		= cache.get("home")
 	if data is None:
 		data 		= {
-			'logs': 			Log.objects.filter(private=False, processed=True, processing=False).order_by('-upload_date')[0:5],
+			'logs': 			Log.objects.filter(private=False, processed=True, processing=False).order_by('-id')[0:5],
 			'log_form': 		LogForm(),
 			'news':				News.objects.all().order_by('-id')[0:1],
 			'active_users':		User.objects.filter(last_login__gte=datetime.now() - timedelta(hours=1))
@@ -30,7 +30,7 @@ def home(request):
 			guild 		= request.user.get_profile().guild
 			logs 		= cache.get("logs_%d" % guild.id)
 			if logs is None:
-				data['guild_logs']	= Log.objects.filter(guild=guild, processed=True, processing=False).order_by('-upload_date')[0:5]
+				data['guild_logs']	= Log.objects.filter(guild=guild, processed=True, processing=False).order_by('-id')[0:5]
 				cache.set("logs_%d" % guild.id, logs, 300)
 	return render(request, 'home.html', data)
 
