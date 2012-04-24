@@ -11,6 +11,7 @@ from django.conf import settings
 # do need a list with the boss name in each languge we want to support
 bosses_list 	= {
 	'Warboss Drak':				'warboss_drak',
+	'Chef de guerre Drak':		'warboss_drak',
 	'Maklamos The Scryer':		'maklamos',
 	'Rusila Dreadblade':		'rusila',
 	'Ituziel':					'ituziel',
