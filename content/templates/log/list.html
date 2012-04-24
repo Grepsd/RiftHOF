@@ -18,7 +18,7 @@
 	            Page {{ logs.number }} of {{ logs.paginator.num_pages }}.
 	        </span>
 
-	        {% if contacts.has_next %}
+	        {% if logs.has_next %}
 	            <a href="?page={{ logs.next_page_number }}">next</a>
 	        {% endif %}
 	    </span>
