@@ -351,13 +351,16 @@ class EncounterStats(models.Model):
 				if not found:
 					el = {
 						'name': 		self.rdata['actors'][actor]['name'],
-						'actor':		self.get_actor_model(actor),
 						'original': 	int(stats['global'][view][stat]),
 						'id':			actor,
 						'skills':		{},
 						'count':		1,
 						'is_player':	actor in self.rdata['players'],
 					}
+					try:
+						el['actor']	=		self.get_actor_model(actor)
+					except:
+						pass
 					for skill_id, value in stats[view]['skill'].items():
 						if view not in el['skills']:
 							el['skills'][view] = {}
@@ -462,6 +465,7 @@ class EncounterStats(models.Model):
 					for key, value in p.items():
 						if key is not 'name':
 							a['taken_%s' % key] = value
+		print result
 		return result
 
 	def get_timeline(self, id_obj=None, by_actor=False):
@@ -772,32 +776,31 @@ class EncounterStats(models.Model):
 	
 	def create_actors(self):
 		for actor, stats in self.rdata['actors'].items():
-			if actor in self.rdata['players']:
-				skill_id = 0
-				for actor2, skills in self.rdata['stats']['actor'][actor]['done']['actor_skill'].items():
-					to_break = False
-					for skill_id in skills:
-						if skill_id in skill_to_class:
-							#print classes[skill_to_class[skill_id]], self.get_actor(actor)['name']
-							to_break = True
-							break
-					if to_break is True:
+			skill_id = 0
+			for actor2, skills in self.rdata['stats']['actor'][actor]['done']['actor_skill'].items():
+				to_break = False
+				for skill_id in skills:
+					if skill_id in skill_to_class:
+						#print classes[skill_to_class[skill_id]], self.get_actor(actor)['name']
+						to_break = True
 						break
-					else:
-						#print "No class found for %s [%s] (%d)" % (self.get_actor(actor)['name'], self.rdata['skills'][skill_id], skill_id)
-						pass
-				if skill_id is not 0 and skill_id in skill_to_class:
-					calling_name = classes[skill_to_class[skill_id]]
+				if to_break is True:
+					break
 				else:
-					calling_name = 'unknown'
-				obj, created = Actor.objects.get_or_create(
-					encounter=self.encounter, 
-					name=str(stats['name']), 
-					obj_id=actor,
-					dps=self.rdata['stats']['actor'][actor]['global']['done']['hits'], 
-					taken=self.rdata['stats']['actor'][actor]['global']['received']['hits'], 
-					hps=self.rdata['stats']['actor'][actor]['global']['done']['heals'],
-					calling=calling_name)
+					#print "No class found for %s [%s] (%d)" % (self.get_actor(actor)['name'], self.rdata['skills'][skill_id], skill_id)
+					pass
+			if skill_id is not 0 and skill_id in skill_to_class:
+				calling_name = classes[skill_to_class[skill_id]]
+			else:
+				calling_name = 'unknown'
+			obj, created = Actor.objects.get_or_create(
+				encounter=self.encounter, 
+				name=str(stats['name']), 
+				obj_id=actor,
+				dps=self.rdata['stats']['actor'][actor]['global']['done']['hits'], 
+				taken=self.rdata['stats']['actor'][actor]['global']['received']['hits'], 
+				hps=self.rdata['stats']['actor'][actor]['global']['done']['heals'],
+				calling=calling_name)
 
 	def get_actor(self, id):
 		return self.rdata['actors'][id]
