@@ -265,7 +265,7 @@ def dashboard_logs_show(request):
 @login_required
 def log_list(request):
 	if request.user.is_staff:
-		logs 	= Log.objects.all()
+		logs 	= Log.objects.all().order_by('-id')
 	else:
 		logs 	= Log.objects.filter(Q(private=False) | (Q(guild=request.user.get_profile().guild))).order_by('-id')
 	paginator= Paginator(logs, 25)
