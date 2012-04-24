@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% load i18n humanize %}
+
+{% block "content" %}
+	{% for log in logs %}
+		<a href="{% url guild_log_show log.id %}">#{{ log.id }}</a> {{ log.guild.name }} uploaded {{ log.upload_date|naturaltime }}{% if log.private %} [Private] {% endif %}<br />
+	{% endfor %}
+	<div class="pagination">
+	    <span class="step-links">
+	        {% if logs.has_previous %}
+	            <a href="?page={{ logs.previous_page_number }}">previous</a>
+	        {% endif %}
+
+	        <span class="current">
+	            Page {{ logs.number }} of {{ logs.paginator.num_pages }}.
+	        </span>
+
+	        {% if contacts.has_next %}
+	            <a href="?page={{ logs.next_page_number }}">next</a>
+	        {% endif %}
+	    </span>
+	</div>
+{% endblock %}

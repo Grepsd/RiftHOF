@@ -3,7 +3,7 @@
 {% load i18n cache %}
 {% load logparse_tpl_filters %}
 {% block "content" %}
-  {% cache 86400 encounter encounter.id %}
+  {#% cache 86400 encounter encounter.id %#}
     <script type="text/javascript">
       $(function () {
         var chart;
@@ -491,7 +491,7 @@
         });
       });
       </script>
-    <h2 class="center"><span class="{{ encounter.wipe|yesno:"icon-remove,icon-ok" }}"></span> <a href="{% url ranking_boss encounter.boss.id %}">{% trans encounter.boss.name %}</a> [{{ encounter.stats.duration|secs }}] by {{ encounter.log.guild.name }}</h2>
+    <h2 class="center"><span class="{{ encounter.wipe|yesno:"icon-remove,icon-ok" }}"></span> <a href="{% url ranking_boss encounter.boss.id %}">{% trans encounter.boss.name %}</a> [{{ encounter.stats.duration|secs }}] by {{ encounter.log.guild.name }} (from {{ encounter.stats.get_time.0.time }} to {{ encounter.stats.get_time.1.time }})</h2>
 
     <a href="{% url guild_log_show encounter.log.id %}"><span class="btn btn-success">< < {% trans "Back" %}</span></a><br /><br />
 
@@ -608,5 +608,5 @@
       </div>
     </div>
     <a href="{% url guild_log_show encounter.log.id %}"><span class="btn btn-success">< < {% trans "Back" %}</span></a>
-    {% endcache %}
+    {#% endcache %#}
 {% endblock %}

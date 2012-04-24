@@ -267,6 +267,11 @@ class Actor(models.Model):
 	def __unicode__(self):
 		return "%s on %s" % (self.name, self.encounter)
 
+	def stats(self):
+		if self.stats_cache is None:
+			self.stats_cache = self.encounter.stats()
+		return self.stats_cache
+
 	def get_dps(self):
 		if self.stats_cache is None:
 			self.stats_cache = self.encounter.stats()
@@ -294,6 +299,9 @@ class EncounterStats(models.Model):
 
 	def __unicode__(self):
 		return "%d" % self.encounter.id
+
+	def get_time(self):
+		return (self.rdata['start_time'], self.rdata['end_time'])
 
 	def parse(self):
 		if self.rdata is None:

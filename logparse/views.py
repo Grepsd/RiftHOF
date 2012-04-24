@@ -11,6 +11,8 @@ from django.views.decorators.cache import cache_page
 from django.core.cache import cache
 from django.contrib.auth.forms import UserCreationForm
 from django.core.exceptions import MultipleObjectsReturned
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.db.models import Q
 
 def home(request):
 	data 		= cache.get("home")
@@ -259,3 +261,20 @@ def show_guild_try_boss(request, guild_id, boss_id, day, month, year):
 def dashboard_logs_show(request):
 	data = {'logs': Log.objects.all()}
 	return render(request, 'dashboard/logs/list.html', data)
+
+@login_required
+def log_list(request):
+	logs 	= Log.objects.filter(Q(private=False) | (Q(guild=request.user.get_profile().guild))).order_by('-id')
+	paginator= Paginator(logs, 25)
+	page 	= request.GET.get('page')
+	try:
+		log_list = paginator.page(page)
+	except PageNotAnInteger:
+		log_list = paginator.page(1)
+	except EmptyPage:
+		log_list = paginator.page(paginator.num_pages)
+
+	data = {
+		'logs':	log_list,
+	}
+	return render(request, 'log/list.html', data)
