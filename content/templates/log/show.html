@@ -25,14 +25,14 @@
           {% endif %}
 	</script>
 	{% if not log.processed %}
-    {% if log.error|length > 0 %}
+    {% if log.error|length > 1 %}
       <div class="alert alert-error">
         {% blocktrans %}
           An error occured while parsing your log file.<br />
           Be sure you uploaded a zip file containing a combatlog.txt file that isn't over 800MB.<br />
           You MUST NOT ever modify the combatlog.txt by yourself.<br />
-          <strong>Error :</strong> "{{ log.error }}"
         {% endblocktrans %}
+      <strong>Error :</strong> "{{ log.error }}"
       </div>
     {% else %}
       {% if log.processing %}
