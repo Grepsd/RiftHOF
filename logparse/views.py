@@ -170,7 +170,7 @@ def guild_log_show(request, id):
 	if log is None:
 		log = get_object_or_404(Log, id=id)
 		if log.processed:
-			cache.set("log_%d" % int(id), log, 86400)
+			cache.set("log_%d" % int(id), log, 60)
 	return render(request, 'log/show.html', {'log': log})
 
 @login_required
@@ -281,3 +281,32 @@ def log_list(request):
 		'logs':	log_list,
 	}
 	return render(request, 'log/list.html', data)
+
+@login_required
+def comment_post(request, object_type, object_id):
+	object_type_short= None
+	for short,o_type in comments_types:
+		if o_type == object_type:
+			object_type_short = short
+	c = Comment(object_type=object_type_short, object_id=object_id, user=request.user, comment=request.POST.get('comment'))
+	c.save()
+	if object_type == 'log':
+		return redirect('guild_log_show', object_id)
+	elif object_type == 'encounter':
+		return redirect('guild_log_encounter_show', object_id)
+	return redirect()
+
+@login_required
+def log_delete(request, log_id):
+	l = Log.objects.get(id=log_id)
+	if l.user == request.user:
+		l.delete()
+	return redirect('home')
+
+@login_required
+def log_rename(request, log_id):
+	l = Log.objects.get(id=log_id)
+	if l.user == request.user:
+		l.name = request.POST.get('name')
+		l.save()
+	return redirect('guild_log_show', l.id)

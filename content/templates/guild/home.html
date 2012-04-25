@@ -30,7 +30,7 @@
 						<tr>
 							<td><strong>{{ log.grouper }}</strong> : 
 							{% for log in log.list %}
-								<a href="{% url guild_log_show log.id %}">{{ log.upload_date.time }}</a>{% if forloop.last %}.{% else %},{% endif %}
+								<a href="{% url guild_log_show log.id %}">{% if log.name|length %}{{ log.name }} by {% endif %} {{ log.upload_date.time }}</a>{% if forloop.last %}.{% else %},{% endif %}
 							{% endfor %}</td>
 						</tr>
 					{% endfor %}

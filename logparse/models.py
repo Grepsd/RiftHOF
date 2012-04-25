@@ -64,6 +64,9 @@ class Guild(models.Model):
 			final.append(profile.user)
 		return final
 
+	def comments(self):
+		return Comment.objects.filter(object_type='g', object_id=self.id)
+
 
 
 class Character(models.Model):
@@ -121,6 +124,10 @@ class Log(models.Model):
 	start_processing_time= models.DateTimeField(null=True, blank=True)
 	end_processing_time =  models.DateTimeField(null=True, blank=True)
 	error 				= models.TextField(blank=True, null=True)
+	name 				= models.CharField(max_length=200, blank=True, null=True)
+
+	def comments(self):
+		return Comment.objects.filter(object_type='l', object_id=self.id)
 
 	def reset(self):
 		self.processed = False
@@ -169,6 +176,9 @@ class Encounter(models.Model):
 	cache 				= None
 
 	stats_cache			= None
+
+	def comments(self):
+		return Comment.objects.filter(object_type='e', object_id=self.id)
 
 	def day(self):
 		return self.log.day()
@@ -856,3 +866,19 @@ class GuildJoinRequest(models.Model):
 	guild 		= models.ForeignKey(Guild)
 	user 		= models.ForeignKey(User)
 	date 		= models.DateTimeField(auto_now_add=True)
+
+comments_types = (
+	('g',	'guild'),
+	('l',	'log'),
+	('e',	'encounter'),
+)
+
+class Comment(models.Model):
+	user 		= models.ForeignKey(User)
+	comment 	= models.TextField()
+	object_type = models.CharField(max_length=50, choices=comments_types)
+	object_id 	= models.IntegerField()
+	time 		= models.DateTimeField(auto_now_add=True)
+
+	class Meta:
+		ordering 	= ['-id']

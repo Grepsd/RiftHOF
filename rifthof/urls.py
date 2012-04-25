@@ -33,6 +33,8 @@ urlpatterns += i18n_patterns('',
     url(r'^log/upload$', 		    'logparse.views.guild_log_upload', 		name='guild_log_upload'),
     url(r'^log/(\d+)$',             'logparse.views.guild_log_show',        name='guild_log_show'),
     url(r'^log/list/$',             'logparse.views.log_list',              name='log_list'),
+    url(r'^log/delete/(\d+)$',      'logparse.views.log_delete',            name='log_delete'),
+    url(r'^log/rename/(\d+)$',      'logparse.views.log_rename',            name='log_rename'),
 
     url(r'^encounter/(\d+)$',       'logparse.views.guild_log_encounter_show',name='guild_log_encounter_show'),
     url(r'^encounter/(\d+)/(\d+)$', 'logparse.views.actor_show_detail',     name='actor_show_detail'),
@@ -44,6 +46,9 @@ urlpatterns += i18n_patterns('',
     url(r'^api/guild/list$', 		'logparse.views.api_guild_list', 		name='api_guild_list'),
     url(r'^api/guild/checkname$',   'logparse.views.api_guild_checkname',	name='api_guild_checkname'),
     url(r'^api/guild/log/check/(\d+)$','logparse.views.api_log_check_status',name='api_log_check_status'),
+
+    url(r'^comment/post/(\S+)/(\d+)$','logparse.views.comment_post',          name='comment_post'),
+
 
 
     url(r'^dashboard/logs/$','logparse.views.dashboard_logs_show',          name='dashboard_logs_show'),

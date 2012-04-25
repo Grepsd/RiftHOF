@@ -607,6 +607,22 @@
         <br />
       </div>
     </div>
-    <a href="{% url guild_log_show encounter.log.id %}"><span class="btn btn-success">< < {% trans "Back" %}</span></a>
     {% endcache %}
+
+      <h2>Comments</h2>
+      {% for comment in encounter.comments %}
+        <div class="alert">
+          <span class="label label-info">by {{ comment.user.username }} {{ comment.time|naturaltime }}</span>
+          
+          {{ comment.comment }}
+      </div>
+      {% endfor %}
+      <form action="{% url comment_post "encounter" encounter.id %}" method="post">
+        {% csrf_token %}
+        <textarea style="width: 300px" rows="3" name="comment"></textarea><br />
+        <input type="submit" class="btn btn-primary" value="comment" />
+      </form>
+
+      <hr>
+    <a href="{% url guild_log_show encounter.log.id %}"><span class="btn btn-success">< < {% trans "Back" %}</span></a>
 {% endblock %}
