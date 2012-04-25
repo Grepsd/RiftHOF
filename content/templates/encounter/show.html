@@ -581,7 +581,7 @@
             {% for stats in encounter.stats.npc_all_tops|dictsortreversed:"damages_original" %}
               <tr>
                 {% if stats.damages_id > 0 %}
-                  <td>{{ stats.name }} ({{ stats.damages_count }})</td>
+                  <td><a href="{% url actor_show_detail encounter.id stats.damages_id %}">{{ stats.name }} ({{ stats.damages_count }})</a></td>
                 {% else %}
                   <td>{% trans stats.name %}</td>
                 {% endif %}

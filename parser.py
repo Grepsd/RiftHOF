@@ -688,6 +688,9 @@ class Parser:
 			os.rename(tmp_path + fname, tmp_path + 'CombatLog.txt')
 		return True
 
+	def delete_file(self):
+		os.remove(settings.MEDIA_ROOT + '/combat_logs/%d/' % self.log_id + 'CombatLog.txt')
+
 
 	"""
 		Parse the file.
@@ -745,6 +748,8 @@ class Parser:
 					if self.boss is not None:
 						self.save_encounter(full)
 		#print self.boss, (self.last_otime - self.start_time).total_seconds(), self.get_encounters()
+		if full:
+			self.delete_file()
 		return True
 
 	def get_encounters(self):
