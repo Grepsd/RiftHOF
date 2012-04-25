@@ -25,7 +25,7 @@
           {% endif %}
 	</script>
 	{% if not log.processed %}
-    {% if log.error|length > 1 %}
+    {% if log.error|length %}
       <div class="alert alert-error">
         {% blocktrans %}
           An error occured while parsing your log file.<br />
@@ -36,7 +36,7 @@
       </div>
     {% else %}
       {% if log.processing %}
-    		<div class="alert alert-error">
+    		<div class="alert alert-success">
     			<p>{% blocktrans %}The log is currently being processed, wait until it's finished.{% endblocktrans %}</p>
     			<p>{% blocktrans %}This page will refresh automatically until the log is processed.{% endblocktrans %}</p>
     			<p class="center">
@@ -44,7 +44,7 @@
     			</p>
     		</div>
       {% else %}
-        <div class="alert alert-error">
+        <div class="alert alert-info">
           <p>{% blocktrans %}This log hasn't been processed yet.{% endblocktrans %}</p>
           <p>{% blocktrans %}The log will be processed as soon as possible.{% endblocktrans %}</p>
           <p class="center">
