@@ -4,7 +4,7 @@
 {% load logparse_tpl_filters %}
 {% load cache %}
 {% block "content" %}
-  {% cache 86400 encounter_actor actor.id actor.encounter.id %}
+  {#% cache 86400 encounter_actor actor.id actor.encounter.id %#}
     {% regroup detailed_by_actor_stats by actor_id as actor_stats %}
   	<script type="text/javascript">
         {% with timeline_array=timeline|dictsort:"time" %}
@@ -197,7 +197,7 @@
       <tbody>
         {% for stat in detailed_total_stats %}
           <tr{% if stat.skill_name == 'Total' %} class="bold"{% endif %}>
-            <td>{{ stat.skill_name }}</td>
+            <td><a href="" data-rift="ability={{ stat.skill_id }}">{{ stat.skill_name }}</a></td>
             <td>{{ stat.hits }}</td>
             <td>{% widthratio stat.hits stat.hits_count 1 %} / {{ stat.max_hits }}</td>
             <td>{% widthratio stat.hits encounter_stats.duration 1 %}</td>
@@ -246,7 +246,7 @@
           </tr>
         {% else %}
           <tr>
-            <td>{{ stat.skill_name }}</td>
+            <td><a href="" data-rift="ability={{ stat.skill_id }}">{{ stat.skill_name }}</a></td>
             <td>{{ stat.hits }}</td>
             <td>{% widthratio stat.hits encounter_stats.duration 1 %}</td>
             <td>{% widthratio stat.hits stats2.0.hits 100 %}%</td>
@@ -292,7 +292,7 @@
                 <tbody>
                     {% for stat in actor.list %}
                       <tr{% if stat.skill_name == 'Total' %} class="bold"{% endif %}>
-                        <td>{{ stat.skill_name }}</td>
+                        <td><a href="" data-rift="ability={{ stat.skill_id }}">{{ stat.skill_name }}</a></td>
                         <td>{{ stat.hits }}</td>
                         <td>{% widthratio stat.hits encounter_stats.duration 1 %}</td>
                         <td>{% widthratio stat.hits stats.done.hits 100 %}%</td>
@@ -331,7 +331,7 @@
                 <tbody>
                     {% for stat in actor.list %}
                       <tr{% if stat.skill_name == 'Total' %} class="bold"{% endif %}>
-                        <td>{{ stat.skill_name }}</td>
+                        <td><a href="" data-rift="ability={{ stat.skill_id }}">{{ stat.skill_name }}</a></td>
                         <td>{{ stat.hits }}</td>
                         <td>{% widthratio stat.hits encounter_stats.duration 1 %}</td>
                         <td>{% widthratio stat.hits stats.done.hits 100 %}%</td>
@@ -373,7 +373,7 @@
             <tbody>
             {% for skill in pov.list|dictsortreversed:"total_duration" %}
               <tr>
-                <td>{{ skill.name }}</td>
+                <td><a href="" data-rift="ability={{ skill.skill_id }}">{{ skill.name }}</a></td>
                 <td>{% trans skill.type_buff %}</td>
                 <td>{{ skill.actor2_name }}</td>
                 <td>{{ skill.total_duration|secs }}</td>
@@ -388,5 +388,5 @@
     </div>
 
       <h2>{% trans pov.grouper %}</h2>
-  {% endcache %}
+  {#% endcache %#}
 {% endblock %}
