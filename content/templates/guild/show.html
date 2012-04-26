@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load humanize %}
+{% block "content" %}
+	<h2>{{ guild.name }}</h2>
+	{% if user.get_profile.guild = guild %}
+		<span class="label label-success">You're part of {{ guild.name }}</span>
+	{% else %}
+		<span class="label label-error">You're not part of {{ guild.name }}</span>
+	{% endif %}
+	<h2>Members</h2>
+	{% for member in guild.members %}
+		{{ member.username }}{% if forloop.last %}.{% else %}, {% endif %}
+	{% endfor %}
+
+	<h2>Raids</h2>
+	{% regroup logs by upload_date.date as log_list %}
+	{% for log_by_day in log_list %}
+		<h3>{{ log_by_day.grouper }}</h3>
+		{% for log in log_by_day.list %}
+			<a class="label label-success" href="{% url guild_log_show log.id %}"><span class="icon-zoom-in"></span> View {% if log.name|length %}{{ log.name }}{% endif %}</a> [ {{ log.upload_date.time }} ] ({{ log.upload_date|naturaltime }})<br />
+		{% endfor %}
+	{% endfor %}
+	<div class="pagination">
+	    <span class="step-links">
+	        {% if logs.has_previous %}
+	            <a href="?page={{ logs.previous_page_number }}">previous</a>
+	        {% endif %}
+
+	        <span class="current">
+	            Page {{ logs.number }} of {{ logs.paginator.num_pages }}.
+	        </span>
+
+	        {% if logs.has_next %}
+	            <a href="?page={{ logs.next_page_number }}">next</a>
+	        {% endif %}
+	    </span>
+	</div>
+	
+{% endblock %}

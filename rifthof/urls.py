@@ -22,6 +22,7 @@ urlpatterns += i18n_patterns('',
 
 
     url(r'^guild$', 				'logparse.views.guild_home', 			name='guild_home'),
+    url(r'^guild/(\d+)/([^\/]+)$',  'logparse.views.guild_show',            name='guild_show'),
     url(r'^guild/list$',            'logparse.views.guild_list',            name='guild_list'),
     url(r'^guild/join/(\d+)$',      'logparse.views.guild_join',            name='guild_join'),
     url(r'^guild/request/deny/(\d+)$','logparse.views.guild_join_request_deny',name='guild_join_request_deny'),

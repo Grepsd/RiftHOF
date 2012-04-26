@@ -310,3 +310,24 @@ def log_rename(request, log_id):
 		l.name = request.POST.get('name')
 		l.save()
 	return redirect('guild_log_show', l.id)
+
+@login_required
+def guild_show(request, guild_id, guild_name):
+	guild 	= get_object_or_404(Guild, id=guild_id)
+	if request.user.is_staff:
+		logs 	= Log.objects.all().order_by('-id')
+	else:
+		logs 	= Log.objects.filter(Q(private=False) | (Q(guild=request.user.get_profile().guild))).order_by('-id')
+	paginator= Paginator(logs, 25)
+	page 	= request.GET.get('page')
+	try:
+		log_list = paginator.page(page)
+	except PageNotAnInteger:
+		log_list = paginator.page(1)
+	except EmptyPage:
+		log_list = paginator.page(paginator.num_pages)
+	data 	= {
+		'guild':	guild,
+		'logs':		log_list,
+	}
+	return render(request, 'guild/show.html', data)

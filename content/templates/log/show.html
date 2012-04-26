@@ -55,7 +55,7 @@
     {% endif %}
 	{% else %}
     {#% cache 86400 log log.id %#}
-      <h1>{% if log.name|length %}{{ log.name }} by {% endif %}[{{ log.upload_date }}] by {{ log.guild.name }}</h1>
+      <h1>{% if log.name|length %}{{ log.name }} by {% endif %}[{{ log.upload_date }}] by <a href="{% url guild_show log.guild.id log.guild.name %}">{{ log.guild.name }}</a></h1>
       <table class="table">
         {% regroup log.encounters by boss.raid as by_raid %}
         {% for raid in by_raid %}
