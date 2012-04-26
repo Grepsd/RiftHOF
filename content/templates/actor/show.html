@@ -214,53 +214,43 @@
     </table>
 
     <h3>{% trans "Received" %}</h3>
-
-    <table class="table table-condensed table-bordered tablesorter" id="detailed_stats_by_skill_received">
+      
+    {% with stats2=detailed_total_stats_received|dictsortreversed:"hits" %}
+    <table class="table table-condensed table-bordered tablesorter" id="detailed_stats_by_skill">
       <thead>
         <tr>
           <th style="width: 20%;">{% trans "Skill Name" %}</th>
-          <th style="width: 10%;">{% trans "Damage" %}</th>
-          <th style="width: 10%;">{% trans "DPS" %}</th>
-          <th style="width: 10%;">{% trans "% DPS" %}</th>
-          <th style="width: 10%;">{% trans "% Crit" %}</th>
-          <th style="width: 10%;">{% trans "Heals" %}</th>
-          <th style="width: 10%;">{% trans "HPS" %}</th>
-          <th style="width: 10%;">{% trans "% HPS" %}</th>
-          <th style="width: 10%;">{% trans "% Heal Crits" %}</th>
+          <th style="width: 8%;">{% trans "Damage" %}</th>
+          <th style="width: 8%;">{% trans "Avg/Max" %}</th>
+          <th style="width: 8%;">{% trans "DPS" %}</th>
+          <th style="width: 8%;">{% trans "% DPS" %}</th>
+          <th style="width: 8%;">{% trans "Rate (Crits/Total)" %}</th>
+          <th style="width: 8%;">{% trans "Heals" %}</th>
+          <th style="width: 8%;">{% trans "Max Heals" %}</th>
+          <th style="width: 8%;">{% trans "HPS" %}</th>
+          <th style="width: 8%;">{% trans "% HPS" %}</th>
+          <th style="width: 8%;">{% trans "Crits" %}</th>
         </tr>
       </thead>
-      {% with stats2=detailed_total_stats_received|dictsortreversed:"hits" %}
       <tbody>
         {% for stat in stats2 %}
-          {% if stat.skill_name == 'Total' %}
-          <tr class="bold">
-            <td>{{ stat.skill_name }}</td>
-            <td>{{ stat.hits }}</td>
-            <td>{% widthratio stat.hits encounter_stats.duration 1 %}</td>
-            <td>100%</td>
-            <td>{% widthratio stat.critical_hits_count stat.hits_count 100 %}%</td>
-            <td>{{ stat.heals }}</td>
-            <td>{% widthratio stat.heals encounter_stats.duration 1 %}</td>
-            <td>100%</td>
-            <td>{% widthratio stat.critical_heals_count stat.heals_count 100 %}% ({{ stat.critical_heals_count }}/{{ stat.heals_count }})</td>
-          </tr>
-        {% else %}
-          <tr>
+          <tr{% if stat.skill_name == 'Total' %} class="bold"{% endif %}>
             <td><a href="" data-rift="ability={{ stat.skill_id }}">{{ stat.skill_name }}</a></td>
             <td>{{ stat.hits }}</td>
+            <td>{% widthratio stat.hits stat.hits_count 1 %} / {{ stat.max_hits }}</td>
             <td>{% widthratio stat.hits encounter_stats.duration 1 %}</td>
-            <td>{% widthratio stat.hits stats2.0.hits 100 %}%</td>
-            <td>{% widthratio stat.critical_hits_count stats2.0.hits_count 100 %}%</td>
+            <td>{% if stat.skill_name == 'Total' %}100{% else %}{% widthratio stat.hits stats.done.hits 100 %}{% endif %}%</td>
+            <td>{% widthratio stat.critical_hits_count stat.hits_count 100 %}% ({{ stat.critical_hits_count }}/{{ stat.hits_count }})</td>
             <td>{{ stat.heals }}</td>
+            <td>{% widthratio stat.heals stat.heals_count 1 %} / {{ stat.max_heals }} ({{ stat.heals_count }})</td>
             <td>{% widthratio stat.heals encounter_stats.duration 1 %}</td>
-            <td>{% widthratio stat.heals stats2.0.heals 100 %}%</td>
+            <td>{% widthratio stat.heals stats.done.heals 100 %}%</td>
             <td>{% widthratio stat.critical_heals_count stat.heals_count 100 %}% ({{ stat.critical_heals_count }}/{{ stat.heals_count }})</td>
           </tr>
-        {% endif %}
         {% endfor %}
-      {% endwith %}
       </tbody>
     </table>
+    {% endwith %}
 
     <h2>{% trans "Detail by actor, skill" %}</h2>
 
