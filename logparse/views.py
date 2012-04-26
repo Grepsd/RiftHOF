@@ -315,9 +315,9 @@ def log_rename(request, log_id):
 def guild_show(request, guild_id, guild_name):
 	guild 	= get_object_or_404(Guild, id=guild_id)
 	if request.user.is_staff:
-		logs 	= Log.objects.all().order_by('-id')
+		logs 	= Log.objects.filter(guild=guild).order_by('-id')
 	else:
-		logs 	= Log.objects.filter(Q(private=False) | (Q(guild=request.user.get_profile().guild))).order_by('-id')
+		logs 	= Log.objects.filter((Q(private=False) | (Q(guild=request.user.get_profile().guild))) & (Q(guild=guild))).order_by('-id')
 	paginator= Paginator(logs, 25)
 	page 	= request.GET.get('page')
 	try:
