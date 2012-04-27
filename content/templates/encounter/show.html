@@ -3,7 +3,7 @@
 {% load i18n cache %}
 {% load logparse_tpl_filters %}
 {% block "content" %}
-  {% cache 600 encounter encounter.id %}
+  {#% cache 600 encounter encounter.id %#}
     <script type="text/javascript">
       $(function () {
         var chart;
@@ -488,6 +488,111 @@
                 {% endif %}
               {% endfor %}]
           });
+
+
+          accumulated_dps = new Highcharts.Chart({
+
+            chart: {
+                  renderTo: 'accumulated_dps',
+                  type: 'spline'
+              },
+
+              title: {
+                  text: 'Timeline'
+              },
+              xAxis: {
+                  categories: [{% for time in encounter.stats.get_timeline.total|dictsort:"time" %}'{{ time.time|secs }}',{% endfor %}],
+                  tickInterval: 6,
+                  plotBands: [
+                    {% for buff in encounter.stats.get_important_buffes %}
+                      {% if buff.render == 'band' %}
+                        {
+                          from: {{ buff.from }} / 5,
+                          to:   {{ buff.to }} / 5,
+                          {% if buff.color %}
+                            color: '{{ buff.color }}',
+                          {% else %}
+                            color: '{% if buff.skill_d == 766317719 %}#CEF{% else %}#FEC{% endif %}',
+                          {% endif %}
+                          {% if buff.display or buff.display_player %}
+                            label: {
+                                text: '{% if buff.display %}{{ buff.skill }}{% endif %} {% if buff.display_player %}{{ buff.player }}{% endif %}',
+                                rotation: 90,
+                            },
+                          {% endif %}
+                        },
+                      {% endif %}
+                    {% endfor %}
+                  ],
+                  plotLines: [
+                    {% for death in encounter.stats.get_deathlog %}
+                      {
+                          value : {{ death.time }} / 5,
+                          color: '#A00',
+                          width: 1,
+                          label: {
+                            text: '{{ death.player }}',
+                            rotation: 90,
+                          },
+                           zindex: 10,
+                      },
+                    {% endfor %}
+                    {% for r in encounter.stats.get_rez %}
+                      {
+                          value : {{ r.time }} / 5,
+                          color: '#0A0',
+                          width: 1,
+                          label: {
+                            text: '{{ r.player }}',
+                            rotation: 90,
+                          },
+                           zindex: 10,
+                      },
+                    {% endfor %}
+                    ],
+              },
+
+              yAxis: {
+                  title: {
+                      text: 'DPS/HPS'
+                  },
+                  labels: {
+                      formatter: function() {
+                          return this.value
+                      }
+                  },
+                  min: 0,
+                  plotLines: [
+                  ],
+              },
+
+              tooltip: {
+                  crosshairs: true,
+                  shared: true
+              },
+
+              plotOptions: {
+                spline: {
+                  marker: {
+                    enabled: false,
+                  }
+                }
+              },
+
+
+
+
+              series: [
+              {% for actor, timeline_actor in encounter.stats.get_timeline.items %}
+                {% if actor != "total" %}
+                {
+                    name: '{{ actor|escapejs }}',
+                    data: [{% for stats in timeline_actor|dictsort:"time" %}{% widthratio stats.accumulated.done.hits stats.time 1 %},{% endfor %}],
+                    visible: {% if forloop.counter0 > 2 %}false{% else %}true{% endif %},
+                },
+                {% endif %}
+              {% endfor %}]
+          });
         });
       });
       </script>
@@ -502,6 +607,7 @@
       <li><a href="#taken_chart" data-toggle="tab">{% trans "Taken" %}</a></li>
       <li><a href="#timeline_by_actor" data-toggle="tab">{% trans "DPS By Actor" %}</a></li>
       <li><a href="#timeline_by_actor_heals" data-toggle="tab">{% trans "HPS By Actor" %}</a></li>
+      <li><a href="#accumulated_dps" data-toggle="tab">{% trans "Accumulated DPS" %}</a></li>
     </ul>
 
     <div class="tab-content">
@@ -511,6 +617,7 @@
       <div class="tab-pane" id="taken_chart" style="min-width: 1100px;"></div>
       <div class="tab-pane" id="timeline_by_actor" style="min-width: 1100px;"></div>
       <div class="tab-pane" id="timeline_by_actor_heals" style="min-width: 1100px;"></div>
+      <div class="tab-pane" id="accumulated_dps" style="min-width: 1100px;"></div>
     </div>
 
     <br />
@@ -607,7 +714,7 @@
         <br />
       </div>
     </div>
-    {% endcache %}
+    {#% endcache %#}
 
       <h2>Comments</h2>
       {% for comment in encounter.comments %}

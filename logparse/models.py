@@ -475,7 +475,7 @@ class EncounterStats(models.Model):
 					for key, value in p.items():
 						if key is not 'name':
 							a['taken_%s' % key] = value
-		print result
+		
 		return result
 
 	def get_timeline(self, id_obj=None, by_actor=False):
@@ -536,8 +536,6 @@ class EncounterStats(models.Model):
 				timeline[actor_name][time]['received']['hits'] 		+= stat['received']['hits']
 				timeline[actor_name][time]['received']['heals'] 	+= stat['received']['heals']
 				
-				
-				
 				timeline['total'][time][tmp]['done']['hits'] 		+= stat['done']['hits']
 				timeline['total'][time][tmp]['done']['heals']	 	+= stat['done']['heals']
 				timeline['total'][time][tmp]['received']['hits'] 	+= stat['received']['hits']
@@ -549,8 +547,23 @@ class EncounterStats(models.Model):
 				if actor not in final:
 					final[actor] = []
 				stats['time'] = time
-				final[actor].append(stats)
+				if 'accumulated' not in stats:
+					stats['accumulated'] = deepcopy(stats)
+					if actor != 'total':
+						for t in final[actor]:
+							if t['time'] > time:
+								t['accumulated']['done']['hits'] 			+= stats['done']['hits']
+								t['accumulated']['done']['heals'] 			+= stats['done']['heals']
+								t['accumulated']['received']['hits'] 		+= stats['received']['hits']
+								t['accumulated']['received']['heals']		+= stats['received']['heals']
+							else:
+								stats['accumulated']['done']['hits'] 		+= t['done']['hits']
+								stats['accumulated']['done']['heals'] 		+= t['done']['heals']
+								stats['accumulated']['received']['hits'] 	+= t['received']['hits']
+								stats['accumulated']['received']['heals']	+= t['received']['heals']
 
+
+				final[actor].append(stats)
 		return final
 
 	def get_timeline_by_actor(self):
