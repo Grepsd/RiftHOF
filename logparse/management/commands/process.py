@@ -14,7 +14,7 @@ class Command(BaseCommand):
         self.trash_olds()
         l = Log.objects.filter(processing=True).count()
         if l < settings.MAX_PROCESSING:
-            todo_list = Log.objects.filter(Q(processing=False), Q(processed=False), Q(error__isnull=True) | Q(error=""))
+            todo_list = Log.objects.filter(Q(processing=False), Q(processed=False), Q(error__isnull=True) | Q(error="") | Q(start_processing_time__lt=datetime.now() - timedelta(hours=1)))
             try:
                 log = todo_list[0]
             except IndexError:
