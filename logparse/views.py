@@ -199,7 +199,6 @@ def ranking_boss(request, id):
 @login_required
 @user_passes_test(lambda u: u.is_active, login_url='/unauthorized')
 def actor_show_detail(request, id_encounter, id_obj):
-
 	#encounter 	= get_object_or_404(Encounter, id=int(id_encounter))
 	data 		= cache.get("encounter_%d_actor_%d" % (int(id_encounter), int(id_obj)))
 	if data is None:
@@ -252,7 +251,6 @@ def show_guild_try_boss(request, guild_id, boss_id, day, month, year):
 			boss=data['boss'], 
 			log__upload_date__gte=start_date, 
 			log__upload_date__lt=end_date)
-	print data
 	return render(request, 'boss/show_guild_try.html', data)
 
 @login_required

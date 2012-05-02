@@ -350,10 +350,6 @@ class Encounter:
 
 	def handle_damage_and_heal(self, action_type, source, target, amount, skill_id, is_crit):
 		time = self.line['time']
-
-		# does anything already happened at this $time in the timeline for the source (and then for the target)
-		self.get_actor_timeline(source, time)
-		self.get_actor_timeline(target, time)
 		
 		# add the value of this action in the timeline.
 		self.update_actor_timeline(time, source, target, action_type, amount)
@@ -834,6 +830,10 @@ class Parser:
 			target_primary_type = target_type_[0][-1]
 			target_registration = target_type_[1][-1]
 			target_id 			= target_type_[2]
+
+			tmp_source_pet_owner		= source_type.split('#')
+			if int(tmp_source_pet_owner[2]) != 0:
+				source_id = tmp_source_pet_owner[2]
 
 			is_attack 	= action in (3,23)
 			is_heal 	= action in (5,28)

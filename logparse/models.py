@@ -8,6 +8,7 @@ from django.conf import settings
 import pickle
 from django.core.cache import cache
 from copy import copy, deepcopy
+from pprint import pprint
 
 
 zones 	= (
@@ -307,6 +308,8 @@ class EncounterStats(models.Model):
 
 	rdata 				= None
 
+	timeline_cache 		= None
+
 	def __unicode__(self):
 		return "%d" % self.encounter.id
 
@@ -483,16 +486,21 @@ class EncounterStats(models.Model):
 		if by_actor is True:
 
 			return self.get_timeline_by_actor()
+
 		if id_obj is not None:
 
 			return self.get_actor_timeline(id_obj)
+
+		if self.timeline_cache is not None:
+			return self.timeline_cache
+
 		timeline = {'total': {}}
 
 		for actor, stats in self.rdata['stats']['actor'].items():
 			actor_name 	= self.rdata['actors'][actor]['name']
 
 			for time, stat in stats['timeline'].items():
-				time = int((time - self.rdata['start_time']).total_seconds() / 5) * 5
+				time = int((time - self.rdata['start_time']).total_seconds() / 5) * 5 + 5
 
 				tmp = 'npcs'
 				if actor in self.rdata['players']:
@@ -542,28 +550,36 @@ class EncounterStats(models.Model):
 				timeline['total'][time][tmp]['received']['heals'] 	+= stat['received']['heals']
 
 		final 	= {}
+		p 		= {}
 		for actor, values in timeline.items():
 			for time, stats in values.items():
 				if actor not in final:
 					final[actor] = []
 				stats['time'] = time
-				if 'accumulated' not in stats:
-					stats['accumulated'] = deepcopy(stats)
-					if actor != 'total':
-						for t in final[actor]:
-							if t['time'] > time:
-								t['accumulated']['done']['hits'] 			+= stats['done']['hits']
-								t['accumulated']['done']['heals'] 			+= stats['done']['heals']
-								t['accumulated']['received']['hits'] 		+= stats['received']['hits']
-								t['accumulated']['received']['heals']		+= stats['received']['heals']
-							else:
-								stats['accumulated']['done']['hits'] 		+= t['done']['hits']
-								stats['accumulated']['done']['heals'] 		+= t['done']['heals']
-								stats['accumulated']['received']['hits'] 	+= t['received']['hits']
-								stats['accumulated']['received']['heals']	+= t['received']['heals']
+				stats['accumulated'] = deepcopy(stats)
+				if actor != 'total':
+					if actor not in p:
+						p[actor] = 0
+					if 'done' not in stats:
+						print stats
+						raise Exception
+					p[actor] += stats['done']['hits']
+					for t in final[actor]:
+						if t['time'] > time:
+							t['accumulated']['done']['hits'] 			+= stats['done']['hits']
+							t['accumulated']['done']['heals'] 			+= stats['done']['heals']
+							t['accumulated']['received']['hits'] 		+= stats['received']['hits']
+							t['accumulated']['received']['heals']		+= stats['received']['heals']
+						else:
+							stats['accumulated']['done']['hits'] 		+= t['done']['hits']
+							stats['accumulated']['done']['heals'] 		+= t['done']['heals']
+							stats['accumulated']['received']['hits'] 	+= t['received']['hits']
+							stats['accumulated']['received']['heals']	+= t['received']['heals']
 
 
 				final[actor].append(stats)
+
+		self.timeline_cache = final
 		return final
 
 	def get_timeline_by_actor(self):
