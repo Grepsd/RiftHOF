@@ -729,7 +729,10 @@ class Parser:
 			# count read lines.
 			self.line_count += 1
 			# parse line.
-			parsed 	= self.parse_line(line, full)
+			try:
+				parsed 	= self.parse_line(line, full)
+			except Exception:
+				pass
 		
 		# if we're at the end of an encounter, let's do the saving and cleaning.
 		if not self.combat_status and self.in_combat and self.last_attack is not None:
