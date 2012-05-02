@@ -116,7 +116,7 @@ class Boss(models.Model):
 class Log(models.Model):
 	guild 				= models.ForeignKey(Guild)
 	log_file 			= models.FileField(upload_to='combat_logs')
-	upload_date			= models.DateTimeField(auto_now=True)
+	upload_date			= models.DateTimeField(auto_now_add=True)
 	processing_date 	= models.DateTimeField(null=True, blank=True)
 	processed 			= models.BooleanField(default=False)
 	private 			= models.BooleanField(default=False)

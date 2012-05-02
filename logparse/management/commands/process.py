@@ -20,6 +20,11 @@ class Command(BaseCommand):
             except IndexError:
                 print "nothing to do"
                 return
+            print log.upload_date, log.error
+            if log.upload_date < datetime.utcnow().replace(tzinfo=utc) - timedelta(days=7) and len(log.error) > 1:
+                log.delete()
+                print "deleting log %d" % log.id
+                return
             print "Processing log %d" % log.id
             start_time                  = datetime.utcnow().replace(tzinfo=utc)
             log.start_processing_time   = start_time

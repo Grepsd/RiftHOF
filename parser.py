@@ -842,6 +842,29 @@ class Parser:
 			print line, d
 			raise e
 
+		overheal= 0
+		block 	= 0
+		absorb 	= 0
+
+		if line[len(line) - 1] == ')':
+			l = line.rindex('(')
+			ll= line.rindex(')')
+			extra = line[l+1:ll]
+			extra_p= re.findall('(\d+)\s([^\d]+)', extra)
+			if len(extra_p) > 0:
+				for extra_tmp in extra_p:
+					t_amount = int(extra_tmp[0])
+					
+					if re.search('(soins|overheal)', extra_tmp[1]):
+						#print "OVER HEAL %d" % t_amount
+						overheal = t_amount
+					elif re.search('absorb', extra_tmp[1]):
+						#print "ABSORB %d" % t_amount
+						absorb = t_amount
+					elif re.search('(block|bloqu)', extra_tmp[1]):
+						#print "BLOCK %d" % t_amount
+						block = t_amount
+
 
 		line_data 	= {
 			'action':		action,
@@ -865,7 +888,10 @@ class Parser:
 			'source_registration': source_registration,
 			'target_id':	target_id,
 			'target_primary_type': target_primary_type,
-			'target_registration': target_registration
+			'target_registration': target_registration,
+			'overheal':		overheal,
+			'absorb':		absorb,
+			'block':		block,
 		}
 
 		if line_data['source_name'] not in self.actors:
