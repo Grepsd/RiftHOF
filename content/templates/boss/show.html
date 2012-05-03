@@ -2,7 +2,7 @@
 {% load humanize i18n %}
 {% block "content" %}
 	<h1>{% trans boss.name %}</h1>
-	{% regroup boss.public_encounters|dictsortreversed:"day" by day as encounters_by_date %}
+	{% regroup encounters|dictsortreversed:"day" by day as encounters_by_date %}
 	{% for encounters in encounters_by_date %}
 		<h3>{{ encounters.grouper }}</h3>
 		{% regroup encounters.list by guild as encounters_by_guild %}

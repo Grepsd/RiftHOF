@@ -235,7 +235,11 @@ def boss_list(request):
 
 def boss_show(request, boss_id):
 	boss = get_object_or_404(Boss, id=boss_id)
-	return render(request, 'boss/show.html', {'boss': boss})
+	if request.user.is_staff:
+		encounters 	= Encounter.objects.filter(boss=boss)
+	else:
+		encounters = Encounter.objects.filter(Q(boss=boss) & (Q(log__guild=request.user.get_profile().guild) | Q(private=False)))
+	return render(request, 'boss/show.html', {'boss': boss, 'encounters': encounters})
 
 def show_guild_try_boss(request, guild_id, boss_id, day, month, year):
 	start_date 	= date(int(year), int(month), int(day))

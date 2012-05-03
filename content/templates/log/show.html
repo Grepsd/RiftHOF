@@ -68,7 +68,7 @@
               {% for eee in e.list %}
                <a href="{% url guild_log_encounter_show eee.id %}">
                  <span class="{{ eee.wipe|yesno:"icon-remove,icon-ok" }}"></span> 
-                 <span class="{{ eee.wipe|yesno:"error,success" }} {{ eee.wipe|yesno:"bold" }}">
+                 <span class="{{ eee.wipe|yesno:"error,success bold" }} {{ eee.wipe|yesno:"bold" }}">
                     {{ eee.stats.duration|secs }}
                   </span>
                 </a>{% if forloop.last %}.{% else %},{% endif %}
