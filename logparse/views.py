@@ -186,7 +186,7 @@ def guild_log_encounter_show(request, id_encounter):
 	if data is None:
 		data 		= get_object_or_404(Encounter, id=int(id_encounter))
 		data.process_for_display()
-		cache.set("encounter_%d" % int(id_encounter), data, 86400)
+		cache.set("encounter_%d" % int(id_encounter), data, 60)
 
 
 	return render(request, 'encounter/show.html', {'encounter': data})
@@ -220,7 +220,7 @@ def actor_show_detail(request, id_encounter, id_obj):
 			'important_buffes': 			stats.get_actor_important_buffes(id_obj),
 			'actor_buffes':					stats.get_actor_buffes(id_obj),
 		}
-		cache.set("encounter_%d_actor_%d" % (int(id_encounter), int(id_obj)), data, 86400)
+		cache.set("encounter_%d_actor_%d" % (int(id_encounter), int(id_obj)), data, 60)
 
 	return render(request, 'actor/show.html', data)
 
