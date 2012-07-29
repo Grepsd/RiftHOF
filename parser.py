@@ -10,6 +10,7 @@ from django.conf import settings
 # boss list, this is temporary list which is working only for french bosses.
 # do need a list with the boss name in each languge we want to support
 bosses_list 	= {
+	'Lord Twyll':				'lord_twyll',
 	'Warboss Drak':				'warboss_drak',
 	'Chef de guerre Drak':		'warboss_drak',
 	'Maklamos The Scryer':		'maklamos',
