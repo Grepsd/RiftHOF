@@ -6,7 +6,7 @@
 	{% for raid in bosses %}
 		<h3>{% trans raid.grouper.name %}</h3>
 		{% for boss in raid.list|dictsort:"order" %}
-			<a href="{% url boss_show boss.id %}">{% trans boss.name %}</a>{% if forloop.last %}.{% else %}, {% endif %}
+			<a href="{% url 'boss_show' boss.id %}">{% trans boss.name %}</a>{% if forloop.last %}.{% else %}, {% endif %}
 		{% endfor %}
 	{% endfor %}
 {% endblock %}

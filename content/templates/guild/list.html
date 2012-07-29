@@ -17,7 +17,7 @@
 		<h3>{{ shard.grouper }}</h3>
 		<ul>
 			{% for guild in shard.list %}
-				<li>{{ guild.name }} <a href="{% url guild_join guild.id %}">join</a></li>
+				<li>{{ guild.name }} <a href="{% url 'guild_join' guild.id %}">join</a></li>
 			{% endfor %}
 		</ul>
 	{% endfor %}

@@ -5,7 +5,7 @@
 		function checkGuildNameAvailability(el)
 		{
 			$.ajax({
-				url: 	'{% url api_guild_checkname %}',
+				url: 	'{% url 'api_guild_checkname' %}',
 				data: 	{
 					name: el.value,
 				},
@@ -49,12 +49,12 @@
 
 			<p class="center">Do you want to quit it ?</p>
 			<p class="center">
-				<a href="{% url guild_quit %}"><span class="btn btn-danger">Quit</span></a>
+				<a href="{% url 'guild_quit' %}"><span class="btn btn-danger">Quit</span></a>
 			</p>
 		{% endif %}
 		<fieldset>
 			<legend>Join a guild</legend>
-			<form class="form form-vertical" action="{% url guild_create %}" method="post">
+			<form class="form form-vertical" action="{% url 'guild_create' %}" method="post">
 				{% csrf_token %}
 				<label for="shard" class="label">Shard : </label>
 				<select name="shard" id="shard" >

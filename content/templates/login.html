@@ -10,7 +10,7 @@
 
 	<textfield class="center">
 		<legend>Log to your account</legend>
-		<form method="post" action="{% url login %}" class="form form-vertical">
+		<form method="post" action="{% url 'login' %}" class="form form-vertical">
 			{% csrf_token %}
 				<div class="control-group">
 				    {{ form.username.label_tag }}

@@ -596,9 +596,9 @@
         });
       });
       </script>
-    <h2 class="center"><span class="{{ encounter.wipe|yesno:"icon-remove,icon-ok" }}"></span> <a href="{% url boss_show encounter.boss.id %}">{% trans encounter.boss.name %}</a> [{{ encounter.stats.duration|secs }}] by <a href="{% url guild_show encounter.log.guild.id encounter.log.guild.name %}">{{ encounter.log.guild.name }}</a> (from {{ encounter.stats.get_time.0.time }} to {{ encounter.stats.get_time.1.time }})</h2>
+    <h2 class="center"><span class="{{ encounter.wipe|yesno:"icon-remove,icon-ok" }}"></span> <a href="{% url 'boss_show' encounter.boss.id %}">{% trans encounter.boss.name %}</a> [{{ encounter.stats.duration|secs }}] by <a href="{% url 'guild_show' encounter.log.guild.id encounter.log.guild.name %}">{{ encounter.log.guild.name }}</a> (from {{ encounter.stats.get_time.0.time }} to {{ encounter.stats.get_time.1.time }})</h2>
 
-    <a href="{% url guild_log_show encounter.log.id %}"><span class="btn btn-success">< < {% trans "Back" %}</span></a><br /><br />
+    <a href="{% url 'guild_log_show' encounter.log.id %}"><span class="btn btn-success">< < {% trans "Back" %}</span></a><br /><br />
 
     <ul class="nav nav-tabs">
       <li class="active"><a href="#timeline" data-toggle="tab">{% trans "Timeline" %}</a></li>
@@ -650,7 +650,7 @@
             {% for stats in encounter.stats.all_tops|dictsortreversed:"damages_original" %}
               <tr id="tooltip_{{ stats.name }}">
                 {% if stats.damages_id > 0 %}
-                  <td><a href="{% url actor_show_detail encounter.id stats.damages_id %}" class="calling_{{ stats.damages_actor.calling }}">{{ stats.name }}</a></td>
+                  <td><a href="{% url 'actor_show_detail' encounter.id stats.damages_id %}" class="calling_{{ stats.damages_actor.calling }}">{{ stats.name }}</a></td>
                 {% else %}
                   <td>{% trans stats.name %}</td>
                 {% endif %}
@@ -688,7 +688,7 @@
             {% for stats in encounter.stats.npc_all_tops|dictsortreversed:"damages_original" %}
               <tr>
                 {% if stats.damages_id > 0 %}
-                  <td><a href="{% url actor_show_detail encounter.id stats.damages_id %}">{{ stats.name }} ({{ stats.damages_count }})</a></td>
+                  <td><a href="{% url 'actor_show_detail' encounter.id stats.damages_id %}">{{ stats.name }} ({{ stats.damages_count }})</a></td>
                 {% else %}
                   <td>{% trans stats.name %}</td>
                 {% endif %}
@@ -724,12 +724,12 @@
           {{ comment.comment }}
       </div>
       {% endfor %}
-      <form action="{% url comment_post "encounter" encounter.id %}" method="post">
+      <form action="{% url 'comment_post' "encounter" encounter.id %}" method="post">
         {% csrf_token %}
         <textarea style="width: 300px" rows="3" name="comment"></textarea><br />
         <input type="submit" class="btn btn-primary" value="comment" />
       </form>
 
       <hr>
-    <a href="{% url guild_log_show encounter.log.id %}"><span class="btn btn-success">< < {% trans "Back" %}</span></a>
+    <a href="{% url 'guild_log_show' encounter.log.id %}"><span class="btn btn-success">< < {% trans "Back" %}</span></a>
 {% endblock %}

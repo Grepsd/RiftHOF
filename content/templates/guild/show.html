@@ -18,7 +18,7 @@
 	{% for log_by_day in log_list %}
 		<h3>{{ log_by_day.grouper }}</h3>
 		{% for log in log_by_day.list %}
-			<a class="label label-success" href="{% url guild_log_show log.id %}"><span class="icon-zoom-in"></span> View {% if log.name|length %}{{ log.name }}{% endif %}</a> [ {{ log.upload_date.time }} ] ({{ log.upload_date|naturaltime }})<br />
+			<a class="label label-success" href="{% url 'guild_log_show' log.id %}"><span class="icon-zoom-in"></span> View {% if log.name|length %}{{ log.name }}{% endif %}</a> [ {{ log.upload_date.time }} ] ({{ log.upload_date|naturaltime }})<br />
 		{% endfor %}
 	{% endfor %}
 	<div class="pagination">

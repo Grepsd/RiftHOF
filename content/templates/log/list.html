@@ -3,7 +3,7 @@
 
 {% block "content" %}
 	{% for log in logs %}
-		<a href="{% url guild_log_show log.id %}">#{{ log.id }}</a> {{ log.guild.name }} uploaded {{ log.upload_date|naturaltime }}
+		<a href="{% url 'guild_log_show' log.id %}">#{{ log.id }}</a> {{ log.guild.name }} uploaded {{ log.upload_date|naturaltime }}
 		{% if log.private %} <span style="color: #A00;">[Private]</span> {% endif %}
 		{% if log.processing %} <span style="color: #C70;">Processing</span> {% elif log.processed %} <span style="color: #0A0;">Processed</span> {% elif log.error|length > 0 %} <strong>Error :</strong> "{{ log.error }}"{% endif %}
 		<br />

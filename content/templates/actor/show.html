@@ -111,7 +111,7 @@
     });
       {% endwith %}
   	</script>
-    {% url guild_log_encounter_show actor.encounter.id as url_fight %}
+    {% url 'guild_log_encounter_show' actor.encounter.id as url_fight %}
   	<h2>{% blocktrans with actor_name=actor.name url_fight=url_fight boss_name=actor.encounter.boss.name %}Details for {{ actor_name }} on <a href="{{ url_fight }}">{{ boss_name }}</a>'s fight{% endblocktrans %}</h2>
 
   	<table class="table center">

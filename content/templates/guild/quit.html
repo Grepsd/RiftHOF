@@ -6,7 +6,7 @@
 		{
 			console.log(el.value);
 			$.ajax({
-				url: '{% url api_guild_list %}',
+				url: '{% url 'api_guild_list' %}',
 				data: {
 					shard_id: el.value
 				},
@@ -24,7 +24,7 @@
 			Are you sure you want to quit your guild ?
 		</div>
 		<p class="center">
-			<a href="{% url guild_quit_act %}"><span class="btn btn-danger btn-large">Quit</span></a>
+			<a href="{% url 'guild_quit_act' %}"><span class="btn btn-danger btn-large">Quit</span></a>
 		</p>
 	{% else %}
 	{% endif %}

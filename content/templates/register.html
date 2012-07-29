@@ -5,7 +5,7 @@
 		<p>Welcome {{ new_user.username }}.</p>
 
 		<p>You can now login to you account :</p>
-		<p><a href="{% url login %}"><span class="btn btn-success">login</span></a></p>
+		<p><a href="{% url 'login' %}"><span class="btn btn-success">login</span></a></p>
 	{% else %}
 		{% if form.errors %}
 			<div class="alert alert-error">
@@ -13,7 +13,7 @@
 			</div>
 		{% endif %}
 		<table class="table">
-			<form action="{% url register %}" method="post" class="form">
+			<form action="{% url 'register' %}" method="post" class="form">
 				{% csrf_token %}
 				{{ form }}
 				<tr>

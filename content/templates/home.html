@@ -9,7 +9,7 @@
 			<div class="hero-unit">
 				<fieldset style="width: 100%" class="center">
 					<legend>{% trans "Upload your logs !" %}</legend>
-					<form action="{% url guild_log_upload %}" class="form form-inline" method="post" enctype="multipart/form-data">
+					<form action="{% url 'guild_log_upload' %}" class="form form-inline" method="post" enctype="multipart/form-data">
 					{% csrf_token %}
 						<label for="id_log_file" class="label">{% trans "Combat Log File" %} : </label> {{ log_form.log_file }}
 
@@ -24,7 +24,7 @@
 				<table class="table">
 					{% for log in guild.logs|dictsortreversed:"upload_date" %}
 						<tr>
-							<td><a href="{% url guild_log_show log.id %}">{% url guild_log_show log.id %}</a> {{ log.upload_date|naturaltime }}</td>
+							<td><a href="{% url 'guild_log_show' log.id %}">{% url 'guild_log_show' log.id %}</a> {{ log.upload_date|naturaltime }}</td>
 						</tr>
 					{% endfor %}
 				</table>
@@ -32,7 +32,7 @@
 		{% else %}
 			<div class="alert alert-error">
 				{% blocktrans %}Create or join a guild if you want to upload your logs.{% endblocktrans %}
-				<a href="{% url guild_create %}">{% blocktrans %}Create your guild{% endblocktrans %}</a> / <a href="{% url guild_list %}">{% blocktrans %}Join a guild{% endblocktrans %}</a>
+				<a href="{% url 'guild_create' %}">{% blocktrans %}Create your guild{% endblocktrans %}</a> / <a href="{% url 'guild_list' %}">{% blocktrans %}Join a guild{% endblocktrans %}</a>
 			</div>
 		{% endif %}
 	{% else %}
@@ -56,7 +56,7 @@
 			<ul>
 			{% for log in logs %}
 				<dl>
-					<a class="label label-success" href="{% url guild_log_show log.id %}"><span class="icon-zoom-in"></span>View <strong>{% if log.name|length %}{{ log.name }}</a> by {% else %}</a>{% endif %} - <a class="label label-info" href="{% url guild_show log.guild.id log.guild.name %}">{{ log.guild }}</a></strong> [{{ log.upload_date }}] ({{ log.upload_date|naturaltime }})
+					<a class="label label-success" href="{% url 'guild_log_show' log.id %}"><span class="icon-zoom-in"></span>View <strong>{% if log.name|length %}{{ log.name }}</a> by {% else %}</a>{% endif %} - <a class="label label-info" href="{% url 'guild_show' log.guild.id log.guild.name %}">{{ log.guild }}</a></strong> [{{ log.upload_date }}] ({{ log.upload_date|naturaltime }})
 				</dl>
 			{% endfor %}
 			</ul>
@@ -66,7 +66,7 @@
 					<ul>
 					{% for log in guild_logs %}
 						<dl>
-							<a class="label label-success" href="{% url guild_log_show log.id %}"><span class="icon-zoom-in"></span> View  <strong> {% if log.name|length %}{{ log.name }}</a> by {% else %}</a>{% endif %}- <a class="label label-info" href="{% url guild_show log.guild.id log.guild.name %}"> {{ log.guild }}</a></strong> [{{ log.upload_date }}] ({{ log.upload_date|naturaltime }})
+							<a class="label label-success" href="{% url 'guild_log_show' log.id %}"><span class="icon-zoom-in"></span> View  <strong> {% if log.name|length %}{{ log.name }}</a> by {% else %}</a>{% endif %}- <a class="label label-info" href="{% url 'guild_show' log.guild.id log.guild.name %}"> {{ log.guild }}</a></strong> [{{ log.upload_date }}] ({{ log.upload_date|naturaltime }})
 						</dl>
 					{% endfor %}
 					</ul>

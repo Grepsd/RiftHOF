@@ -7,7 +7,7 @@
 		<h3>{{ encounters.grouper }}</h3>
 		{% regroup encounters.list by guild as encounters_by_guild %}
 		{% for encounter in encounters_by_guild %}
-			<a href="{% url show_guild_try_boss encounter.grouper.id boss.id encounters.grouper.day encounters.grouper.month encounters.grouper.year %}">{{ encounter.grouper.name }}</a> {% if not forloop.last %}, 
+			<a href="{% url 'show_guild_try_boss' encounter.grouper.id boss.id encounters.grouper.day encounters.grouper.month encounters.grouper.year %}">{{ encounter.grouper.name }}</a> {% if not forloop.last %}, 
 			{% endif %}
 		{% endfor %}
 	{% endfor %}
